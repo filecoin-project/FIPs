@@ -13,13 +13,13 @@ Here is a short overview of each of these terms:
 *   Users and providers are not controlled or governed by powerful intermediaries (unlike markets like Uber or Airbnb).
 *   Activity is trustable (web3) through the public verifiability of operations and rational incentives.
 *   Refers to the decentralization movement of 2015+, including IPFS, Bitcoin, Ethereum, and more.
-*   Third parties cannot prevent willing participants from exchanging data and/or ayments for it.
+*   Third parties cannot prevent willing participants from exchanging data and/or payments for it.
 *   Filecoin uses cryptography, end-to-end encryption at rest, and incentives to secure information and network operation.
-    
+
 ### Efficient
 
-*   Make digital storage (space-time) a proper commodity with real markets
-*   Decouple digital storage from cloud computing moat featuresets -- turn storage market into a real market where any provider can sell their storage.
+*   Make digital storage (spacetime) a proper commodity with real markets
+*   Decouple digital storage from cloud computing moat feature sets -- turn storage market into a real market where any provider can sell their storage.
 *   Enable humanity to create an efficient digital storage market, with small margins and as close as we can get to physical limitations.
 *   Ensure efficient usage of digital storage resources -- reduce digital space waste (unused storage supply while prices are high enough to warrant using it).
 *   Drive more and more efficient usage of storage media.
@@ -39,12 +39,12 @@ Here is a short overview of each of these terms:
  *   The network is robust to changing market dynamics and powerful counter incentives -- meaning, it is rational to continue operating the network.
  *   The network is robust to network censorship attacks (given there exist willing storage providers).
  *   The network is robust to specific file censorship attacks (given there exist willing storage providers).
- *   The network is robust to catastrophic attacks (ie nuclear war, long-running internet partitions, etc).
+ *   The network is robust to catastrophic attacks (i.e., nuclear war, long-running internet partitions, etc.).
 
 ### Foundation
 
  *   Filecoin can be used as the foundation of other technologies and applications. It is a platform.
- *   Filecoin supports data storage intensive applications.
+ *   Filecoin supports data storage-intensive applications.
  *   Programs, Webapps, DApps, and smart contracts can be written to store and retrieve data from Filecoin efficiently, safely, and with high confidence.
  *   Filecoin is a trustable, dependable foundation for critical systems and applications.
  *   It becomes possible for parties to store information indefinitely (using rational incentives, and money), without having to be online or alive to renew or re-upload things.
