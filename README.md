@@ -9,6 +9,8 @@ Filecoin is a peer-to-peer network that stores files, with built-in economic inc
 
 In Filecoin, users pay to store their files on storage miners. Storage miners are computers responsible for storing files and proving they have stored the files correctly over time. Anyone who wants to store their files or get paid for storing other users’ files can join Filecoin. Available storage and pricing are not controlled by any single entity. Instead, Filecoin facilitates open markets for storing and retrieving files that anyone can participate in, thereby providing storage to billions of people who are currently locked out of the web. 
 
+For additional information, see the [Filecoin mission](https://github.com/filecoin-project/FIPs/blob/master/mission.md).
+
 
 ## Filecoin Design Principles
 
@@ -22,7 +24,7 @@ When making decisions about how to improve Filecoin, we will follow a set of pri
 
 ## Making changes to the Filecoin network
 
-Filecoin Improvement Proposals (FIPs) are the primary mechanism by which the Filecoin community can submit, discuss, and approve changes relevant to the Filecoin network. These discussions and decisions should be guided by the governance and design principles above.
+[Filecoin Improvement Proposals (FIPs)](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0001.md) are the primary mechanism by which the Filecoin community can submit, discuss, and approve changes relevant to the Filecoin network. These discussions and decisions should be guided by the governance and design principles above.
 
 FIPs are classified into four categories:
 
