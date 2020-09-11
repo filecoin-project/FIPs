@@ -3,10 +3,10 @@ Filecoin Improvement Proposals (FIPs) describe standards for the Filecoin platfo
 
 # Contributing
 
- 1. Review [FIP-1](FIPS/fip-1.md).
+ 1. Review [FIP-1](FIPS/fip-0001.md).
  2. Fork the repository by clicking "Fork" in the top right.
- 3. Add your FIP to your fork of the repository. There is a [template FIP here](fip-X.md).
- 4. Submit a Pull Request to Ethereum's [FIPs repository](https://github.com/filecoin-project/FIPs).
+ 3. Add your FIP to your fork of the repository. There are [template FIPs here](/templates).
+ 4. Submit a Pull Request to Filecoin's [FIPs repository](https://github.com/filecoin-project/FIPs).
 
 Your first PR should be a first draft of the final FIP. It must meet the formatting criteria enforced by the build (largely, correct metadata in the header). An editor will manually review the first PR for a new FIP and assign it a number before merging it. Make sure you include a `discussions-to` header with the URL to a discussion forum or open GitHub issue where people can discuss the FIP as a whole.
 
@@ -16,19 +16,18 @@ Once your first PR is merged, we have a bot that helps out by automatically merg
 
 When you believe your FIP is mature and ready to progress past the draft phase, you should do one of two things:
 
-TODO: core devs meeting? Where should these things be discussed?
- - **For a Standards Track FIP of type Core**, ask to have your issue added to [the agenda of an upcoming All Core Devs meeting](https://github.com/filecoin-project/pm/issues), where it can be discussed for inclusion in a future hard fork. If implementers agree to include it, the FIP editors will update the state of your FIP to 'Accepted'.
+ - **For a Standards Track FIP of type Core**, ask to have your issue added to [the agenda of an upcoming All Core Devs meeting](https://github.com/filecoin-project/tpm/issues), where it can be discussed for inclusion in a future chain upgrade. If implementers agree to include it, the FIP editors will update the state of your FIP to 'Accepted'.
  - **For all other FIPs**, open a PR changing the state of your FIP to 'Final'. An editor will review your draft and ask if anyone objects to its being finalised. If the editor decides there is no rough consensus - for instance, because contributors point out significant issues with the FIP - they may close the PR and request that you fix the issues in the draft before trying again.
 
 # FIP Status Terms
-* **Draft** - an FIP that is undergoing rapid iteration and changes.
-* **Last Call** - an FIP that is done with its initial iteration and ready for review by a wide audience.
-* **Accepted** - a core FIP that has been in Last Call for at least 2 weeks and any technical changes that were requested have been addressed by the author. The process for Core Devs to decide whether to encode an FIP into their clients as part of a hard fork is not part of the FIP process. If such a decision is made, the FIP wil move to final.
-* **Final (non-Core)** - an FIP that has been in Last Call for at least 2 weeks and any technical changes that were requested have been addressed by the author.
-* **Final (Core)** - an FIP that the Core Devs have decided to implement and release in a future hard fork or has already been released in a hard fork. 
-* **Deferred** - an FIP that is not being considered for immediate adoption. May be reconsidered in the future for a subsequent hard fork.
+* **Draft** - a FIP that is undergoing rapid iteration and changes.
+* **Last Call** - a FIP that is done with its initial iteration and ready for review by a wide audience.
+* **Accepted** - a core FIP that has been in Last Call for at least 2 weeks and any technical changes that were requested have been addressed by the author. The process for Core Devs to decide whether to encode a FIP into their clients as part of a hard fork is not part of the FIP process. If such a decision is made, the FIP wil move to final.
+* **Final (non-Core)** - a FIP that has been in Last Call for at least 2 weeks and any technical changes that were requested have been addressed by the author.
+* **Final (Core)** - a FIP that the Core Devs have decided to implement and release in a future chain upgrade or has already been released in a chain upgrade. 
+* **Deferred** - a FIP that is not being considered for immediate adoption. May be reconsidered in the future for a subsequent chain upgrade.
 
 # Preferred Citation Format
 
 TODO: 
-The canonical URL for a FIP that has achieved draft status at any point is at https://eips.ethereum.org/. For example, the canonical URL for ERC-165 is https://eips.ethereum.org/FIPS/eip-165.
+The canonical URL for a FIP that has achieved draft status at any point will be on the Filecoin website. For example, the canonical URL for FIP-00001 will be https://filecoin.io/TODO.
