@@ -4,7 +4,7 @@ title: <FIP title>
 author: <a list of the author's or authors' name(s) and/or username(s), or name(s) and email(s), e.g. (use with the parentheses or triangular brackets): FirstName LastName (@GitHubUsername), FirstName LastName <foo@bar.com>, FirstName (@GitHubUsername) and GitHubUsername (@GitHubUsername)>
 discussions-to: <URL>
 status: Draft
-type: <Standards Track (Core, Networking, Interface)  | Informational | Meta>
+type: <Technical (Core, Networking, Interface, Informational)  | Organizational | Recovery>
 category (*only required for Standard Track): <Core | Networking | Interface >
 created: <date created on, in ISO 8601 (yyyy-mm-dd) format>
 requires (*optional): <FIP number(s)>
