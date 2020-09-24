@@ -2,7 +2,7 @@
 fip: <to be assigned>
 title: Free Faults on Newly Faulted Sectors of a Missed WindowPoSt
 author: anorth (@anorth), davidad (@davidad), Evan (@miyazono), Irene (@irenegia), Luca (@lucaniz), Nicola (@nicola), ZX (@zixuanzh)
-discussions-to: <URL>
+discussions-to: https://github.com/filecoin-project/FIPs/issues/6
 status: Draft
 type: Technical
 created: 2020-09-24
