@@ -26,7 +26,7 @@ The title should be 44 characters or less.
 <!--A short (~200 word) description of the technical issue being addressed.-->
 A short (~200 word) description of the technical issue being addressed.
 
-## Problem Motivation
+## Change Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
 The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.
 
