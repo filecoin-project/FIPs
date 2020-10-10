@@ -7,6 +7,7 @@ status: Draft
 type: <Technical (Core, Networking, Interface, Informational)  | Organizational | Recovery>
 category (*only required for Standard Track): <Core | Networking | Interface >
 created: <date created on, in ISO 8601 (yyyy-mm-dd) format>
+spec-sec: Spec section(s) that the FIP is updating (comma-separated if more than one), displayed following the folder structure of the spec repository, e.g., for the mpool section it should be \<filecoin_blockchain__message_pool\>.
 requires (*optional): <FIP number(s)>
 replaces (*optional): <FIP number(s)>
 ---
