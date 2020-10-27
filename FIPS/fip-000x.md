@@ -2,7 +2,7 @@
 fip: <to be assigned>
 title: No repay debt requirement for DeclareFaultsRecovered
 author:  Nicola (@nicola), Irene (@irenegia)
-discussions-to: <URL>
+discussions-to: https://github.com/filecoin-project/FIPs/issues/21
 status: Draft
 type: Technical
 created: 2020-10-23
