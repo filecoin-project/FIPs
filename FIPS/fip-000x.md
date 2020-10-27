@@ -35,7 +35,7 @@ https://github.com/filecoin-project/specs-actors/blob/master/actors/builtin/mine
 The main motivation for this change is introducing the minimal change that allows miners in debt to recover storage faults in order to stop paying for penalties.
 
 ## Backwards Compatibility
- This change requires a actor upgrade.
+This change requires a network version increment to distinguish the old behaviour from the new. It does not change any state schemas or exported method signatures.
 
 ## Test Cases
 N/A
@@ -46,7 +46,7 @@ https://github.com/filecoin-project/specs-actors/blob/master/actors/builtin/mine
 
 
 ## Security Considerations
-After this change, a miner in fee debt continues to not be able to produce block and withdraw tokens from its available balance, so the possible actions and strategies for malicious miners are the same as in the current version of the protocol. In particular, a miner that does not recover from debt (ie, a miner that does not pay its fees) can make profit from the power registered in the power table because it is not eligible to mine blocks. 
+After this change, a miner in fee debt continues to not be able to produce new blocks or withdraw tokens from its available balance, so the possible actions and strategies for malicious miners are the same as in the current version of the protocol. In particular, a miner that does not recover from debt (ie, a miner that does not pay its fees) cannot make profit from the power registered in the power table because it is not eligible to mine blocks. 
 Miners that recover their faults are still not eligible until they recover from fee debt, this means that their power will still count towards the total power, and the average WinCount is reduced. Although this is not a new problem, this change could worsen the potential power inflation. We do not believe this is a risk for the protocol and this problem should be addressed separately with a new FIP (e.g. allowing miners in debt to miner or remove the power from the power table).
 
 ## Incentive Considerations
