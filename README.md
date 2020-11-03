@@ -28,7 +28,7 @@ When making decisions about how to improve Filecoin, we will follow a set of pri
 
 FIPs are classified into three categories:
 
-**Technical FIPs, or Filecoin Technical Proposals (FTPs)** are designed to gather community feedback on technical Filecoin issues. These include changes to the Filecoin protocol, a change in block or transaction validity rules, and proposed application standards or conventions. They are then reviewed by the Filecoin community and the technical steering committee.
+**Technical FIPs, or Filecoin Technical Proposals (FTPs)** are designed to gather community feedback on technical Filecoin issues. These include changes to the Filecoin protocol, a change in block or transaction validity rules, and proposed application standards or conventions. They are then reviewed by the Filecoin community and the technical steering committee. They are normally followed by a PR to the [Filecoin Specification repository](https://github.com/filecoin-project/specs) to update the protocol's spec.
 
 **Organizational FIPs, or Filecoin Organization Proposals (FOPs)** allow the Filecoin community to propose, discuss, and achieve consensus on Filecoin governance. This includes procedures, guidelines, decision-making processes, and changes to FIP processes.
 
