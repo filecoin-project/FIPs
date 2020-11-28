@@ -19,14 +19,13 @@ Improve the filecoin HAMT in terms of performance and safety with four smaller i
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
-The filecoin HAMT does unnecessary Puts and Gets while doing Set and Find operations.
-Sub proposal `A` eliminates these unnecessary operations improving performance of HAMT calls.
-The filecoin HAMT's pointer serialization can be modified to save 3 bytes and a small amount of de/encode time.
-Sub proposal `B` describes the more efficient serialization
-The filecoin HAMT node's bitfield serialization truncates bytes in a way that does not save much space but makes validation harder and implementation less simple.
-Sub proposal `C` is to write an untruncated bitfield of size `2^bitwidth` bits for all HAMT nodes
-The filecoin HAMT interface does provide any information on previous set values during a set call. This makes actors safety checks more expensive as they need to do an additional Get/Has.
-Sub proposal `D` is to add a method `SetIfAbsent` to the HAMT interface in order to do efficient existence checks during set.
+The filecoin HAMT does unnecessary Puts and Gets while doing Set and Find operations. Sub proposal `A` eliminates these unnecessary operations improving performance of HAMT calls.
+
+The filecoin HAMT's pointer serialization can be modified to save 3 bytes and a small amount of de/encode time. Sub proposal `B` describes the more efficient serialization.
+
+The filecoin HAMT node's bitfield serialization truncates bytes in a way that does not save much space but makes validation harder and implementation less simple. Sub proposal `C` is to write an untruncated bitfield of size `2^bitwidth` bits for all HAMT nodes.
+
+The filecoin HAMT interface does provide any information on previous set values during a set call. This makes actors safety checks more expensive as they need to do an additional Get/Has. Sub proposal `D` is to add a method `SetIfAbsent` to the HAMT interface in order to do efficient existence checks during set.
 
 ## Change Motivation
 
