@@ -15,7 +15,7 @@ specs-sections:
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 
-Improve the filecoin HAMT in terms of performance and safety with four smaller independent proposals.
+Improve the filecoin HAMT in terms of performance and safety with three smaller independent proposals.
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
@@ -24,8 +24,6 @@ The filecoin HAMT does unnecessary Puts and Gets while doing Set and Find operat
 The filecoin HAMT's pointer serialization can be modified to save 3 bytes and a small amount of de/encode time. Sub proposal `B` describes the more efficient serialization.
 
 The filecoin HAMT node's bitfield serialization truncates bytes in a way that does not save much space but makes validation harder and implementation less simple. Sub proposal `C` is to write an untruncated bitfield of size `2^bitwidth` bits for all HAMT nodes.
-
-The filecoin HAMT interface does provide any information on previous set values during a set call. This makes actors safety checks more expensive as they need to do an additional Get/Has. Sub proposal `D` is to add a method `SetIfAbsent` to the HAMT interface in order to do efficient existence checks during set.
 
 ## Change Motivation
 
@@ -36,10 +34,6 @@ These are unambiguous performance wins. We aren't trading anything off we are st
 * Truncation makes it hard to validating canonical block form. From @rvagg's original issue: "The current implementation will (probably) take an arbitrarily long byte array and turn it into a valid big.Int. It'll treat as valid a block that has a byte array 1000 long in the position for the bitfield (I believe big.Int can handle this kind of arbitrary size). But then it should round-trip it back out as just-long-enough if the block was re-serialized."
 * Truncation is not as simple as not doing truncation and this complexity is reflected in non-go code.
 * Impact on serialization size is small and not worth the complexity. From @rvagg's original issue: "The randomness of the hash algorithm means that the chances of setting the 32nd bit are the same as setting the 1st. There's no bias toward smaller bits built-in here. So we buy some compaction in the serialization by using this truncated format, but it's only going to get us so far in a HAMT that's got more than a few values in it."
-
-### D
-
-Checking key existance during a Set operation is a reasonable operation for code like specs-actors that is wants the safety of invariant checking and efficiency. In particular this interface extension is motivated by setting a sector precommit in the precommit map in the miner actor's PrecommitSector method.
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
@@ -89,9 +83,6 @@ This proposal is to (1) serialize all 2^bitwidth / 8 bytes of the bitmap of HAMT
 
 See the open go-hamt-ipld PR implementing this change [here](https://github.com/filecoin-project/go-hamt-ipld/pull/63/commits/7eb4d1d2b32ef9a6b5ff5327c8b3252a07ca2f09). This is likely a more involved change than other implementations will have since in golang this change requires moving from builtin big.Int to an explicit byte slice.
 
-### D
-This proposal is to create a new method `SetIfAbsent` which takes a string key and a cbor marshalable value and returns a boolean and an error. The boolean return should be true if the key is unset in the HAMT before calling `SetIfAbsent` and false otherwise.
-
 ## Design Rationale
 
 ### A & B
@@ -105,9 +96,6 @@ As the bytes added are small there is consensus that the simplicity and canonica
 
 To see more of the discussion look at the thread in the go-hamt-ipld issue [here](https://github.com/filecoin-project/go-hamt-ipld/issues/54)
 
-### D
-The go-hamt-ipld issue [here](https://github.com/filecoin-project/go-hamt-ipld/issues/75) examines several variants of the `SetIfAbsent` method. We could alternatively modify `Set` instead of adding a new call, however this would require changing every existing `Set` caller when moving to the new HAMT interface. Orthogonally we could also make the `Set`/`SetIfAbsent` interface more expressive either accepting a receiving parameter to fill with the previous value for a key as in `Get` or adding a callback parameter that could operate over the previous value for a key. These are reasonable changes but are more complex and the current motivating specs-actors use case does not need the additional expressiveness. They may make for good future changes.
-
 ## Backwards Compatibility
 
 ### A
@@ -115,9 +103,6 @@ This change is consensus breaking because it reduces the gas cost of HAMT Set an
 
 ### B & C
 These changes require modifying the serialized bytes of all HAMT nodes. This will require a state tree migration migrating all HAMT data.
-
-### D
-Adding this change to the HAMT is backwards compatible. Using it in actors code will require a network version upgrade.
 
 ## Test Cases
 
@@ -138,5 +123,3 @@ Sub proposal A implemented and optimistically merged to go-hamt-ipld [here](http
 Sub proposal B implemented and up for review in go-hamt-ipld [here](https://github.com/filecoin-project/go-hamt-ipld/pull/60)
 
 Sub proposal C implemented and up for review in go-hamt-ipld [here](https://github.com/filecoin-project/go-hamt-ipld/pull/63)
-
-Sub proposal D implementation pending
