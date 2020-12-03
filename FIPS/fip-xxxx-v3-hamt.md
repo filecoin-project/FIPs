@@ -79,8 +79,8 @@ These designs follow directly from understanding the inefficiencies of the curre
 
 ## Backwards Compatibility
 
-### A
-This change is consensus breaking because it reduces the gas cost of HAMT Set and possibly Find operations. So running HAMT code with this feature will not result in the same state transitions as the existing hamt code. Therefore this change requires a network version update.
+### A & C
+These changes are consensus breaking because they reduces the gas cost of HAMT Set and Find operations and AMT Set, Find and ForEach operations . So running HAMT and AMT code with this feature will not result in the same state transitions as in the existing protocol. Therefore this change requires a network version update.
 
 ### B
 This change requires modifying the serialized bytes of all HAMT nodes. This will require a state tree migration migrating all HAMT data.
