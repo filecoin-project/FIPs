@@ -35,13 +35,13 @@ The existing HAMT loads child tree nodes into in memory cache nodes located on H
 
 This proposal is to (1) track modification of nodes and only Flush these caches to the blockstore when the cache node has been modified (2) stop clearing cache nodes on Flush (3) Move all blockstore writes to occur on Flush.
 
-Concretely (1) can be achieved by adding a `dirty` flag as a sibling to the cahce node on the HAMT pointer. The flag defaults to false when a cache node is loaded for reading and set to true if a set or delete operation traverses through that node. Then during the Flush traversal, a cache node is written to the blockstore and its owning Pointer's Link field assigned to the cid of cache node only if the dirty flag is true at the time of Flush. Otherwise the cache node is skipped.
+Concretely (1) can be achieved by adding a `dirty` flag as a sibling to the cache node on the HAMT pointer. The flag defaults to false when a cache node is loaded for reading and set to true if a set or delete operation traverses through that node and modifies that node or one of its children. Then during the Flush traversal, a cache node is written to the blockstore and its owning Pointer's Link field assigned to the cid of cache node only if the dirty flag is true at the time of Flush. Otherwise the cache node is skipped.
 
 To achieve (2) implementations only need to stop clearing the cache nodes after flushing pointers during Flush.
 
 Finally for (3) implementations can simply add a new cache node when creating a new child node during bucket overflow and mark this node as dirty so that it gets written during the next flush.
 
-See go-hamt-ipld implementation [here](https://github.com/filecoin-project/go-hamt-ipld/pull/74) for a concrete example.
+See go-hamt-ipld implementation [here](https://github.com/filecoin-project/go-hamt-ipld/pull/74) for a concrete example. Note that the part of this specification that avoids marking nodes as dirty during Set operations that overwrite an unchanged value to a key is being implemented separately [here](https://github.com/filecoin-project/go-hamt-ipld/pull/77#discussion_r532044992).
 
 ### B
 HAMT pointers are union types. A pointer can be one of a link to a HAMT node or a KV bucket containing HAMT key value pairs. To achieve this pointers are currently serialized as a cbor map with at most one key. A key of "0" means link, a key of "1" means bucket.
