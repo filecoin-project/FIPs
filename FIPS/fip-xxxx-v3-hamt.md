@@ -1,6 +1,6 @@
 ---
 fip: <to be assigned>
-title: hamt-v3
+title: h/amt-v3
 author: Rod Vagg (@rvagg), Steven Allen (@Stebalien), Alex North (@anorth), Zen Ground0 (@Zenground0)
 discussions-to: https://github.com/filecoin-project/FIPs/issues/38
 status: Draft
@@ -15,7 +15,7 @@ specs-sections:
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 
-Improve the filecoin HAMT in terms of performance and safety with two smaller independent proposals.
+Improve the filecoin HAMT and AMT in terms of performance and safety with three smaller independent proposals.
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
@@ -23,9 +23,11 @@ The filecoin HAMT does unnecessary Puts and Gets while doing Set and Find operat
 
 The filecoin HAMT's pointer serialization can be modified to save 3 bytes and a small amount of de/encode time. Sub proposal `B` describes the more efficient serialization.
 
+The filecoin AMT does unnecessary Puts and Gets while doing Set, Find and ForEach operations. Sub proposal `C` eliminates these unnecessary operations improving performance of AMT calls.
+
 ## Change Motivation
 
-These are both unambiguous performance wins. We aren't trading anything off we are strictly reducing ipld operations and serialization size which also corresponds to reduced gas cost.
+These are all unambiguous performance wins. We aren't trading anything off we are strictly reducing ipld operations and serialization size which also corresponds to reduced gas cost.
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
@@ -68,9 +70,11 @@ i.e. `CID` or `[KV...]`
 
 See @rvagg's original proposal in go-hamt-ipld [here](https://github.com/filecoin-project/go-hamt-ipld/issues/53#issue-663418352) and the open PR implementing this in go-hamt-ipld [here](https://github.com/filecoin-project/go-hamt-ipld/pull/60) for more information.
 
+### C
+This proposal is analagous to sub proposal A except on the AMT instead of the HAMT. Implementation is [here](https://github.com/filecoin-project/go-amt-ipld/pull/30). Additionally the proposal includes rearranging order of load during `ForEach` traversals that do not walk all keys to only load child nodes if they contain keys within the traversal range. See implementation [here](https://github.com/filecoin-project/go-amt-ipld/pull/37/files) for full details.
+
 ## Design Rationale
 
-### A & B
 These designs follow directly from understanding the inefficiencies of the current HAMT. They have only not been introduced sooner because they are breaking changes and carry implementation risk.
 
 ## Backwards Compatibility
@@ -97,4 +101,6 @@ This change should directly and indirectly decrease the costs of state machine o
 ## Implementation
 Sub proposal A implemented and optimistically merged to go-hamt-ipld [here](https://github.com/filecoin-project/go-hamt-ipld/pull/74)
 
-Sub proposal B implemented and up for review in go-hamt-ipld [here](https://github.com/filecoin-project/go-hamt-ipld/pull/60)
+Sub proposal B implemented and optimistically merged in go-hamt-ipld [here](https://github.com/filecoin-project/go-hamt-ipld/pull/60)
+
+Sub proposal C implemented and optimistically merged in go-amt-ipld [here](https://github.com/filecoin-project/go-amt-ipld/pull/30) and [here](https://github.com/filecoin-project/go-amt-ipld/pull/37)
