@@ -15,7 +15,7 @@ specs-sections:
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 
-Improve the filecoin HAMT in terms of performance and safety with three smaller independent proposals.
+Improve the filecoin HAMT in terms of performance and safety with two smaller independent proposals.
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
@@ -23,17 +23,9 @@ The filecoin HAMT does unnecessary Puts and Gets while doing Set and Find operat
 
 The filecoin HAMT's pointer serialization can be modified to save 3 bytes and a small amount of de/encode time. Sub proposal `B` describes the more efficient serialization.
 
-The filecoin HAMT node's bitfield serialization truncates bytes in a way that does not save much space but makes validation harder and implementation less simple. Sub proposal `C` is to write an untruncated bitfield of size `2^bitwidth` bits for all HAMT nodes.
-
 ## Change Motivation
 
-### A & B
-These are unambiguous performance wins. We aren't trading anything off we are strictly reducing ipld operations and serialization size which also corresponds to reduced gas cost.
-
-### C
-* Truncation makes it hard to validating canonical block form. From @rvagg's original issue: "The current implementation will (probably) take an arbitrarily long byte array and turn it into a valid big.Int. It'll treat as valid a block that has a byte array 1000 long in the position for the bitfield (I believe big.Int can handle this kind of arbitrary size). But then it should round-trip it back out as just-long-enough if the block was re-serialized."
-* Truncation is not as simple as not doing truncation and this complexity is reflected in non-go code.
-* Impact on serialization size is small and not worth the complexity. From @rvagg's original issue: "The randomness of the hash algorithm means that the chances of setting the 32nd bit are the same as setting the 1st. There's no bias toward smaller bits built-in here. So we buy some compaction in the serialization by using this truncated format, but it's only going to get us so far in a HAMT that's got more than a few values in it."
+These are both unambiguous performance wins. We aren't trading anything off we are strictly reducing ipld operations and serialization size which also corresponds to reduced gas cost.
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
@@ -76,33 +68,18 @@ i.e. `CID` or `[KV...]`
 
 See @rvagg's original proposal in go-hamt-ipld [here](https://github.com/filecoin-project/go-hamt-ipld/issues/53#issue-663418352) and the open PR implementing this in go-hamt-ipld [here](https://github.com/filecoin-project/go-hamt-ipld/pull/60) for more information.
 
-### C
-The existing HAMT bitmap does not serializes all bytes of the bitmap, only those higher order bytes up to and including the lowest non-zero byte in order to compactly represent the bitfield as a bigendian byte slice. The serialized size of the byte slice is not checked against HAMT paramters during node load which means a serialized bitmap with low order zero bytes can be reserialized differently.
-
-This proposal is to (1) serialize all 2^bitwidth / 8 bytes of the bitmap of HAMT nodes (2) error when loading HAMT nodes with a serialized bitmap of a length that does not exactly match 2^bitwidth / 8 bytes.
-
-See the open go-hamt-ipld PR implementing this change [here](https://github.com/filecoin-project/go-hamt-ipld/pull/63/commits/7eb4d1d2b32ef9a6b5ff5327c8b3252a07ca2f09). This is likely a more involved change than other implementations will have since in golang this change requires moving from builtin big.Int to an explicit byte slice.
-
 ## Design Rationale
 
 ### A & B
 These designs follow directly from understanding the inefficiencies of the current HAMT. They have only not been introduced sooner because they are breaking changes and carry implementation risk.
-
-### C
-Larger changes were considered to decouple the HAMT bitfield from the builtin go big.Int type's serialization. However these were dropped since go big.Int serialization is pervasive in filecoin chain state beyond HAMT data.
-
-The expected value of bytes added to a node when a single bit is set is (4-1)/2 = 1.5 bytes, and only goes down as more bits are set.
-As the bytes added are small there is consensus that the simplicity and canonicalization concerns outweight the small overhead.
-
-To see more of the discussion look at the thread in the go-hamt-ipld issue [here](https://github.com/filecoin-project/go-hamt-ipld/issues/54)
 
 ## Backwards Compatibility
 
 ### A
 This change is consensus breaking because it reduces the gas cost of HAMT Set and possibly Find operations. So running HAMT code with this feature will not result in the same state transitions as the existing hamt code. Therefore this change requires a network version update.
 
-### B & C
-These changes require modifying the serialized bytes of all HAMT nodes. This will require a state tree migration migrating all HAMT data.
+### B
+This change requires modifying the serialized bytes of all HAMT nodes. This will require a state tree migration migrating all HAMT data.
 
 ## Test Cases
 
@@ -121,5 +98,3 @@ This change should directly and indirectly decrease the costs of state machine o
 Sub proposal A implemented and optimistically merged to go-hamt-ipld [here](https://github.com/filecoin-project/go-hamt-ipld/pull/74)
 
 Sub proposal B implemented and up for review in go-hamt-ipld [here](https://github.com/filecoin-project/go-hamt-ipld/pull/60)
-
-Sub proposal C implemented and up for review in go-hamt-ipld [here](https://github.com/filecoin-project/go-hamt-ipld/pull/63)
