@@ -1,0 +1,228 @@
+---
+fip: <to be assigned>
+title: Off-Chain Window PoSt Verification
+author: Alex (@anorth), Steven (@stebalien), et al.
+discussions-to: https://github.com/filecoin-project/FIPs/issues/42
+status: Draft
+type: Technical
+category: Core
+created: 2021-01-07
+spec-sections: 
+  - <section-id>
+  - <section-id>
+---
+
+## Simple Summary
+
+Optimistically accept Window PoSt proofs on-chain without verification, allowing them to be disputed later by off-chain verifiers.
+
+## Abstract
+<!--A short (~200 word) description of the technical issue being addressed.-->
+A short (~200 word) description of the technical issue being addressed.
+
+TODO
+
+## Change Motivation
+
+Window PoSt messages are necessary for ongoing maintenance of storage power. Verifying the submitted proofs is expensive and when the gas base fee rises (due to congestion) these messages become expensive. In bad cases, for small miners with mostly-empty partitions, this cost can exceed their expected reward from maintaining power. We need to ensure that these messages are cheap for miners, even when specifying a very high gas fee cap.
+
+While, as-of FIP0009, `SubmitWindowedPoSt` messages are free, this was an imperfect stop-gap measure and it does not reduce the load on the network itself.
+
+The proposed change will, remove the burden of checking WindowedPoSt proofs from the chain (~13% of network bandwidth).
+
+## Specification
+
+We propose two key changes:
+
+1. New Window PoSts, except those that restore faulty sectors, are optimistically accepted, assumed correct, and recorded in the state-tree for one proving period.
+2. Optimistically accepted window posts can be disputed until `WPoStProofDisputeWindow` epochs after the challenge window in which they were submitted closes. When a dispute successfully refutes an optimistically accepted Window PoSt, the miner is fined IPF and all incorrectly proved sectors are marked faulty.
+
+Parameters:
+
+* `WPoStProofDisputeWindow`: 1800 (2x finality).
+* `IPF`: 5.31BR (IPF = Invalid Proof Fee, BR = Expected Block Reward).
+
+In the following sections, we describe the changes to the Miner actor necessary to implement this FIP.
+
+### Change: Deadline State
+
+To accommodate this change, the deadline state is extended as follows:
+
+```go
+type Deadline struct {
+    ...
+
+	// AMT of optimistically accepted WindowPoSt proofs, submitted during
+	// the current challenge window. At the end of the challenge window,
+	// this AMT will be moved to PoStSubmissionsSnapshot. WindowPoSt proofs
+	// verified on-chain do not appear in this AMT.
+	OptimisticPoStSubmissions cid.Cid // AMT[]WindowedPoSt
+
+	// Snapshot of partition state at the end of the previous challenge
+	// window for this deadline.
+	PartitionsSnapshot cid.Cid // AMT[]Partition
+
+	// Snapshot of the proofs submitted by the end of the previous challenge
+	// window for this deadline.
+	//
+	// These proofs may be disputed via DisputeWindowedPoSt. Successfully
+	// disputed window PoSts are removed from the snapshot.
+	OptimisticPoStSubmissionsSnapshot cid.Cid  // AMT[]WindowedPoSt
+}
+
+type WindowedPoSt struct {
+	// Partitions proved by this WindowedPoSt.
+	Partitions bitfield.BitField
+	// Array of proofs, one per distinct registered proof type present in
+	// the sectors being proven. In the usual case of a single proof type,
+	// this array will always have a single element (independent of number
+	// of partitions).
+	Proofs []proof.PoStProof
+}
+```
+
+### Change: SubmitWindowedPoSt
+
+Proofs that do not recover faulty power are not checked on-chain. Instead,
+
+* The proof and a bitfield of the affected partitions are recorded in an AMT of "optimistic" proofs (`Deadline.OptimisticPoStSubmissions`).
+* The proof is not verified.
+* The proof may be "disputed" by anyone for 1800 epochs (2x finality) after the challenge window ends.
+
+As usual, skipped sectors are marked as faulty and "unproven" sectors are marked as "proven".
+
+Notes:
+
+* If a proof _recovers_ faulty power, it is checked on-chain immediately to prevent "recovering" faulty sectors with invalid proofs.
+* "Unproven" sectors (sectors newly added to a partition but never proven with a window PoSt) do not force an on-chain proof verification. This is intentional.
+
+### Change: Deadline End
+
+As usual, partitions without proofs are marked as faulty, "new" (unproven) sectors are activated if proofs for them are present, etc.
+
+Immediately after processing all proof related logic, and before terminating any sectors, the deadline's partitions array and optimistically accepted posts are "snapshotted" and stored in the deadline. Specifically:
+
+1. `Deadline.Partitions` is saved to `Deadline.PartitionsSnapshot`.
+2. `Deadline.OptimisticPoStSubmissions` is saved to `Deadline.OptimisticPoStSubmissionsSnapshot`.
+
+Future disputes will use these snapshots.
+
+We then proceed to terminate sectors as usual.
+
+### Change: TerminateSectors
+
+Sector termination is no longer be allowed in currently-being-proved deadline, or the following deadline. This brings sector termination in-line with partition compaction and sector assignment and ensures that the partition snapshot taken at the end of the challenge window accurately reflects the state that was proven.
+
+### Change: CompactPartitions
+
+As `CompactPartitions` can move sectors between partitions, it makes it difficult mark these sectors as faulty when disputed. While the disputer could submit bitfields describing the new locations of the sectors in question, this dispute could be defeated by repeatedly re-compacting.
+
+To simplify the prevent this attack and simplify the disputer's job, partition compaction is prohibited for `WPoStProofDisputeWindow` epochs after the deadline's last challenge window. This leaves a window of 960 epochs (8 hours) for partition compaction.
+
+Proofs may not be disputed after this time has passed.
+
+### New: DisputeWindowedPoSt
+
+`DisputeWindowedPoSt` selects a proof from a specific deadline's previous challenge window (`Deadline.OptimisticPoStSubmissionsSnapshot`) and attempts to disprove it.
+
+0. The epoch and deadline are checked to make sure that the window for disputing proofs is still open (`WPoStProofDisputeWindow`).
+1. The proof is verified against the partition state snapshot (`PartitionsSnapshot`) from the end of the last challenge window. This represents the state that was (supposedly) proven.
+2. If the proof is valid, this method aborts with no change (the proof was _not_ disproven). Otherwise, we continue.
+3. All sectors that were active in the partition snapshot are declared as faulty (sectors terminated since the last challenge window are skipped).
+4. The target miner looses power based on the sectors marked faulty in step 3.
+5. The disputed proof is removed from `Deadline.OptimisticPoStSubmissionsSnapshot` so it can't be disputed twice.
+6. The target miner is fined IPF based on the power was incorrectly proven (taken from the partitions snapshot). This fine will also cover sectors that have since been terminated.
+
+## Design Rationale
+<!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
+The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.
+
+TODO
+
+## Backwards Compatibility
+
+As this is a consensus breaking change, all Filecoin implementer must implement the changes to the Filecoin actors. Specifically, the Miner actor has changed as described in the "specification" section.
+
+In terms of user impact:
+
+* `CompactPartitions` is now forbidden during the `WPoStDisputeWindow` (1800 epochs following a challenge window). Given that this is a very rarely invoked maintenance method, this should not impact any users.
+* `TerminateSectors` is now forbidden for the deadline currently being challenged, and the deadline to be challenged next. As this is a rare, manually invoked method, this shouldn't significantly impact miners.
+* Three fields are being added to the end of the `Deadline` object (described in the specification section). State inspection tools will need to accommodate this.
+* The parameters for `SubmitWindowedPoSt` have not changed and the logic for generating and submitting proofs remains the same.
+
+## Test Cases
+<!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
+Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.
+
+TODO
+
+## Security Considerations
+
+The following security considerations are addressed as incentives considerations:
+* If nobody disputes incorrect proofs, there is no incentive to reliably store data.
+* If dispute proofs cannot make it on-chain, there is no incentive to reliably store data.
+
+This section addresses:
+
+* Chain state size attacks.
+* Proof disputability attacks.
+* Power & sector extension attacks.
+* Vesting funds extraction.
+
+### Chain State Size
+
+This change should not appreciably increase the size of chain state. The stored proofs are small (190 bytes) only one proof may be submitted per partition with live sectors.
+
+### All Invalid Proofs Are Disputable
+
+The chain will not accept proofs that cannot be disputed.
+
+1. Dispute messages are always a constant size, regardless of the size of the proof being disputed.
+2. Proofs are still limited to proving 4 partitions at a time. The amount of work required by any given dispute is bounded by the maximum number of sectors/partitions that could have been proven.
+
+### Power & Sector Extension
+
+Given that proofs are accepted optimistically, an attacker can keep a faulty sector "active" by submitting invalid window PoSts. However:
+
+1. If these posts are successfully disputed, the attacker will lose 5.1 times the expected block reward per-day for the incorrectly proven sectors.
+2. Restoring faulty sectors requires an on-chain proof. This prevents attackers from extending faulty sectors indefinitely by repeatedly submitting faulty proofs.
+
+### Vesting Fund Extraction
+
+`DisputeWindowedPost` takes feeds from "vesting funds", but burns any fees taken. Therefor, it cannot be used to "take an advance" on vesting funds.
+
+## Incentive Considerations
+
+There are two primary incentive considerations:
+
+1. Submitting invalid proofs must not be rational.
+2. Disputing invalid proofs must be rational.
+3. Including proofs dispute messages must be rational.
+
+### Submitting Invalid Proofs Is Irrational
+
+### Disputing Proofs Is Rational
+
+Currently, there are two reasons to dispute an invalid proof:
+
+1. To maximize profits as a miner by minimizing the power of other miners.
+2. To ensure the healthy operation of the network. Organizations invested in the continued operation of the network and the reliability of it's storage have a vested interest in ensuring that all data purported to be stored on the network is being correctly proven.
+
+### Including Proof Dispute Messages Is Rational
+
+Proof dispute messages directly reduce the power of other miners on the network, proportionally increasing the relative power of all other miners in the network. Therefore, baring collusion, it is always rational to include dispute messages.
+
+## Product Considerations
+
+This FIP will increase chain bandwidth by moving Window PoSt processing off-chain. This will reduce the per-gigabyte network-wide maintenance cost, removing a scalability constraint on the total amount of storage that can be supported by the network.
+
+## Implementation
+
+The changes to the miner actor are in: https://github.com/filecoin-project/specs-actors/pull/1327
+
+## Open Questions
+
+1. Should there be a reporter reward and how much should it be? Ideally, it would cover the gas fees (although this could, in theory, be handled in the manner of FIP 0009).
+
+## Copyright
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
