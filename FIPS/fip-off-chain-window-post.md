@@ -17,10 +17,8 @@ spec-sections:
 Optimistically accept Window PoSt proofs on-chain without verification, allowing them to be disputed later by off-chain verifiers.
 
 ## Abstract
-<!--A short (~200 word) description of the technical issue being addressed.-->
-A short (~200 word) description of the technical issue being addressed.
 
-TODO
+When a miner proves continued storage of data to the chain (`SubmitWindowedPoSt`), optimistically accept and record the proof on-chain instead of verifying it. After the chain has accepted the proof, a third party may dispute it by invoking `DisputeWindowedPoSt`. A successfully dispute marks the incorrectly proven sectors as faulty, removes the associated power (until proven again in a subsequent Window PoSt), and fines the miner proportional to the expected block reward received from the incorrectly proved sectors.
 
 ## Change Motivation
 
@@ -193,7 +191,7 @@ Given that proofs are accepted optimistically, an attacker can keep a faulty sec
 
 ## Incentive Considerations
 
-There are two primary incentive considerations:
+In this section, we discuss the three actions being incentivised:
 
 1. Submitting invalid proofs must not be rational.
 2. Disputing invalid proofs must be rational.
@@ -201,12 +199,21 @@ There are two primary incentive considerations:
 
 ### Submitting Invalid Proofs Is Irrational
 
+
 ### Disputing Proofs Is Rational
 
 Currently, there are two reasons to dispute an invalid proof:
 
 1. To maximize profits as a miner by minimizing the power of other miners.
 2. To ensure the healthy operation of the network. Organizations invested in the continued operation of the network and the reliability of it's storage have a vested interest in ensuring that all data purported to be stored on the network is being correctly proven.
+
+Disputing a proof does not currently give a reward. There are three potential sources of funds:
+
+1. Unlocked/spendable funds.
+2. Collateral.
+3. Vesting rewards.
+
+Any rational miner submitting invalid proofs will drain their unlocked funds down to 0. That means funds would need to come from either collateral or vesting rewards. Unfortunately, taking from either would affect circulating supply and could be used to extract "locked" funds.
 
 ### Including Proof Dispute Messages Is Rational
 
