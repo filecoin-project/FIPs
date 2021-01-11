@@ -2,7 +2,7 @@
 fip: <to be assigned>
 title: Remove reward auction from reporting consensus faults
 author: Jakub Sztandera (@Kubuxu)
-discussions-to: <URL>
+discussions-to: https://github.com/filecoin-project/FIPs/issues/61
 status: Draft
 type: Core
 category Core
