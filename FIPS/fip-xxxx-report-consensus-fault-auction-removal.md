@@ -1,0 +1,93 @@
+---
+fip: <to be assigned>
+title: Remove reward auction from reporting consensus faults
+author: Jakub Sztandera (@Kubuxu)
+discussions-to: <URL>
+status: Draft
+type: Core
+category Core
+created: 2020-01-05
+spec-sections:
+  - section-algorithms.expected_consensus.detection-and-reporting
+---
+
+<!--You can leave these HTML comments in your merged FIP and delete the visible duplicate text guides, they will not appear and may be helpful to refer to if you edit it again. This is the suggested template for new FIPs. Note that a FIP number will be assigned by an editor. When opening a pull request to submit your FIP, please use an abbreviated title in the filename, `fip-draft_title_abbrev.md`. The title should be 44 characters or less.-->
+
+## Simple Summary
+<!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
+
+Reward from reporting currently undergoes reverse auction (Dutch auction). This FIP proposes and
+specifies removal of this auction mechanism and makes the full reward available immediately.
+
+## Abstract
+<!--A short (~200 word) description of the technical issue being addressed.-->
+Misbehaving miners can produce block which influence Expected Consensus' fairness.
+The incentive for reporting Consensus Faults is a reward. This reward is in range
+0.005 and 0.25 of Block Reward (~4 FIL full reward) determined by Dutch auction. The duration of auction is 500 epoch.
+For full reward that period has to elapse since the consensus fault was produced.
+For 50% reward the reporter has to wait 412 epochs.
+This significantly delays reporting of consensus faults, which ideally should be reported as soon
+as possible. This mechanism is a remainder of an old system where miner was completely removed from Filecoin
+and the reporter was awarded percentage of that miner's collateral.
+
+## Change Motivation
+<!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
+
+There are multiple motivating factors for this change:
+	- the current system was intended for different reward kind (percentage of collateral)
+	- the current system disincentives swift reporting of consensus faults which is essential for EC
+	- the new system increases the overall income from reporting consensus faults, which can have the effect of
+		increasing the number of parties reporting consensus faults
+
+
+## Specification
+<!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
+
+Reporter reward changes from 0.001 to 0.05 of Consensus Fault Penalty (5\*BR) to `BlockReward / 4`.
+
+
+## Design Rationale
+<!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
+
+This is minimal change with aim of removing the Dutch auction mechanism while preserving the final amount.
+It also significantly simplifies how the reporter reward is calculated and unties it from Consensus Fault Penalty.
+
+## Backwards Compatibility
+<!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
+
+It is backward incompatible change that will require all implementations to adapt.
+It should be deployed as synchronised network upgrade.
+The proposed mechanism is much simpler than one currently specified.
+
+## Test Cases
+<!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
+
+WIP
+All valid ReportConsensusFault messages should result in full `BR / 4` reward.
+
+## Security Considerations
+<!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
+
+Dutch auction mechanism was introduced to prevent miners exiting Filecoin network extracting the percentage of collateral,
+by self-reporting consensus faults. At the time, the fact that secret (non-published) consensus faults are
+easy to create was not considered and Dutch auction is not effective defense against this.
+
+Currently Dutch auction does not serve any security related purpose apart from delaying the reporting of consensus faults.
+
+
+
+## Incentive Considerations
+<!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
+
+This change increases incentives for prompt reporting of consensus faults instead of waiting 400-500 epochs.
+
+## Product Considerations
+<!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
+Does not influence Filecoin as a Product other than improving stability of the network.
+
+## Implementation
+<!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
+WIP
+
+## Copyright
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
