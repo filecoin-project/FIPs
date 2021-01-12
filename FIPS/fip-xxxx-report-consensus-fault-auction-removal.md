@@ -43,7 +43,9 @@ There are multiple motivating factors for this change:
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
 
-Reporter reward changes from 0.001 to 0.05 of Consensus Fault Penalty (5\*BlockReward) to `BlockReward / 4`. Where `BlockReward` is reward that is to be awarded a single miner at this epoch.
+Reporter reward changes from 0.001 to 0.05 of Consensus Fault Penalty (5\*BlockReward) to `BlockReward / 4`.
+Where `BlockReward` is reward that is to be awarded a single miner at this epoch.
+The resulting reward is the same amount as maximum reward from Dutch auction.
 
 
 ## Design Rationale
