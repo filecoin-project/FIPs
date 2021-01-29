@@ -4,7 +4,7 @@ title: DataCap Top up for FIL+ Client Addresses
 author: DS (@dshoy), JV (@jnthnvctr), ZX (@zx)
 status: Draft
 Type: Technical
-category (*only required for Standard Track): <Core | Networking | Interface >
+category (*only required for Standard Track): <Core>
 created: 2021-01-29
 spec-sections: 
   - https://github.com/filecoin-project/specs-actors/blob/master/actors/builtin/verifreg/verified_registry_actor.go
