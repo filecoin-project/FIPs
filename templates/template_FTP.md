@@ -7,6 +7,9 @@ status: Draft
 type: <Technical (Core, Networking, Interface, Informational)  | Organizational | Recovery>
 category (*only required for Standard Track): <Core | Networking | Interface >
 created: <date created on, in ISO 8601 (yyyy-mm-dd) format>
+spec-sections: 
+  - <section-id>
+  - <section-id>
 requires (*optional): <FIP number(s)>
 replaces (*optional): <FIP number(s)>
 ---
