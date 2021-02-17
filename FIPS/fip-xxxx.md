@@ -1,5 +1,5 @@
 ---
-fip: "0008"
+fip: "0013"
 title: Add ProveCommitSectorAggregated method to reduce on-chain congestion
 author: Nicola (@nicola), Add others
 discussions-to: https://github.com/filecoin-project/FIPs/issues/50
