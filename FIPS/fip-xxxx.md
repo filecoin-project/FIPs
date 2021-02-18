@@ -64,13 +64,23 @@ The parameters for this method are a list of prove-commit infos:
 
 ```
 type ProveCommitSectorAggregatedParams {
-    Sectors []*SectorPreCommitInfo
+    SectorsNumbers bitfield.BitField
 }
 ```
 
-For the most part, semantics should be equivalent to invoking `ProveCommitSector` with each sector info in turn. Some notable changes include:
+Semantics will be similar to those of `ProveCommitSector` with the following proposed changes:
 
-- TODO: list here the important changes
+- Sectornumber bitfield in place of a single abi.SectorNumber in parameters
+- Aggregate proof in place of single porep proof in parameters
+- MaxProveCommitSize parameter will change
+- Minimum and maximum number of sectors proven will be enforced
+- PreCommitInfos read in batch
+- SealVerifyInfos constructed in batch
+- market actor ComputeDataCommittment method changed to compute batches of commDs 
+- No storing proof info in power actor for batched verification at the end of the epoch.
+  - `ProveCommitSectorAggregated` will call into a new runtime syscall `AggregateVerifySeals` in place of power actor `BatchVerifySeals` call.
+  - ConfirmSectorProofsValid logic will be copied over to the second half of `ProveCommitSectorAggregated`.
+
 
 #### Failure handling
 
