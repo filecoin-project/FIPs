@@ -31,12 +31,22 @@ This proposal adds a `ProveCommitSectorAggregated` method to amortize some of th
 
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
 
-The miner `PreCommitSector` method only supports committing a single sector at a time. 
+The miner `ProveCommitSector` method only supports committing a single sector at a time. 
 It's one of the two highest frequency methods observed on the chain at present (the other being `PreCommitSector`). 
 High-growth miners commit sectors at rates exceeding 1 per epoch. 
-It's also a relatively expensive method, with multiple internal sends and loading and storing state including:
+It's also a relatively expensive method, with multiple internal sends and state loads and stores.
 
-- TODO: Add list of operations that could be batched
+Aggregated proof verification allows for more sector commitments to be proven in less time which will reduce processing time and therefore gas cost per prove commit.
+
+In addition to this primary optimization, there are several secondary opportunities for improved processing time and gas cost related to batch processing many prove commits at once: 
+- Using a bitfield to specify sector numbers in the `ProveCommitSector` parameters could reduce message size
+- PreCommits loading overhead can be done once per batch
+- Power actor claim validation can be done once per batch
+- Market actor `ComputeDataCommitment` calls can be batched
+
+Additionally the `ProveCommitSectorAggregated` method can do away with the temporary storage and cron-batching currently used to verify individual prove commits. This opens further cost reduction opportunities:
+- PreCommit info can be loaded once per prove commit rather than once for recording, and again for batch verifying in call back
+- Sectors proven through `ProveCommitSectorAggregated` will not need to be stored and read from the power actors `ProofValidationBatch` map
 
 If miner operators implemented a relatively short aggregation period (a day), the `ProveCommitAggregated` method has the potential to reduce gas costs for:
 
