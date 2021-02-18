@@ -76,7 +76,8 @@ Semantics will be similar to those of `ProveCommitSector` with the following pro
 - Minimum and maximum number of sectors proven will be enforced
 - PreCommitInfos read in batch
 - SealVerifyInfos constructed in batch
-- market actor ComputeDataCommittment method changed to compute batches of commDs 
+- Market actor ComputeDataCommittment method changed to compute batches of commDs
+- Gas cost for verification will be updated and now computed as a function of the number of sectors aggregated
 - No storing proof info in power actor for batched verification at the end of the epoch.
   - `ProveCommitSectorAggregated` will call into a new runtime syscall `AggregateVerifySeals` in place of power actor `BatchVerifySeals` call.
   - ConfirmSectorProofsValid logic will be copied over to the second half of `ProveCommitSectorAggregated`.
