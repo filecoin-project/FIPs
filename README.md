@@ -52,10 +52,10 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0004](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0004.md)   |Liquidity Improvement for Storage Miners   | @davidad, @jbenet, @zenground0, @zixuanzh, @danlessa   | Final  |
 |[0005](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0005.md)  |Remove ineffective reward vesting    | @anorth, @Zenground   |Final   |
 |[0006](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0006.md)   | No repay debt requirement for DeclareFaultsRecovered  |  @nicola, @irenegia  | Deferred  |
-|[0007](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0007.md)   | h/amt-v3  | @rvagg, @Stebalien, @anorth, @Zenground0   |Accepted   |
+|[0007](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0007.md)   | h/amt-v3  | @rvagg, @Stebalien, @anorth, @Zenground0   |Final   |
 |[0008](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0008.md)   | Add miner batched sector pre-commit method  |@anorth   |Draft   |
-|[0009](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0009.md)   | Exempt Window PoSts from BaseFee burn  |@Stebalien, @momack2, @magik6k, @zixuanzh  |Accepted   |
-|[0010](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0010.md)   | Off-Chain Window PoSt Verification  |@Stebalien, @anorth  |Accepted  |
+|[0009](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0009.md)   | Exempt Window PoSts from BaseFee burn  |@Stebalien, @momack2, @magik6k, @zixuanzh  |Final   |
+|[0010](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0010.md)   | Off-Chain Window PoSt Verification  |@Stebalien, @anorth  |Final  |
 |[0011](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0011.md)   | Remove reward auction from reporting consensus faults  |@Kubuxu |Last Call   |
 |[0012](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0012.md)   | DataCap Top up for FIL+ Client Addresses  |@dshoy, @jnthnvctr, @zx |Last Call   |
 |[0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md)   | Add ProveCommitSectorAggregated method to reduce on-chain congestion  | @nicola, Add others |Draft   |
