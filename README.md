@@ -47,7 +47,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |FIP #   | Title  | Author  | Status  |
 |---|---|---|---|
 |[0001](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0001.md)   | FIP Purpose and Guidelines  | @Whyrusleeping  | Active  |
-|[0002](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0002.md)   | Free Faults on Newly Faulted Sectors of a Missed WindowPoSt  | @anorth, @davidad, @miyazono, @irenegia, @lucaniz, @nicola, @zixuanzh   |Final   |
+|[0002](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0002.md)   | Free Faults on Newly Faulted Sectors of a Missed WindowPoSt  | @anorth, @davidad, @miyazono, @irenegia, @lucaniz, @nicola, @zixuanzh   |Active   |
 |[0003](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0003.md)   | Filecoin Plus Principles  | @feerst, @jbenet, @jnthnvctr, @tim-murmuration, @mzargham, @zixuanzh  |Draft   |
 |[0004](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0004.md)   |Liquidity Improvement for Storage Miners   | @davidad, @jbenet, @zenground0, @zixuanzh, @danlessa   | Final  |
 |[0005](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0005.md)  |Remove ineffective reward vesting    | @anorth, @Zenground   |Final   |
@@ -59,5 +59,5 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0011](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0011.md)   | Remove reward auction from reporting consensus faults  |@Kubuxu |Accepted   |
 |[0012](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0012.md)   | DataCap Top up for FIL+ Client Addresses  |@dshoy, @jnthnvctr, @zx |Accepted  |
 |[0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md)   | Add ProveCommitSectorAggregated method to reduce on-chain congestion  | @ninitrava @nicola |Accepted   |
-|[0014](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0014.md)   | Allow V1 proof sectors to be extended up to a maximum of 540 days | @deltazxm, @neogeweb3 |Accepted   |
+|[0014](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0014.md)   | Allow V1 proof sectors to be extended up to a maximum of 540 days | @deltazxm, @neogeweb3 |Active   |
 |[0015](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0015.md)   |  Revert FIP-0009(Exempt Window PoSts from BaseFee burn) | @jennijuju |Draft   |
