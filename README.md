@@ -60,4 +60,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0012](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0012.md)   | DataCap Top up for FIL+ Client Addresses  |@dshoy, @jnthnvctr, @zx |Accepted  |
 |[0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md)   | Add ProveCommitSectorAggregated method to reduce on-chain congestion  | @ninitrava @nicola |Accepted   |
 |[0014](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0014.md)   | Allow V1 proof sectors to be extended up to a maximum of 540 days | @deltazxm, @neogeweb3 |Accepted   |
-|[0015](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0015.md)   |  Revert FIP-0009(Exempt Window PoSts from BaseFee burn) | @jennijuju |Draft   |
+|[0015](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0015.md)   |  Revert FIP-0009(Exempt Window PoSts from BaseFee burn) | @jennijuju, @arajasek |Last Call   |
