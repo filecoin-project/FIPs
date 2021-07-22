@@ -1,0 +1,3 @@
+ignore: []
+url: fips-eleventy.fission.app
+build: ./dist
