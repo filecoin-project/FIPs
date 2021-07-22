@@ -1,9 +1,13 @@
-# FIPs 
+---
+layout: base.liquid
+title: Writing FIPs
+---
+# Writing Filecoin Improvement Proposals 
 Filecoin Improvement Proposals (FIPs) describe standards for the Filecoin platform, including core protocol specifications, client APIs, and other changes to the project.
 
 # Contributing
 
- 1. Review [FIP-1](FIPS/fip-0001.md).
+ 1. Review [FIP-1](/FIPS/fip-0001/).
  2. Fork the repository by clicking "Fork" in the top right.
  3. Add your FIP to your fork of the repository. There are [template FIPs here](/templates).
  4. Submit a Pull Request to Filecoin's [FIPs repository](https://github.com/filecoin-project/FIPs).

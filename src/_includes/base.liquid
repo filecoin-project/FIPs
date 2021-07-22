@@ -29,7 +29,9 @@
     </nav>
 
     <main class="max-w-4xl mx-auto px-4 mb-20">
+      <div class="prose prose-xl dark:text-warmGray-200">
       {{ content | safe }}
+      </div>
     </main>
 
     <footer class="text-gray-500 max-w-4xl mx-auto px-4">
@@ -39,11 +41,6 @@
           class="text-coolGray-800 dark:text-coolGray-200 hover:text-amber-500 border-b-2 border-amber-500 dark:border-amber-800"
           href="{{ site.authorUrl }}"
           >{{ site.author }}</a
-        >. If you find this project useful you can
-        <a
-          class="text-coolGray-800 dark:text-coolGray-200 hover:text-amber-500 border-b-2 border-amber-500 dark:border-amber-800"
-          href="https://ko-fi.com/G2G33AMQO"
-          >Donate</a
         >.
       </p>
     </footer>

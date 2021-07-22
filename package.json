@@ -10,6 +10,9 @@
     "clean": "rm -rf ./dist && rm -rf ./src/styles",
     "serve": "browser-sync start --server ./dist --no-notify --no-ghost-mode"
   },
+  "engines": {
+      "node": ">=14.15.1"
+  },
   "keywords": [
     "eleventy",
     "tailwind",

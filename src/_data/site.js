@@ -1,10 +1,10 @@
 'use strict'
 
 module.exports = {
-  author: 'Brandon Stephens',
-  authorUrl: 'https://brandonstephens.me',
-  title: '🔥 L1T_STACK',
-  description: 'Liquid, 11ty, Tailwind stack',
+  author: 'Filecoin Community',
+  authorUrl: 'https://filecoin.io',
+  title: 'Filecoin Improvement Proposals (FIPs)',
+  description: 'Proposals to improve the Filecoin blockchain',
   themeColor: '#FBBF24',
   bgColor: '#334155',
 }
