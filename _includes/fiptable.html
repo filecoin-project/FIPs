@@ -1,0 +1,36 @@
+<style type="text/css">
+  .fiptable .title {
+    width: 67%;
+  }
+
+  .fiptable .author {
+    width: 33%;
+  }
+</style>
+{% for status in site.data.statuses %}
+  {% assign fips = include.fips|where:"status",status|sort:"fip" %}
+  {% assign count = fips|size %}
+  {% if count > 0 %}
+    <h2 id="{{status|slugify}}">{{status}}</h2>
+    <table class="fiptable">
+      <thead>
+        {% if status == "Last Call" %}
+          <tr>
+          <th class="fipnum">Number</th><th class="date">Review ends</th><th class="title">Title</th><th class="author">Author</th></tr>
+        {% else %}
+          <tr><th class="fipnum">Number</th><th class="title">Title</th><th class="author">Author</th></tr>
+        {% endif %}
+      </thead>
+      {% for page in fips %}
+        <tr>
+          <td class="fipnum"><a href="{{page.url|relative_url}}">{{page.fip|xml_escape}}</a></td>
+          {% if status == "Last Call" and page.review-period-end != undefined %}
+            <td class="date">{{ page.review-period-end | xml_escape }}</td>
+          {% endif %}
+          <td class="title">{{page.title|xml_escape}}</td>
+          <td class="author">{% include authorlist.html authors=page.author %}</td>
+        </tr>
+      {% endfor %}
+    </table>
+  {% endif %}
+{% endfor %}
