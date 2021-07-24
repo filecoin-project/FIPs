@@ -2,34 +2,63 @@ name: 🚀 Publish
 on:
   push:
     branches:
-      - bmann-eleventy
+      - bmann-jekyll
 jobs:
-  publish_job:
-    name: 🚀 Publish
-    runs-on: ubuntu-latest
+  jekyll:
+    runs-on: ubuntu-latest # can change this to ubuntu-latest if you prefer
     steps:
-      - name: 📥 Checkout repository
+      - name: 📂 setup
         uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
-      - name: 🔑 Get cache directory
-        id: yarn-cache-path
-        run: echo "::set-output name=dir::$(yarn cache dir)"
-      - name: 💾 Cache modules
-        uses: actions/cache@v2
-        id: yarn-cache
+        # include the lines below if you are using jekyll-last-modified-at
+        # or if you would otherwise need to fetch the full commit history
+        # however this may be very slow for large repositories!
+        # with:
+          # fetch-depth: '0'
+
+      - name: 💎 setup ruby
+        uses: ruby/setup-ruby@v1
         with:
-          path: ${{ steps.yarn-cache-path.outputs.dir }}
-          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-yarn-
-      - name: 📦 Install packages
-        run: yarn install
-      - name: 🏗 Build assets
-        run: yarn build
-        env:
-          GHOST_API_URL: ${{ secrets.GHOST_API_URL }}
-          GHOST_CONTENT_API_KEY: ${{ secrets.GHOST_CONTENT_API_KEY }}
+          ruby-version: 2.7 # can change this to 2.7 or whatever version you prefer
+
+      - name: 🔨 install dependencies & build site
+        uses: limjh16/jekyll-action-ts@v2
+        with:
+          enable_cache: true
+          ### Enables caching. Similar to https://github.com/actions/cache.
+          #
+          # format_output: true
+          ### Uses prettier https://prettier.io to format jekyll output HTML.
+          #
+          # prettier_opts: '{ "useTabs": true }'
+          ### Sets prettier options (in JSON) to format output HTML. For example, output tabs over spaces.
+          ### Possible options are outlined in https://prettier.io/docs/en/options.html
+          #
+          # prettier_ignore: 'about/*'
+          ### Ignore paths for prettier to not format those html files.
+          ### Useful if the file is exceptionally large, so formatting it takes a while.
+          ### Also useful if HTML compression is enabled for that file / formatting messes it up.
+          #
+          # jekyll_src: sample_site
+          ### If the jekyll website source is not in root, specify the directory. (in this case, sample_site)
+          ### By default, this is not required as the action searches for a _config.yml automatically.
+          #
+          # gem_src: sample_site
+          ### By default, this is not required as the action searches for a _config.yml automatically.
+          ### However, if there are multiple Gemfiles, the action may not be able to determine which to use.
+          ### In that case, specify the directory. (in this case, sample_site)
+          ###
+          ### If jekyll_src is set, the action would automatically choose the Gemfile in jekyll_src.
+          ### In that case this input may not be needed as well.
+          #
+          # key: ${{ runner.os }}-gems-${{ hashFiles('**/Gemfile.lock') }}
+          # restore-keys: ${{ runner.os }}-gems-
+          ### In cases where you want to specify the cache key, enable the above 2 inputs
+          ### Follows the format here https://github.com/actions/cache
+          #
+          # custom_opts: '--drafts --lsi'
+          ### If you need to specify any Jekyll build options, enable the above input
+          ### Flags accepted can be found here https://jekyllrb.com/docs/configuration/options/#build-command-options
       - name: 🚀 Publish to Fission!
         uses: fission-suite/publish-action@v1
         with:
-          machine_key: ${{ secrets.MACHINE_KEY }}
+          machine_key: ${{ secrets.FISSION_KEY }}
