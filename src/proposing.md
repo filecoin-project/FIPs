@@ -1,8 +1,8 @@
 ---
 layout: base.liquid
-title: Writing FIPs
+title: Proposing FIPs
 ---
-# Writing Filecoin Improvement Proposals 
+# Proposing Filecoin Improvement Proposals 
 Filecoin Improvement Proposals (FIPs) describe standards for the Filecoin platform, including core protocol specifications, client APIs, and other changes to the project.
 
 # Contributing

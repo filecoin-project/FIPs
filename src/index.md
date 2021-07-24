@@ -5,7 +5,7 @@ title: Filecoin Improvement Proposals
 # Filecoin Improvement Proposals
 
 * [Mission](/mission/)
-* [Writing FIPs](/writing_fips/)
+* [Proposing new FIPs](/proposing/)
 
 ## Filecoin Improvement Protocol
 

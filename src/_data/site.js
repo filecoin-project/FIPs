@@ -6,5 +6,5 @@ module.exports = {
   title: 'Filecoin Improvement Proposals (FIPs)',
   description: 'Proposals to improve the Filecoin blockchain',
   themeColor: '#FBBF24',
-  bgColor: '#334155',
+  bgColor: '#2F4F4F',
 }
