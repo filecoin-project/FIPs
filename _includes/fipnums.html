@@ -1,4 +1,0 @@
-{% assign fips=include.fips|split:"," %}
-{% for fipnum in fips %}
-  <a href="{{fipnum|strip|prepend:"fip-" }}">{{eipnum|strip}}</a>{% if forloop.last == false %}, {% endif %}
-{% endfor %}

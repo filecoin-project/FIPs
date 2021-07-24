@@ -17,6 +17,11 @@ title: Filecoin Improvement Proposals
 description: >-
   Proposals to improve the Filecoin blockchain
 url: "https://fips.fission.app"
+# url: https://fips.filecoin.org // Suggested permanent URI
+
+github:
+  repository_url: "https://github.com/bmann/fips"
+# repository_url: "https://github.com/filecoin-project/FIPs" // will be correct on master
 
 # Build settings
 highlighter: rouge
@@ -32,12 +37,19 @@ kramdown:
 
 permalink: /:slug
 
+collections:
+  fips:
+    output: true
+    sort_by: fip
+
+
 defaults:
   -
     scope:
-      path: "FIPS"
+      path: "_fips"
     values:
       layout: "fip"
+      permalink: /fips/:slug/
 
 exclude:
   - .github

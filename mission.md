@@ -1,9 +1,6 @@
 ---
-layout: base.liquid
 title: Filecoin Mission
 ---
-
-## Filecoin Mission
 
 The mission of Filecoin is **<span style="text-decoration:underline;">to create a decentralized, efficient, and robust foundation for humanity’s information</span>**.
 
@@ -11,7 +8,7 @@ The mission of Filecoin is **<span style="text-decoration:underline;">to create 
 
 Here is a short overview of each of these terms:
 
-### Decentralized
+## Decentralized
 
 *   The network is not dependent on any one party, e.g., not dependent on a company, foundation, or other organization to continue operating.
 *   No centralized parties can control, stop, or censor the network, its operation, or its participants.
@@ -21,7 +18,7 @@ Here is a short overview of each of these terms:
 *   Third parties cannot prevent willing participants from exchanging data and/or payments for it.
 *   Filecoin uses cryptography, end-to-end encryption at rest, and incentives to secure information and network operation.
 
-### Efficient
+## Efficient
 
 *   Make digital storage (spacetime) a proper commodity with real markets
 *   Decouple digital storage from cloud computing moat feature sets -- turn storage market into a real market where any provider can sell their storage.
@@ -33,7 +30,7 @@ Here is a short overview of each of these terms:
 *   Clients can trust Filecoin will serve data quickly and efficiently back to them.
 *   Filecoin will not waste user resources (storage, bandwidth, computation, time) unnecessarily.
     
-### Robust
+## Robust
 
  *   Filecoin has five 9s of uptime or more.
  *   Clients can trust Filecoin to keep their data safe.
@@ -46,7 +43,7 @@ Here is a short overview of each of these terms:
  *   The network is robust to specific file censorship attacks (given there exist willing storage providers).
  *   The network is robust to catastrophic attacks (i.e., nuclear war, long-running internet partitions, etc.).
 
-### Foundation
+## Foundation
 
  *   Filecoin can be used as the foundation of other technologies and applications. It is a platform.
  *   Filecoin supports data storage-intensive applications.
@@ -55,7 +52,7 @@ Here is a short overview of each of these terms:
  *   It becomes possible for parties to store information indefinitely (using rational incentives, and money), without having to be online or alive to renew or re-upload things.
  *   Filecoin leads data reliability and replication efforts.
 
-### Humanity’s Information
+## Humanity’s Information
 
  *   Filecoin marshals vast storage arrays to store most of humanity’s valuable information.
  *   Filecoin stores all human knowledge -- all scientific papers, history, press, etc.
