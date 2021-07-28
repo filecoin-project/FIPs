@@ -33,6 +33,14 @@ layout: default
     {% endif %}
   </table>
 
+  <h2>Spec Sections</h2>
+
+  <ul>
+    {% for spec in page.specs-sections %}
+    <li><a href="{{ spec }}">{{ spec }}</a></li>
+    {% endfor%}
+  </ul>
+
  
   {{ content }}
 

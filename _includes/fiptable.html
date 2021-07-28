@@ -7,16 +7,17 @@
     width: 33%;
   }
 </style>
-<h1>FIPs<a href="#fips" id="fips">#</a></h1>
+<h1>FIPs</h1>
     <table class="fiptable">
       <thead>
-          <tr><th class="fipnum">Number</th><th class="title">Title</th><th class="author">Author</th></tr>
+          <tr><th class="fipnum">Number</th><th class="title">Title</th><th class="author">Author</th><th class="status">Status</th></tr>
       </thead>
-      {% for fip in site.fips %}
+      {% for fip in site.fips reversed %}
         <tr>
           <td class="fipnum"><a href="{{fip.url|relative_url}}">{{fip.fip|xml_escape}}</a></td>
           <td class="title">{{fip.title|xml_escape}}</td>
           <td class="author">{% include authorlist.html authors=fip.author %}</td>
+          <td class="status">{{fip.status}}</td>
         </tr>
       {% endfor %}
     </table>
