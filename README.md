@@ -63,5 +63,5 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0015](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0015.md)   |  Revert FIP-0009(Exempt Window PoSts from BaseFee burn) | @jennijuju, @arajasek |Final   |
 |[0016](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0016.md)   |  Pack arbitrary data in CC sectors | donghengzhao (@1475) |Draft  |
 |[0017](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0017.md)   | Update data in sectors without resealing | @nicola, @lucaniz, @irenegia |Draft   |  
-|[0018](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0018.md)   | New miner terminology proposal |@Stefaan-V |Last Call  |
+|[0018](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0018.md)   | New miner terminology proposal |@Stefaan-V |Final  |
 
