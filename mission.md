@@ -1,5 +1,6 @@
 ---
 title: Filecoin Mission
+layout: page
 ---
 
 The mission of Filecoin is **<span style="text-decoration:underline;">to create a decentralized, efficient, and robust foundation for humanity’s information</span>**.
