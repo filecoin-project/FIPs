@@ -2,7 +2,7 @@ name: 🚀 Publish
 on:
   push:
     branches:
-      - bmann-jekyll
+      - master
 jobs:
   jekyll:
     runs-on: ubuntu-latest # can change this to ubuntu-latest if you prefer
