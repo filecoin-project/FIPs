@@ -1,6 +1,6 @@
 ---
 fip: <to be assigned>
-title: Invalid deals don't fail PublishStorageDeals message
+title: Bad deals don't fail PublishStorageDeals
 author: ZenGround0 (@ZenGround0)
 discussions-to: https://github.com/filecoin-project/FIPs/issues/142
 status: Draft
