@@ -5,7 +5,7 @@ author: ZenGround0 (@ZenGround0)
 discussions-to: https://github.com/filecoin-project/FIPs/issues/152
 status: Draft
 type: Technical 
-category (*only required for Standard Track): Core
+category: Core
 created: 2021-09-06
 spec-sections: 
   - specs-actors
@@ -24,48 +24,69 @@ Today storage providers are unable to commit sectors with expired deals because 
 
 ## Change Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
-Occasionally deals expire between PreCommit and ProveCommit and in these cases sectors containing these deals will fail to commit. This is bad for storage providers committing sectors with deals and bad for the non-expired deals that would become active if the sector were committed. While offchain logic can help in many cases there is always a small risk of deals expiring even with optimal offchain logic as long as there is a delay between precommit and provecommit.
+Occasionally deals expire between PreCommit and ProveCommit of a sector and in these cases sectors containing these deals will fail to commit. This is bad for storage providers committing sectors with deals and bad for the non-expired deals that would become active if the sector were committed. While offchain logic can help in many cases there is always a small risk of deals expiring even with optimal offchain logic as long as there is a delay between precommit and provecommit.
 
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
 
-### ProveCommitSector
-
-- args change to include ExpiredDeals map: a cbor map {dealID: PieceInfo}.
+Introduce a new type `ExpiredDealInfo` for use in method parameters
 
 ```golang
-type PieceInfo struct {
+type ExpiredDealInfo struct {
+     DealID    abi.DealID
      PieceCID  cid.Cid
      PieceSize abi.PaddedPieceSize
 }
 ```
-- ComputeDataCommitment is extended to take in ExpiredDeals map.  Validation that all expired deals are actually expired: dealID is less than next dealID and deal not found on chain
+### ProveCommitSector
+
+1. `ProveCommitSector` takes in an array of `ExpiredDealInfo`s as a new parameter.
+2. If all deals are expired the method fails and this sector cannot be committed.
+3. Market actor `ComputeDataCommitment` is extended to take in an array of `ExpiredDealInfo's. It validates that all expired deals are actually expired by asserting that each dealID is less than the global next dealID and the deal is not found on chain. If any expired deal fails validation the method will error, failing the caller. After validating `ComputeDataCommitment` then uses expired deal information to correctly compute the data commitment for `ProveCommitSector`.
+```golang
+type SectorDataSpec struct {
+     DealIDs      []abi.DealID
+     SectorType   abi.RegisteredSealProof
+     ExpiredDeals []ExpiredDealInfo
+}
+
+type ComputeDataCommitmentParams struct {
+     Inputs []*SectorDataSpec
+}
+```
 
 ### ConfirmSectorProofsValid
 
-- Only send ActivateDeals messages for non expired deals
-- Only include DealIDs of non-expired deals in the newly created SectorOnChainInfo
-- Recompute DealWeight and VerifiedDealWeight for sectors at prove commit to stay accurate even with expired deals
+1. Market actor `ActivateDeals` error semantics are changed. It does not error if some deals are not found. Instead it returns a bitfield of the indexes of input deals that were successfully activated. If no deals can be activated the method will error.
+2. Additionally `ActivateDeals` is modified to return the weight of the sector being activated.
+```golang
+type ActivateDealsReturn struct {
+     ValidInputs bitfield.BitField
+     Weight SectorWeights
+}
+```
+3. `ConfirmSectorProofsValid` passes all DealIDs specified at precommit to `ActivateDeals` and reads the output to filter out expired deals.
+4. The `SectorOnChainInfo` DealIDs, DealWeight and VerifiedDealWeight fields are now assigned the non-expired deal ids, and the newly calculated deal weights.
 
 ### ProveCommitAggregate
 
-ProveCommitAggregate params now include a map from sector id to the ExpiredDeals map datastructures defined above.
-
-All ConfirmSectorProofsValid changes directly apply to ProveCommitAggregate.
+1. `ProveCommitAggregate` takes in an array of `ExpiredDealInfo`s and does internal processing to index expired deal infos by deal id.
+2. When iterating through pre commits `ProveCommitAggregate` checks each deal id for membership in the expiration set including the expired information to `ComputeDataCommittmentInputs`.
+3. `ProveCommitAggregate` keeps track of whether a sector has all expired deals and if so it drops the precommit from the confirmation set without erroring.
+4. All changes to `ConfirmSectorProofsValid` directly apply 
 
 
 ## Design Rationale
 <!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
-The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.
+
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
-All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.
+
 
 ## Test Cases
 <!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
-Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.
 
 ## Security Considerations
 <!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
