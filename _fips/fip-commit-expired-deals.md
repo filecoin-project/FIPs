@@ -43,7 +43,7 @@ type ExpiredDealInfo struct {
 
 1. `ProveCommitSector` takes in an array of `ExpiredDealInfo`s as a new parameter.
 2. If all deals are expired the method fails and this sector cannot be committed.
-3. Market actor `ComputeDataCommitment` is extended to take in an array of `ExpiredDealInfo's. It validates that all expired deals are actually expired by asserting that each dealID is less than the global next dealID and the deal is not found on chain. If any expired deal fails validation the method will error, failing the caller. After validating `ComputeDataCommitment` then uses expired deal information to correctly compute the data commitment for `ProveCommitSector`.
+3. Market actor `ComputeDataCommitment` is extended to take in an array of `ExpiredDealInfo`s. It validates that all expired deals are actually expired by asserting that each dealID is less than the global next dealID and the deal is not found on chain. If any expired deal fails validation the method will error, failing the caller. After validating `ComputeDataCommitment` then uses expired deal information to correctly compute the data commitment for `ProveCommitSector`.
 ```golang
 type SectorDataSpec struct {
      DealIDs      []abi.DealID
