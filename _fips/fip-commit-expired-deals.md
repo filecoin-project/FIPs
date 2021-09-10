@@ -79,11 +79,22 @@ type ActivateDealsReturn struct {
 
 ## Design Rationale
 <!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
+An alternate approach would be to track old piece info sufficient to calculate the data committments of sectors with expired deals on chain in the market actor. However managing this on chain map and its garbage collection is less efficient and more complicated than pushing this off to the storage provider and adding a byte to committment message params.
 
+The `ExpiredDeals` type is used instead of a cbor map because of IPLD format restrictions disallowing integer keyed maps. Adding this paramter should incur only one extra byte in the `ProveCommit` and `ProveCommitAggregate` parameters of the common case where no deals are expired.
+
+Although the state machine has knowledge about what deals are expired at the entrypoint of `ProveCommit` and `ProveCommitAggregate` in this proposal it is rediscovered during the second step, i.e. `confirmSectorProofsValid` by reading the return value of `ActivateDeals`. An alternate proposal could modify the parameters to the second stage of committment to include the expired deal set so that activation would only be called with the non-expired deal ids. This was passed over because it is more invasive in the `ProveCommit` case. It would require either adding the expired deal ids to the power cron queue or changing ProveCommit from a read only method to a state mutating method and modifying sector precommit infos. The later case is not bad but modifying precommit infos between precommit and final commit adds another state mutation and somewhat complicates reasoning about state.
+
+The error semantics and bitfield return value change proposed for `ActivateDeals` is modeled after the [existing proposal](https://github.com/filecoin-project/FIPs/pull/154) for changing `PublishStorageDeals` error handling.
+
+Overwriting sector info with only the non-expired deal ids preserves the invariant that all deal ids in a sector are activated at some point during the sector's lifetime which means this proposal does not need to extend its scope to miner actor processing beyond sector committment.
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
 
+Four miner and market actor method signatures change in this proposal: `market.ComputeDataCommittment`, `market.ActivateDeals`, `miner.ProveCommitSector`, and `miner.ProveCommitAggregate`.  This means an actor major version change is needed for this proposal.  The market actor methods should only be called internally by user called actor methods (except for erroneous unauthorized calls) so there are no complications changing signatures.  The miner actor method parameter changes will have complications. Messages from before the upgrade will fail to unserialize to the new format. The upgrade should include a best effort stop on sector commitment messages in the hour before the upgrade epoch.
+
+No state migration is needed.
 
 ## Test Cases
 <!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
@@ -94,12 +105,18 @@ There are no security implications to this proposal.
 
 ## Incentive Considerations
 <!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
-- Although this construction can't prevent using different PieceCids then originally specified in PublishStorageDeals for a DealID it is not rational to do this so it is not a problem for the protocol.
-- After this proposal deal clients will not have a guaranteed burn of precommit deposit by the miner if their deal id is included in precommit but not activated.  This removes a stronger disincentive for storage providers to not let deals expire before committment.
+There is an incentive consideration related to [this conversation](https://github.com/filecoin-project/FIPs/issues/57). If designed incorrectly this proposal could allow arbitrary data setting without participating in the filecoin economy at the storage market layer. For this reason this proposal restricts expired deal id specification to the deal ids already validated at precommit. This prevents storage providers from specifying arbitrary unrelated expired deal ids from different storage providers that did not require market interaction from the storage provider.  Note that this proposal can't prevent using different PieceCids then originally specified in PublishStorageDeals for a DealID. However doing so does not impact desired storage market interaction requirements as a storage provider would need to seal the true data and publish a deal for the overwritten data anyway
+
+After this proposal deal clients will not have a guaranteed burn of precommit deposit by the miner if their deal id is included in precommit but not activated.  This removes a stronger disincentive for storage providers to not let deals expire before committment.  TODO: this needs cryptoecon analysis and sign off
+
+Sector weights must be recalculated without expired deals to fairly reduce miner power from including deals no longer being proven.
+
+Recalculating weights at commit time instead of precommit time will slightly increase sector power since the deadspace with no deals active between precommit and commit will be removed from the sector weight calculation.  TODO: this needs cryptoecon analysis and sign off
+
 
 ## Product Considerations
 <!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
-Storage provider software will need to change slightly to create correct parameters for sector committment methods. Storage provider software will be able to use this new argument to provide more cost efficient error handling by explicitly listing deals as expired and committing the sector instead of letting the sector drop and burning precommit deposit.
+Storage provider software will need to change slightly to create correct parameters for sector committment methods. The only requirement is adding a new empty param for expired deals. Storage provider software will be able to use this new argument to provide more cost efficient error handling by explicitly listing deals as expired and committing the sector instead of letting the sector drop and burning precommit deposit. However this is not a requirement at time of upgrade.
 
 ## Implementation
 <!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
