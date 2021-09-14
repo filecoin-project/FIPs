@@ -1,6 +1,6 @@
 ---
 fip: to be assigned
-title: Miner onchain PeerId and Multiaddrs must co-exists
+title: Miner onchain PeerId and Multiaddrs must co-exist
 author: Jennifer Wang (@jennijuju)
 discussions-to: https://github.com/filecoin-project/FIPs/issues/161
 status: Draft
