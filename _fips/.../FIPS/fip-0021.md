@@ -1,5 +1,5 @@
 ---
-fip: <to be assigned>
+fip: 0021
 title: Correct quality calculation on expiration
 author: @Stebalien, @ZX, @Zenground0
 discussions-to: 
