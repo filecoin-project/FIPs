@@ -1,5 +1,5 @@
 ---
-fip: <to be assigned>
+fip: 0021
 title: Bad deals don't fail PublishStorageDeals
 author: ZenGround0 (@ZenGround0)
 discussions-to: https://github.com/filecoin-project/FIPs/issues/142
@@ -28,7 +28,9 @@ Because to some extent deal errors are unavoidable this issue is frequently brou
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
 
-PublishStorageDeals deal validation, client address resolution, and balance locking errors do not cause message failure but instead these errors are logged and the deal causing the problem is be dropped from the publish set. VerifiedRegistry actor UseBytes calls are now moved before publishing state changes so that these errors can also be logged and deals dropped instead of triggering message failure.
+PublishStorageDeals deal validation, duplicate deal filtering and balance locking errors do not cause message failure but instead these errors are logged and the deal causing the problem is be dropped from the publish set. VerifiedRegistry actor UseBytes calls are now moved before publishing state changes so that these errors can also be logged and deals dropped instead of triggering message failure.
+
+PublishStorageDeals logic is changed to first iterate over deals and apply checks to filter out invalid deals without mutating the market actor state. Only after filtering invalid deals will the method iterate through valid deals and modify state for all valid deals atomically.
 
 The return value of PublishStorageDeals is changed from
 
@@ -45,7 +47,7 @@ PublishStorageDealsReturn struct {
 }
 ```
 
-We use a bitfield to keep the return bytes compact. The bitfield is over parameter index. With this new field consumers of the PublishStorageDeals receipt can maintain exact information on which proposals are matched to which deal ids.
+We use a bitfield to keep the return bytes compact. The bitfield is over the index of the input array of client deal proposals. For example if three client deal proposals are input and the first two are invalid the `Valid` bitfield will be 001. With this new return format consumers of the PublishStorageDeals receipt can maintain exact information on which proposals are matched to which deal ids. All valid client deal proposals are assigned a deal ID and added in order to the return array.
 
 If all proposals fail validation PublishStorageDeals will return an error. If an ErrIllegalState error or other internal error is encountered PublishStorageDeals will return an error.
 
@@ -53,7 +55,7 @@ If all proposals fail validation PublishStorageDeals will return an error. If an
 <!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
 The design of the main error semantics change is trivial given the goal to improve user experience.
 
-The `Valid` bitfield in the return value is over input index because deal ids are only assigned after publish storage deals runs so an index of deal ids does not work.  A bitfield is used to enable return information to be compact.  While marking failed deals in the output would also work this proposal chooses valid deals because the valid deal the successes are the most directly relevant to consumers which saves an extra bitfield xor during processing.
+The `Valid` bitfield in the return value is over input index because deal ids are only assigned after publish storage deals runs so an index of deal ids does not work.  A bitfield is used to enable return information to be compact.  While marking failed deals in the output would also work this proposal chooses valid deals because the valid deal the successes are the most directly relevant to consumers which saves an extra bitfield XOR during processing.
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
@@ -61,7 +63,7 @@ This proposal requires a breaking change in an actor method signature and theref
 
 ## Test Cases
 <!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
-Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.
+
 * No errors and all deals pass
 Correct return values and successful publishing of valid deals in the precense of the following errors:
 * Deal validation errors
@@ -85,8 +87,7 @@ Miners publishing deals will have an improved user experience.  Clients and othe
 
 ## Implementation
 <!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
-The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.
 
-specs-actors PR: TODO
+specs-actors PR: https://github.com/filecoin-project/specs-actors/pull/1487
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
