@@ -20,7 +20,7 @@ When making decisions about how to improve Filecoin, we will follow a set of pri
 
 ## Making changes to the Filecoin network
 
-[Filecoin Improvement Proposals (FIPs)](https://github.com/filecoin-project/FIPs/blob/master/_fips/fip-0001.md) are the primary mechanism by which the Filecoin community can submit, discuss, and approve changes relevant to the Filecoin network. These discussions and decisions should be guided by the governance and design principles above.
+[Filecoin Improvement Proposals (FIPs)](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0001.md) are the primary mechanism by which the Filecoin community can submit, discuss, and approve changes relevant to the Filecoin network. These discussions and decisions should be guided by the governance and design principles above.
 
 FIPs are classified into three categories:
 
