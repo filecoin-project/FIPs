@@ -1,17 +1,14 @@
 ---
 fip: <to be assigned>
-title: Askv2 Protocol
-author: <Brenda Lee (@brendalee) >
-discussions-to: <https://github.com/filecoin-project/FIPs/discussions/223>
+title: Storage Ask Protocol v2 Standard 
+author: Brenda Lee (@brendalee), @Jiaying Wang (@jennijuju) , Why (@whyrusleeping), Jimmy Lee(@jimmylee)
+discussions-to: <https://github.com/filecoin-project/FIPs/discussions/225>
 status: Draft
-type: <Technical>
-category (*only required for Standard Track): <Interface >
+type: Technical
+category (*only required for Standard Track): Interface 
 created: <2021-12-13>
 spec-sections: 
-  - <section-id>
-  - <section-id>
-requires (*optional): <FIP number(s)>
-replaces (*optional): <FIP number(s)>
+  - 2.7.1 (AskProtocol & Storage Ask)
 ---
 
 <!--You can leave these HTML comments in your merged FIP and delete the visible duplicate text guides, they will not appear and may be helpful to refer to if you edit it again. This is the suggested template for new FIPs. Note that a FIP number will be assigned by an editor. When opening a pull request to submit your FIP, please use an abbreviated title in the filename, `fip-draft_title_abbrev.md`. The title should be 44 characters or less.-->
