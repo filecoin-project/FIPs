@@ -30,35 +30,20 @@ Clients need to be able to share details of the storage deal they want to make. 
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
-For the ask request, the client provides the following information: 
-* Client address
-* Peer ID
-* PayloadCID
-* Deal piece size
-* Deal duration
-* Deal start epoch
-* Verified or unverified deal
-* Fast retrieval required or not
-* Transfer protocol
-  - Need clearly defined transfer protocols (for example, graphsync, physical, etc.)
-  - Option for client to specify additional transfer protocols
-  - Will have a set of defined protocols, but allow SPs to add more
-* Message freeform text 
-* Signature by client 
+### Client Request of AskProtocol v2
 
-For the response, the provider will respond with the following information: 
-* Will accept or reject the deal
-* Rejection code
-  - Need clearly defined rejection codes
-  - Start with HTTP codes and build from there
-  - Option for storage provider to specify additional rejection codes
-* Price per GB per epoch
-  - Single price field
-* How long the offer is valid for
-  - Expiry time
-  - Not binding, just for client convenience
-* Start epoch of deal
-* Message freeform text
+For the AskProtocol v2 request, the client provides the following information: 
+
+```go=
+type StorageAskRequest struct {
+  ClientAddress Address
+  PeerId  *abi.PeerID 
+  PieceSize abi.PaddedPieceSize
+  Duration int64
+  StartEpoch abi.ChainEpoch 
+  Verified bool
+  TransferProtocol string
+  Message string
 
 ## Design Rationale
 <!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
