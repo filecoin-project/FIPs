@@ -15,7 +15,7 @@ spec-sections:
 
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
-The goal of Askv2 protocol is to help with awareness between the client and storage providers before a deal proposal. Before a client attempts to make a deal, they can send details of their proposed deal, and the storage provider can respond to the proposal (with accept or reject and other details such as price or earliest start epoch). Note that the ask protocol is not designed to handle back and forth deal negotiations. 
+The goal of AskProtocol v2 is to help with the [discovery](https://spec.filecoin.io/#section-systems.filecoin_markets.storage_market.discovery) between the client and storage providers before making a storage deal proposal. As the first step of the SP discovery, clients can send details of their proposed deal to the storage provider, and the storage provider should be able to respond to the proposal (with accept or reject, price and additional service offer). Note that the ask protocol is **not** designed to handle back and forth deal negotiations. 
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
