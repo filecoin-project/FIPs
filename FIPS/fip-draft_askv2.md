@@ -19,9 +19,9 @@ The goal of AskProtocol v2 is to help with the [discovery](https://spec.filecoin
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
-Askv2 aims to improve the existing ask protocol to help the client understand whether or not a storage provider is likely to accept their deal. 
+AskProtocol v2 aims to improve the existing AskProtocol to help the client understand whether or not a storage provider is likely to accept their deal before they send a signed proposal. 
 
-The proposed flow is simple. The client sends an ask request with information about the storage deal they would like to make. The ask response by the storage provider indicates whether or not the deal will be accepted with specifics on conditions (for example, how long the offer is valid for, and what the price to store is). More details on information the client/storage provider will include in the messages can be found in the specification section. 
+The proposed flow is simple. The client sends an ask request with information about the storage deal they would like to make. The ask response by the storage provider indicates whether or not the deal will be accepted with specifics on conditions (for example, how long the offer is valid for, and what the price to store is). More details about the AskProtocol v2 request/response can be found in the specification section. 
 
 
 ## Change Motivation
