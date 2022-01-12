@@ -35,3 +35,33 @@ FIPs are classified into three categories:
 Filecoin is still in its infancy, but it has the potential to play a central role in the storage and distribution of humanity’s information. To help the network grow and evolve, it is critical for the community to collectively be engaged in proposing, discussing, and implementing changes that improve the network and its operations. 
 
 This improvement protocol helps achieve that objective for all members of the Filecoin community (developers, miners, clients, token holders, ecosystem partners, and more). 
+
+## FIPs
+
+|FIP #   | Title  | Author  | Status  |
+|---|---|---|---|
+|[0001](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0001.md)   | FIP Purpose and Guidelines  | @Whyrusleeping  | Active  |
+|[0002](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0002.md)   | Free Faults on Newly Faulted Sectors of a Missed WindowPoSt  | @anorth, @davidad, @miyazono, @irenegia, @lucaniz, @nicola, @zixuanzh   |Final   |
+|[0003](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0003.md)   | Filecoin Plus Principles  | @feerst, @jbenet, @jnthnvctr, @tim-murmuration, @mzargham, @zixuanzh  |Active   |
+|[0004](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0004.md)   |Liquidity Improvement for Storage Miners   | @davidad, @jbenet, @zenground0, @zixuanzh, @danlessa   | Final  |
+|[0005](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0005.md)  |Remove ineffective reward vesting    | @anorth, @Zenground   |Final   |
+|[0006](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0006.md)   | No repay debt requirement for DeclareFaultsRecovered  |  @nicola, @irenegia  | Deferred  |
+|[0007](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0007.md)   | h/amt-v3  | @rvagg, @Stebalien, @anorth, @Zenground0   |Final   |
+|[0008](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0008.md)   | Add miner batched sector pre-commit method  |@anorth, @ZenGround0, @nicola  |Final   |
+|[0009](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0009.md)   | Exempt Window PoSts from BaseFee burn  |@Stebalien, @momack2, @magik6k, @zixuanzh  |Final   |
+|[0010](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0010.md)   | Off-Chain Window PoSt Verification  |@Stebalien, @anorth  |Final  |
+|[0011](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0011.md)   | Remove reward auction from reporting consensus faults  |@Kubuxu |Final   |
+|[0012](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0012.md)   | DataCap Top up for FIL+ Client Addresses  |@dshoy, @jnthnvctr, @zx |Final  |
+|[0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md)   | Add ProveCommitSectorAggregated method to reduce on-chain congestion  | @ninitrava @nicola |Final   |
+|[0014](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0014.md)   | Allow V1 proof sectors to be extended up to a maximum of 540 days | @deltazxm, @neogeweb3 |Final   |
+|[0015](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0015.md)   |  Revert FIP-0009(Exempt Window PoSts from BaseFee burn) | @jennijuju, @arajasek |Final   |
+|[0016](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0016.md)   |  Pack arbitrary data in CC sectors | donghengzhao (@1475) |Draft  |
+|[0017](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0017.md)   | Three-messages lightweight sector updates |@nicole, @lucaniz, @irenegia |Deferred  |
+|[0018](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0018.md)   | New miner terminology proposal |@Stefaan-V |Final  |
+|[0019](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0019.md)   | Snap Deals |@Kubuxu, @lucaniz, @nicola, @rosariogennaro, @irenegia |Draft  |
+|[0020](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0020.md)   | Add return value to WithdrawBalance |@Stefaan-V |Final  |
+|[0021](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0021.md)   | Correct quality calculation on expiration |@Steven004, @Zenground0 |Final  |
+|[0022](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0022.md)   | Bad deals don't fail PublishStorageDeals |@Zenground0 |Final  |
+|[0023](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0023.md)   | Break ties between tipsets of equal weights |@sa8, @arajasek |Final  |
+|[0024](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0024.md)   | BatchBalancer & BatchDiscount Post -Hyperdrive adjustment |@zx, @jbenet, @zenground0, @momack2 |Final  |
+|[0026](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0026.md)   | Extend sector fault cutoff period from 2 weeks to 6 weeks |@IPFSUnion |Final  |
