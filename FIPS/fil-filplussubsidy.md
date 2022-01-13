@@ -25,12 +25,17 @@ redirects part of the block reward as an explicit subsidy paid to providers of F
 
 ## Abstract
 The Filecoin network is secured by continually proven storage capacity, for which providers (miners) earn block reward.
-To incentivise the storage of useful data, the Filecoin Plus program incentivises the storage of verified deals
-by causing them to count for 10 times the storage power as other sectors, thus earning 10 times the block reward. 
-This requires on-chain metadata about every sector's composition, which is expensive and prevents efficient aggregate accounting.
-It also couples network security to incentive distribution policy, weakening the former.
-The coupling greatly constrains the design space for more scalable mechanisms as capacity and deal utilisation increase. 
-It will also prevent the effective development of alternative storage markets once the FVM enables user-programmable contracts.
+To incentivise the storage of useful data, the Filecoin Plus program rewards the storage of verified deals
+by causing such committed space to count for 10 times the storage power of other capacity, 
+thus increasing the possibility of winning block rewards by a factor of 10. 
+
+It also couples network security to incentive distribution policy, weakening the former. 
+The coupling greatly constrains the design space of both sector accounting and deal markets.
+It will prevent the effective development of improved storage deal functionality or fo alternative
+storage markets once the FVM enables user-programmable contracts.
+
+Further, the on-chain metadata required about every sector's composition is expensive and prevents efficient aggregate accounting.
+The coupling makes it difficult to design more scalable mechanisms as capacity and, especially, deal utilisation increase.
 
 The proposal breaks the coupling by rewarding Filecoin Plus verified deals explicitly,
 rather than piggybacking on the storage power block reward. In brief:
@@ -41,39 +46,46 @@ rather than piggybacking on the storage power block reward. In brief:
 - Add pledge and penalty mechanisms to verified deals to retain the existing economic incentives.
 
 ## Change Motivation
-The concept of quality-adjusted power makes sectors heterogeneous for the purpose of consensus power. 
-Each sector requires on-chain metadata to specify its weight (which determines power), pledge, and penalty values,
-as they depend on the deals and projected lifespan when the sector was committed. 
-This metadata incurs blockchain state storage and processing costs linear in the number of sectors proven. 
-Such linear data will eventually limit the capacity of the chain to account for proven storage. 
-Maintaining the facility for heterogeneous sectors constrains freedom for more scalable sector accounting designs, 
-even though most sectors don't have deals. 
-The premise that most sectors don't have deals is not something to rely on, though.
-In the long term we aim for many more deals and a much greater proportion of committed storage to be in active use.
-The [Neutron proposal](https://github.com/filecoin-project/FIPs/issues/119) would support 
-exponential growth in network capacity for sectors without deals by accounting for them in aggregated groups, 
-but cannot do so for sectors with deals if those deals affect power. 
-Removal of quality-adjusted power opens up scalable representations of homogeneous sectors.
+The [FVM](https://github.com/filecoin-project/FIPs/issues/113) will enable
+user-defined contracts to execute in the Filecoin state machine.
+Our hopes for these contracts include innovations on storage markets beyond the built-in one,
+supporting novel types of storage deals and functionality including
+deal extension, multi-sector deals, re-negotiation, deal transfer, capacity deals, auction markets,
+repair markets, insurance, and derivatives.
+But today, individual sector content is coupled to consensus (through QA power) and
+the storage miner actor is tightly coupled to the built-in storage market actor
+(e.g. the miner actor calls the market actor to compute deal weight).
+Such coupling is a significant barrier to feature development in storage markets,
+preventing straightforward implementation of even simple features like time-extension of deals or moving deal data between sectors.
+Even if we had the FVM, most of this functionality would be either impossible or very complex to
+design and build within the current architecture.
 
-The [FVM](https://github.com/filecoin-project/FIPs/issues/113) will enable 
-user-defined contracts to execute in the Filecoin state machine. 
-Our hopes for these contracts include innovations on storage markets beyond the built-in one, 
-supporting novel types of storage deals, financing, derivatives etc. 
-But sector content is coupled to consensus (through QA power) and 
-the storage miner actor is tightly coupled to the built-in storage market actor 
-(e.g. the miner actor calls the market actor to compute deal weight). 
-Such coupling is a significant barrier to feature development in storage markets, 
-preventing easy implementation of features like extension of deals or moving deal data to new sectors. 
-It will also prevent meaningful innovation in alternative on-chain markets; 
-because the miner actor will not call to them, they will be unable to support Filecoin Plus deals, 
-so they will not attract any storage providers. 
-Removal of quality-adjusted power removes this coupling to consensus power and the built-in storage market
-(and future proposals will remove more of it).
+We must break this coupling in order to support effective development of actually-useful storage-related applications and features.
+The coupling will also prevent meaningful innovation in alternative on-chain markets;
+because the miner actor will not call to them, they will be unable to support Filecoin Plus deals,
+so they will not attract any storage providers.
+Removal of quality-adjusted power reduces the priviledged position of the built-in storage market
+(and future proposals will go further).
 
-This proposal aims to reduce deal market limitations on the scale and efficiency of maintaining 
-exponentially larger amounts of capacity, break functional coupling between deals and consensus power, 
-and break some of the coupling between the miner and market actors which would prevent future innovation in both. 
-These goals are to be sought within existing product and crypto-economic constraints around sound storage and economic security.
+See [discussion #241](https://github.com/filecoin-project/FIPs/discussions/241) for discussion of the
+more general motivations behind this and related upcoming proposals.
+
+In addition, the concept of quality-adjusted power incurs blockchain state storage and processing costs
+linear in the number of sectors proven.
+Such linear data will eventually limit the capacity of the chain to account for proven storage.
+Removal of quality-adjusted power opens up scalable representations of homogeneous sectors as aggregates.
+While the scalability of committed storage is not a pressing problem today, reducing coupling will
+set us on stronger footing for solving it in the future.
+
+This proposal aims to:
+- break some of the coupling between the miner and market actors which will prevent future innovation,
+- break functional coupling between deals and consensus power for simplicity, and
+- reduce deal market limitations on the scale and efficiency of maintaining
+  exponentially larger amounts of capacity
+
+These goals are sought within existing product and crypto-economic constraints around sound storage and economic security.
+The proposal aims to preserve existing reward, pledge, and penalty behaviour as far as remains sensible
+given the conceptual separation.
 
 ## Specification
 
@@ -109,9 +121,10 @@ This might be removed by future changes toward fungible sectors.
 _Note:_ Uniform power also means that all similarly-sized sectors committed at the same epoch would require the same initial pledge. 
 Similarly, the expected day reward and storage pledge metadata values depend only on activation epoch. 
 The per-sector values maintained to track penalties for replaced CC sectors (from pre-SnapDeals) become technically redundant. 
-We could maintain historical pledge/reward values for the network just  in the power and reward actors 
+We could maintain historical pledge/reward values for the network just in the power and reward actors 
 (instead of storing each of these numbers in chain state hundreds of times per epoch).
-This proposal excludes those changes, in the name of making a smaller total change while still achieving the removal of sector quality.
+Removing these per-sector values would improve scalability of sector accounting, but this proposal excludes those changes
+in the name of making a smaller total change while still achieving the decoupling of deals from consensus.
 
 ### Storage market actor accounts for verified deal space-time
 The storage market actor becomes responsible for accounting for providers' storage of verified deals, 
@@ -196,17 +209,14 @@ After receiving both the storage power and verified space values,
 the reward actor splits the total block reward to be paid in the next epoch into 
 the consensus reward and the verified deal subsidy.
 The block reward is paid as usual, and the deal subsidy retained for the market actor to claim.
-
-Concretely, the reward split is given by
-$$Consensus\,reward=\frac{1}{Q}\frac{R}{P_R},$$
-$$Deal\,subsidy=\frac{Q-1}{Q^2}\frac{Rq}{P_R}.$$
-$$Total\,\,reward=\frac{R}{P_R}\frac{q}{Q}.$$
-
-Where Q is the average sector quality multiplier, R is this epoch's total reward, P_R is total raw byte power.
-See https://hackmd.io/@R02mDHrYQ3C4PFmNaxF5bw/SJ61McoOt for derivation. 
-TODO copy this document into the FIPs repo.
-
 This mechanism will generalise to multiple market actors in the future (on the assumption they can use cron).
+
+This reward distribution should result in the *same total reward* profile as the current implementation,
+both for the system as a whole and for individual miners, with the exception of a change in the timing
+of verified deal rewards. This proposal has no intention of altering the ultimate incentives to storage providers,
+only of providing them by a more transparent mechanism.
+
+TODO: specify this reward split calculation explicity.
 
 TODO: refactor the reward split calculation to remove reference to “quality”, just the raw deal space totals or ratio.
 
@@ -319,6 +329,15 @@ if colluding notaries would bless all of a malicious provider's storage (this is
 This proposal **makes the subsidy direct**, reducing complexity and coupling between the storage market and individual sectors,
 and clearly separating security from reward distribution policy.
 
+This means that verified deals no longer contribute to consensus power, though they continue to earn the 
+same (in fact, more reliable and sooner) rewards as the QA-power mechanism. This could constitute a reduction
+in incentive to maintain verified deals to the extent that consensus power is desirable for reasons _other
+than the reward_. Such reasons might include 
+(a) reputation, if providers memetically attach to consensus power rather than storage of useful data, or 
+(b) control, if providers manipulate the blockchain outside the "honest" protocol, for self-interested reasons. 
+To the extent that this proposal reduces the ability to stack consensus power through 
+defeating the Filecoin Plus notary process, it confers a chain security benefit.
+
 ### Toward innovation in markets
 We wish to enable innovation in the development of on-chain markets once the FVM supports user-programmable contracts.
 To support this, we must remove the built-in storage market's privileged position as the only market,
@@ -329,6 +348,8 @@ One point of privilege to remove is that the miner actors make calls directly to
 We must generally remove such calls, and not add any further such calls.
 The reverse of a market actor calling into a miner is ok, 
 so long as newly developed market contracts will enjoy the same ability (though this proposal doesn't add any such path).
+
+This proposal removes the position of the market actor as the authority on sector quality and power.
 
 ### Change in reward smoothness
 A storage provider's consensus reward is earned via a repeated lottery, so it is not smooth.
