@@ -1,6 +1,6 @@
 ---
 fip: "0027"
-title: Owner key change by PoSt challenge
+title: Owner key change by random PoSt challenge
 author: Lion (@lionsoul2014), Rock (@yangjian102621)
 discussions-to: <URL>
 status: Draft
