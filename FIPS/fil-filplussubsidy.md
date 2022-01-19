@@ -22,25 +22,27 @@ Outstanding items:
 ## Simple Summary
 Removes the concept of quality-adjusted power from the storage powered consensus and instead 
 redirects part of the block reward as an explicit subsidy paid to providers of Filecoin Plus verified deals.
+The rewards paid remain the same, though with timing more advantageous to the provider.
 
 ## Abstract
 The Filecoin network is secured by continually proven storage capacity, for which providers (miners) earn block reward.
 To incentivise the storage of useful data, the Filecoin Plus program rewards the storage of verified deals
-by causing such committed space to count for 10 times the storage power of other capacity, 
-thus increasing the possibility of winning block rewards by a factor of 10. 
+by causing such committed space to count for 10 times the storage power of other capacity. 
+This is the quality-adjusted power mechanism.
+The increased power increases the possibility of winning block rewards by a factor of 10.
 
-It also couples network security to incentive distribution policy, weakening the former. 
-The coupling greatly constrains the design space of both sector accounting and deal markets.
-It will prevent the effective development of improved storage deal functionality or fo alternative
-storage markets once the FVM enables user-programmable contracts.
+QA power couples the storage deal market and the content of individual sectors to consensus.
+This coupling greatly constrains the design space of both storage accounting and deal markets, and
+- delays rewards for hosting verified deals, and makes those rewards uneven and unreliable;
+- confuses FIL+ performance and reputation with raw capacity;
+- prevents the flexible use of sector space to serve deals, restricting storage semantics to "write-once";
+- will impede the development of alternative storage markets once the FVM enables user-programmable contracts; and
+- impedes the design of more scalable sector accounting mechanisms.
 
-Further, the on-chain metadata required about every sector's composition is expensive and prevents efficient aggregate accounting.
-The coupling makes it difficult to design more scalable mechanisms as capacity and, especially, deal utilisation increase.
-
-The proposal breaks the coupling by rewarding Filecoin Plus verified deals explicitly,
+The proposal breaks the coupling by accounting for and rewarding Filecoin Plus verified deals explicitly,
 rather than piggybacking on the storage power block reward. In brief:
 
-- Remove per-sector on-chain sector quality information from state; use raw-byte power as the only notion of consensus power.
+- Remove per-sector on-chain sector quality information from state; use raw-byte power for consensus power.
 - Account for verified deal space-time directly in the market actor.
 - Split the block reward into consensus reward and verified deal subsidy, paid separately.
 - Add pledge and penalty mechanisms to verified deals to retain the existing economic incentives.
@@ -60,28 +62,101 @@ preventing straightforward implementation of even simple features like time-exte
 Even if we had the FVM, most of this functionality would be either impossible or very complex to
 design and build within the current architecture.
 
-We must break this coupling in order to support effective development of actually-useful storage-related applications and features.
-The coupling will also prevent meaningful innovation in alternative on-chain markets;
-because the miner actor will not call to them, they will be unable to support Filecoin Plus deals,
-so they will not attract any storage providers.
-Removal of quality-adjusted power reduces the priviledged position of the built-in storage market
-(and future proposals will go further).
+### Improvements to Filecoin Plus
+This proposal enhances Filecoin Plus by improving the timing, predictability, and reliability of rewards. 
+
+- With QA power, the reward for hosting verified deals is uneven (lottery), unreliable (need blocks included), and delayed.
+- FIL+ subsidy will be **more reliable**, especially for small providers, because payment doesn’t depend on 
+winning the consensus lottery or, after winning, getting a block included in the chain.
+- FIL+ subsidy **pays sooner, aligned with the storage deal**. 
+The QAP mechanism spreads reward out over the whole sector lifespan. 
+This delays rewards, sometimes far after the deal has completed. 
+E.g. today, there are ~7.3 PiB of active verified deals, but *providers are earning rewards as if there were only 1.03 PiB*! (but will keep earning after after those deals expire).
+- The FIL+ subsidy pay-out period is smooth, no lottery, and aligned with the deal lifespan.
+
+It also improves the transparency of Filecoin Plus performance
+- With QA power, providers hosting deals compete with capacity-maximising providers on the same leaderboard, 
+and are completely overshadowed.
+- With this proposal, a provider’s verified deal hosting performance is directly observable on chain.
+The “useful data provider” is a distinct leaderboard upon which the deal-seeking providers can compete, 
+without being overshadowed by capacity-maximising providers who take no deals.
+- The QAP mechanism *diminishes* the apparent contribution by spreading it out over time.
+Today’s ~7.3 PiB of active verified deals contribute only 9.2 PiB of power despite a 10x multiplier!
+Our 0.39% of storage as verified deals is being treated like 0.05%.
+
+### Improvements to programmability and utility
+Decoupling sector content from consensus power makes storage much more flexible.
+The ideal storage API would be a big fungible “disk”, where providers can add/remove/update storage freely to satisfy new deals.
+QAP opposes altering data, because mechanism spreads out the deal’s influence on power over the sector’s lifetime, 
+regardless of deal term.
+
+- With QAP, we can add new data to a sector, but cannot remove or replace data.
+The provider would be either overpaid or underpaid, depending on deal term.
+- Expired data cannot be removed from a sector.
+- Data cannot be replaced even if the deal is complete.
+- QAP restricts storage to **write-once**. A provider cannot utilise the full space-time of committed storage for deals; they can only use each byte of space once, regardless of deal duration.
+
+This inflexible storage limits feature development:
+- Extending deal by transferring to new sector: only possible exactly at end of original sector lifespan
+- Transferring deal to another provider: not possible except at sector expiration
+- Taking new deals (”snap-on-snap”): not possible to re-use storage that was already used for one deal, even if the deal is complete.
+Cannot have a short, full-sector deal, and then replace with another full-sector deal.
+- Capacity deals: client cannot remove or replace data at will, though there might be specific cases that work.
+
+Storage that is more flexible is more valuable. 
+After decoupling, a provider can extract more reward per sector because they can use the full space-time for verified deals,
+even if those deals are not known when the sector is committed.
+- QAP inflexibility incentivises short sector commitments, because FIL+ rewards are delayed until sector expiration and
+space-time after deal expiration cannot be re-used
+- QAP disincentivizes extending sector lifespan because miner needs to re-seal in order to take new deals for the space.
+
+This proposal removes all such restrictions, making sector storage fungible and removing disincentives to long commitments.
+
+### Enabling innovation
+The built-in storage market actor is privileged as the arbiter of deal weight, and hence QA power.
+The market is consensus-critical, inefficient, and very slow/hard to change (requires network upgrade).
+The miner actor is tightly coupled to this market actor:
+e.g. the miner invokes and trusts the built-in market to compute weight/power.
+
+This privilege precludes alternative markets built on the FVM from competing.
+Alternative markets might be more efficient, offer different features, make different trade-offs, integrate with other chains, etc.
+But if they can't serve Filecoin Plus deals, they will not be competitive.
+
+By decoupling markets from consensus, this proposal
+- reduces consensus-critical, slow-moving, network-level code,
+- reduces miner actor complexity,
+- moves code out of the network-critical trust base,
+- reduces the privilege of the built-in market actor, as a step towards realising markets as pure smart contracts,
+evolving as fast as their independent development teams desire.
+
+We must enable flexible storage and remove market actor privilege in order to support rapid ecosystem development of
+actually-useful storage-related applications and features.
 
 See [discussion #241](https://github.com/filecoin-project/FIPs/discussions/241) for discussion of the
-more general motivations behind this and related upcoming proposals.
+more general motivations behind the innovation-enabling motivation for this and related upcoming proposals.
 
-In addition, the concept of quality-adjusted power incurs blockchain state storage and processing costs
+### Scale and security
+The concept of quality-adjusted power incurs blockchain state storage and processing costs
 linear in the number of sectors proven.
 Such linear data will eventually limit the capacity of the chain to account for proven storage.
 Removal of quality-adjusted power opens up scalable representations of homogeneous sectors as aggregates.
 While the scalability of committed storage is not a pressing problem today, reducing coupling will
 set us on stronger footing for solving it in the future.
 
+QA power also slightly undermines economic-cost arguments for network security. 
+Decoupling Filecoin Plus rewards from consensus will restore the property that consensus power requires 
+a linear investment in storage hardware, and prevent collusion with FIL+ notaries from potentially
+subverting consensus (though this is not a practical concern today).
+
+### Summary of motivations
+
 This proposal aims to:
-- break some of the coupling between the miner and market actors which will prevent future innovation,
-- break functional coupling between deals and consensus power for simplicity, and
-- reduce deal market limitations on the scale and efficiency of maintaining
-  exponentially larger amounts of capacity
+- improve Filecoin Plus attractiveness to providers through more reliable rewards and transparent on-chain performance metrics;
+- enable flexible, freely-programmable storage, increasing the utility and value of committed sectors, 
+and supporting basic storage deal features;
+- remove some coupling and privilege which will prevent future innovation in storage markets;
+- simplify and reduce consensus-critical network code, enabling faster iteration; and
+- reduce limitations on the scale and efficiency of maintaining exponentially larger amounts of capacity
 
 These goals are sought within existing product and crypto-economic constraints around sound storage and economic security.
 The proposal aims to preserve existing reward, pledge, and penalty behaviour as far as remains sensible
