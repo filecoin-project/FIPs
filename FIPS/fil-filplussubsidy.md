@@ -286,19 +286,18 @@ the consensus reward and the verified deal subsidy.
 The block reward is paid as usual, and the deal subsidy retained for the market actor to claim.
 This mechanism will generalise to multiple market actors in the future (on the assumption they can use cron).
 
-This reward distribution should result in the *same total reward* profile as the current implementation,
+The reward split function is given by:
+```
+ConsensusReward = EpochReward * NetworkRawPower / (NetworkRawPower + 9 * TotalVerifiedSpace)
+VerifiedDealReward = EpochReward - ConsensusReward = 9 * NetworkRawPower * TotalVerifiedSpace / (NetworkRawPower + 9 * TotalVerifiedSpace)
+```
+
+This reward distribution results in the *same total reward* profile as the current implementation,
 both for the system as a whole and for individual miners, with the exception of a change in the timing
 of verified deal rewards. This proposal has no intention of altering the ultimate incentives to storage providers,
 only of providing them by a more transparent mechanism.
 
-TODO: specify this reward split calculation explicity.
-
-TODO: refactor the reward split calculation to remove reference to “quality”, just the raw deal space totals or ratio.
-
-TODO: change verified deal reward to be a function of the deal space _fraction_, with an asymptote at some fraction of the total reward,
-but initial ratio of 9:1 when verified deals occupy zero of the space.
-
-Parameter: maximum deal subsidy fraction of total reward
+TODO: demonstrate how change in reward timing adds up to same total reward.
 
 ### Sector pledge
 The current sector initial pledge held by each miner actor comprises two parts:
@@ -413,19 +412,6 @@ than the reward_. Such reasons might include
 To the extent that this proposal reduces the ability to stack consensus power through 
 defeating the Filecoin Plus notary process, it confers a chain security benefit.
 
-### Toward innovation in markets
-We wish to enable innovation in the development of on-chain markets once the FVM supports user-programmable contracts.
-To support this, we must remove the built-in storage market's privileged position as the only market,
-and allow other market contracts to match its functionality. 
-See [this discussion](https://github.com/filecoin-project/FIPs/discussions/241).
-
-One point of privilege to remove is that the miner actors make calls directly to “the” market actor.
-We must generally remove such calls, and not add any further such calls.
-The reverse of a market actor calling into a miner is ok, 
-so long as newly developed market contracts will enjoy the same ability (though this proposal doesn't add any such path).
-
-This proposal removes the position of the market actor as the authority on sector quality and power.
-
 ### Change in reward smoothness
 A storage provider's consensus reward is earned via a repeated lottery, so it is not smooth.
 In the long run, the expected value is quite stable, but in the short run may vary a lot.
@@ -453,7 +439,7 @@ After a deal expires, the sector continues to earn storage power rewards only, l
 This is a necessary step towards enabling more flexible assignment of deals to sectors,
 permitting deal extension and the transfer of deal data to new sectors, including those that previously hosted other deals.
 
-TODO: Reward starts paying from deal activation, rather than first WPoSt after PoRep
+TODO: Note reward starts paying from deal activation, rather than first WPoSt after PoRep
 
 ## Backwards Compatibility
 
@@ -505,15 +491,20 @@ This is a deviation from the current protocol that requires a miner to win a blo
 (with a Winning PoSt) in order to claim any rewards. 
 This may reduce the incentive for providers with a very high proportion of verified deals to mine blocks.
 
-This is mitigated at the network level by capping the proportion of total rewards that the deal subsidy can represent.
-Small individual miners may face reduced block production incentive, but 
-(a) if deals are rare then most large providers will earn most reward from block production, and 
-(b) if deals dominate, then all providers earn a capped fraction of deal reward.
+When network-wide storage utilisation is low, such providers will account for a very small proportion of consensus power.
+Most network reward will be earned by block producers.
 
+When network-wide storage utilisation is high (>10%), the network may pay more reward to deal providers than block producers.
+One mitigation for this could be to cap the fraction of network total reward that the deal subsidy may draw.
+An asymptotic upper bound may be implemented in the reward split function by changing a constant. 
+For example, to impose an upper bound of 30% of reward for deal subsidies:
+```
+VerifiedDealReward = 9 * NetworkRawPower * TotalVerifiedSpace / (NetworkRawPower + 29 * TotalVerifiedSpace)
+ConsensusReward = EpochReward - VerifiedDealReward
+```
 
 ### Incentive to maintain deals
 No change: the same total collateral is at risk for reneging on a deal.
-
 
 ### Incentive to maintain healthy storage
 No change: the same total penalties are applied for reneging on a deal.
