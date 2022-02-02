@@ -398,7 +398,8 @@ Future foreign runtime candidates include Agoric SES, Solana eBPF, and others.
 In all cases, compatibility should target the lowest level executable output in
 its source form, rather than dealing with high-level languages using
 alternative/custom toolchains. This reduces risk surface by increasing execution
-fidelity/parity, and makes it tooling reuse possible.
+fidelity/parity, and makes it possible to reuse developer tooling available in
+the original ecosystem.
 
 #### Actor bytecode representation
 
