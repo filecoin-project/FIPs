@@ -92,9 +92,10 @@ FIP, and will be addressed by subsequent proposals.
 
 ## Abstract
 
-We specify the Filecoin Virtual Machine (FVM), a IPLD-ready Wasm-based execution
-layer capable of running arbitrary user-provided code. The FVM replaces the
-[existing non-programmable execution layer][existing non-programmable VM].
+We specify the Filecoin Virtual Machine (FVM), an IPLD-ready Wasm-based
+execution layer capable of running arbitrary user-provided code. The FVM
+replaces the [existing non-programmable execution layer][existing
+non-programmable VM].
 
 The logic of native actors (the equivalent of smart contracts in Filecoin) is
 deployed as Wasm bytecode. Foreign actors targeting non-Filecoin runtimes such
