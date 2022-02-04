@@ -1,5 +1,5 @@
 ---
-fip: <to-be-assigned>
+fip: "0027"
 title: Change type of DealProposal Label field from String to byte array
 author: Laudiacay (@laudiacay)
 discussions-to: https://github.com/filecoin-project/FIPs/issues/187
