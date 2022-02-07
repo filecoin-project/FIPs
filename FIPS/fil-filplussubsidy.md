@@ -1,6 +1,6 @@
 ---
 fip: <to be assigned>
-title: Explicit subsidy for FIL+ verified deals
+title: Explicit premium for FIL+ verified deals
 author: Alex North (@anorth)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/243
 status: Draft
@@ -13,7 +13,6 @@ This FIP is not yet 100% complete, but is substantial enough to warrant communit
 Outstanding items:
 - A scheme for withholding deal reward from faulty sectors and enacting penalties
 - Implementation details for pledge and penalties
-- Devise an asymptote function for deal reward as share of total network reward
 - Validation of the reward, pledge, and penalty function behaviour and ~equivalence with existing implementation.
 - More detailed spec of migration logic
 - Decide what to do with unclaimed rewards
@@ -21,7 +20,7 @@ Outstanding items:
 
 ## Simple Summary
 Removes the concept of quality-adjusted power from the storage powered consensus and instead 
-redirects part of the block reward as an explicit subsidy paid to providers of Filecoin Plus verified deals.
+redirects part of the block reward as an explicit premium paid to providers of Filecoin Plus verified deals.
 The rewards paid remain the same, though with timing more advantageous to the provider.
 
 ## Abstract
@@ -44,7 +43,7 @@ rather than piggybacking on the storage power block reward. In brief:
 
 - Remove per-sector on-chain sector quality information from state; use raw-byte power for consensus power.
 - Account for verified deal space-time directly in the market actor.
-- Split the block reward into consensus reward and verified deal subsidy, paid separately.
+- Split the block reward into consensus reward and verified deal premium, paid separately.
 - Add pledge and penalty mechanisms to verified deals to retain the existing economic incentives.
 
 ## Change Motivation
@@ -62,27 +61,19 @@ preventing straightforward implementation of even simple features like time-exte
 Even if we had the FVM, most of this functionality would be either impossible or very complex to
 design and build within the current architecture.
 
+Improvements are sought within existing product and crypto-economic constraints around sound storage and economic security.
+The proposal aims to preserve existing reward, pledge, and penalty behaviour as far as remains sensible
+given the conceptual separation.
+
 ### Improvements to Filecoin Plus
 This proposal enhances Filecoin Plus by improving the timing, predictability, and reliability of rewards. 
 
 - With QA power, the reward for hosting verified deals is uneven (lottery), unreliable (need blocks included), and delayed.
-- FIL+ subsidy will be **more reliable**, especially for small providers, because payment doesn’t depend on 
+- FIL+ premium will be **more reliable**, especially for small providers, because payment doesn’t depend on 
 winning the consensus lottery or, after winning, getting a block included in the chain.
-- FIL+ subsidy **pays sooner, aligned with the storage deal**. 
+- FIL+ premium **pays sooner**, aligned with the storage deal term. 
 The QAP mechanism spreads reward out over the whole sector lifespan. 
-This delays rewards, sometimes far after the deal has completed. 
-E.g. today, there are ~7.3 PiB of active verified deals, but *providers are earning rewards as if there were only 1.03 PiB*! (but will keep earning after after those deals expire).
-- The FIL+ subsidy pay-out period is smooth, no lottery, and aligned with the deal lifespan.
-
-It also improves the transparency of Filecoin Plus performance
-- With QA power, providers hosting deals compete with capacity-maximising providers on the same leaderboard, 
-and are completely overshadowed.
-- With this proposal, a provider’s verified deal hosting performance is directly observable on chain.
-The “useful data provider” is a distinct leaderboard upon which the deal-seeking providers can compete, 
-without being overshadowed by capacity-maximising providers who take no deals.
-- The QAP mechanism *diminishes* the apparent contribution by spreading it out over time.
-Today’s ~7.3 PiB of active verified deals contribute only 9.2 PiB of power despite a 10x multiplier!
-Our 0.39% of storage as verified deals is being treated like 0.05%.
+This delays rewards, sometimes far after the deal has completed.
 
 ### Improvements to programmability and utility
 Decoupling sector content from consensus power makes storage much more flexible.
@@ -148,25 +139,11 @@ Decoupling Filecoin Plus rewards from consensus will restore the property that c
 a linear investment in storage hardware, and prevent collusion with FIL+ notaries from potentially
 subverting consensus (though this is not a practical concern today).
 
-### Summary of motivations
-
-This proposal aims to:
-- improve Filecoin Plus attractiveness to providers through more reliable rewards and transparent on-chain performance metrics;
-- enable flexible, freely-programmable storage, increasing the utility and value of committed sectors, 
-and supporting basic storage deal features;
-- remove some coupling and privilege which will prevent future innovation in storage markets;
-- simplify and reduce consensus-critical network code, enabling faster iteration; and
-- reduce limitations on the scale and efficiency of maintaining exponentially larger amounts of capacity
-
-These goals are sought within existing product and crypto-economic constraints around sound storage and economic security.
-The proposal aims to preserve existing reward, pledge, and penalty behaviour as far as remains sensible
-given the conceptual separation.
-
 ## Specification
 
 ### Uniform sector power
 Every sector has uniform power corresponding to its raw committed storage size, regardless of the presence of deals. 
-This **removes the concepts of sector quality and quality-adjusted power**, 
+This **decouples the concept of sector quality from consensus**, 
 and makes all bytes equal in the eyes of the power table. 
 Network power and committed storage are now the same concept and need not be tracked separately by the power actor.
 
@@ -253,26 +230,22 @@ Note that since the `VerifiedRewardsHistory` window is fixed, a provider which d
 
 Parameter: verified reward history length: 60 days?
 
-TODO: Track total claimed reward, and burn unclaimed?
-
-TODO: Should we fiddle with the vesting date for claimed rewards? Backdate half way?
-
 ### Reward distribution
 The block reward at each epoch is divided into two shares:
 - Consensus reward, proportional to raw byte power; and
-- Verified deal subsidy, proportional to verified deal space.
+- Verified deal premium, proportional to verified deal space.
 
 A miner's chance of winning the election at each epoch is proportional to their share of the raw byte power 
 (no quality-adjusted power) committed to the network and non-faulty.
 Winning the consensus reward remains a lottery, and is paid directly to the miner actor.
 
-The verified deal subsidy is paid to market actor, for subsequent distribution to providers. 
+The verified deal premium is paid to market actor, for subsequent distribution to providers. 
 This reward is not a lottery, and is claimable by providers whether or not they produce blockchain blocks.
 
 To the reward actor:
 - Add `ClaimVerifiedDealReward`, to be invoked by the market actor, 
   which records the current total verified space for the next epoch, and remits the reward for the previous one.
-- Rework the `UpdateNetworkKPI` implementation to compute the share of the next epoch's reward to be reserved for verified deal subsidy.
+- Rework the `UpdateNetworkKPI` implementation to compute the share of the next epoch's reward to be reserved for verified deal premium.
 
 In cron at the end of each epoch, the market actor calls `ClaimVerifiedDealReward`. 
 This serves two purposes. 
@@ -282,8 +255,8 @@ which will be used to compute the share of reward for the next epoch (similar to
 
 After receiving both the storage power and verified space values, 
 the reward actor splits the total block reward to be paid in the next epoch into 
-the consensus reward and the verified deal subsidy.
-The block reward is paid as usual, and the deal subsidy retained for the market actor to claim.
+the consensus reward and the verified deal premium.
+The block reward is paid as usual, and the deal premium retained for the market actor to claim.
 This mechanism will generalise to multiple market actors in the future (on the assumption they can use cron).
 
 The reward split function is given by:
@@ -292,12 +265,11 @@ ConsensusReward = EpochReward * NetworkRawPower / (NetworkRawPower + 9 * TotalVe
 VerifiedDealReward = EpochReward - ConsensusReward = 9 * NetworkRawPower * TotalVerifiedSpace / (NetworkRawPower + 9 * TotalVerifiedSpace)
 ```
 
-This reward distribution results in the *same total reward* profile as the current implementation,
+On the assumption of smoothly changing verified space as a proportion of network power,
+this reward distribution results in the *same total reward* profile as the current implementation,
 both for the system as a whole and for individual miners, with the exception of a change in the timing
 of verified deal rewards. This proposal has no intention of altering the ultimate incentives to storage providers,
 only of providing them by a more transparent mechanism.
-
-TODO: demonstrate how change in reward timing adds up to same total reward.
 
 ### Sector pledge
 The current sector initial pledge held by each miner actor comprises two parts:
@@ -323,7 +295,7 @@ ExpectedReward := ConsensusRewardEstimate * SectorPower / NetworkPower
 ConsensusRewardEstimate := TotalRewardEstimate * ConsensusRewardRatio
 ```
 
-TODO: demonstrate the near-equivalence in behaviour using real network values.
+TODO: show demonstration of the equivalence in behaviour using real network values.
 
 For sector consensus pledge, the “lock target” of which the sector takes a pro-rata share is multiplied (i.e. reduced)
 by ratio of consensus reward to total block reward. The calculation must include as input the current reward split function, 
@@ -342,13 +314,13 @@ As at present, the sector pledge is forfeit when a sector terminates ahead of sc
 
 ### Verified deal pledge
 In order to maintain the current money supply relationships, storage providers must pledge collateral
-with the storage market as a function of their expected deal subsidy rewards, as well as sector rewards.
+with the storage market as a function of their expected deal premium rewards, as well as sector rewards.
 This pledge secures verified deals, rather than sectors.
 
 We wish to maintain approximately the same total pledge requirement for a sector+deals,
 meaning the deal pledge should match the reduction in sector pledge caused by removing QA power.
 Thus, it takes a very similar form:
-- Deal storage pledge: a multiple of rewards expected to be earned by the deal subsidy
+- Deal storage pledge: a multiple of rewards expected to be earned by the deal premium
 - Deal consensus pledge: a pro-rata fraction of the circulating supply when the deal is activated
 
 For the deal storage pledge, a projection function similar to that used to project sector rewards may be used
@@ -378,7 +350,7 @@ TODO: describe market state changes for tracking pledge
 The deal pledge is forfeit (burned) if a provider fails to carry a deal to completion.
 
 ### Faults and penalties
-TODO!
+(Coming soon)
 
 Notify the market of deal faults.
 Add penalties to match the existing penalty scheme.
@@ -400,7 +372,7 @@ The block reward currently both rewards security and subsidises useful storage.
 This coupling theoretically means the verified deal power boost reduces the hardware cost to attack the network by a factor of 10,
 if colluding notaries would bless all of a malicious provider's storage (this is an impractical attack today, though).
 
-This proposal **makes the subsidy direct**, reducing complexity and coupling between the storage market and individual sectors,
+This proposal **makes the reward direct**, reducing complexity and coupling between the storage market and individual sectors,
 and clearly separating security from reward distribution policy.
 
 This means that verified deals no longer contribute to consensus power, though they continue to earn the 
@@ -433,13 +405,14 @@ In the quality-adjusted power model, the reward attributable to an individual ve
 spread out over the whole lifetime of the sector supporting that deal. 
 If a deal occupies a small fraction of a sector's lifetime, much of the reward is delayed well past the deal's expiration.
 
+The deal reward is also payable prior to the initial Window PoSt proof at which a newly-committed sector
+first gains power.
+
 This is a positive change in aligning providers' cash flow with value provided to the network.
 The rewards for a verified deal are earned during its lifetime.
 After a deal expires, the sector continues to earn storage power rewards only, like a committed-capacity sector.
 This is a necessary step towards enabling more flexible assignment of deals to sectors,
 permitting deal extension and the transfer of deal data to new sectors, including those that previously hosted other deals.
-
-TODO: Note reward starts paying from deal activation, rather than first WPoSt after PoRep
 
 ## Backwards Compatibility
 
@@ -486,7 +459,7 @@ TODO during draft phase. Mostly about incentives (below).
 ## Incentive Considerations
 
 ### Incentive to block producers
-Earning the verified deal subsidy doesn't depend on winning blocks.
+Earning the verified deal premium doesn't depend on winning blocks.
 This is a deviation from the current protocol that requires a miner to win a block 
 (with a Winning PoSt) in order to claim any rewards. 
 This may reduce the incentive for providers with a very high proportion of verified deals to mine blocks.
@@ -495,7 +468,7 @@ When network-wide storage utilisation is low, such providers will account for a 
 Most network reward will be earned by block producers.
 
 When network-wide storage utilisation is high (>10%), the network may pay more reward to deal providers than block producers.
-One mitigation for this could be to cap the fraction of network total reward that the deal subsidy may draw.
+One mitigation for this could be to cap the fraction of network total reward that the deal premium may draw.
 An asymptotic upper bound may be implemented in the reward split function by changing a constant. 
 For example, to impose an upper bound of 30% of reward for deal subsidies:
 ```
