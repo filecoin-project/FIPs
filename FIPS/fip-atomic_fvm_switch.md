@@ -34,6 +34,8 @@ replaces: N/A
     - [Power actor](#power-actor)
 - [Design Rationale](#design-rationale)
 - [Backwards Compatibility](#backwards-compatibility)
+  - [CodeCIDs](#codecids)
+  - [Non-versioned changes and state tree migrations](#non-versioned-changes-and-state-tree-migrations)
 - [Test Cases](#test-cases)
 - [Security Considerations](#security-considerations)
 - [Incentive Considerations](#incentive-considerations)
@@ -203,6 +205,8 @@ WIP.
 
 ## Backwards Compatibility
 
+### CodeCIDs
+
 Changing the CodeCID of built-in actors can have visible consequences for users:
 
 1. When constructing multisig or payment channel actors, they will need to use a
@@ -218,6 +222,23 @@ to content-addressed CodeCIDs, and vice versa, for JSON-RPC handlers to use.
 
 When CodeCIDs are to be returned, JSON-RPC operations can be extended with a
 "legacy CodeCIDs" option for the user to demand a conversion prior to returning.
+
+### Non-versioned changes and state tree migrations
+
+Today, actor logic can change without its version being affected and, therefore,
+without the associated CodeCIDs changing in the state tree. This is because the
+actor version (e.g. actors v6) represents a version of the ABI, not of the
+actor's logic.
+
+However, with the adoption of a canonical Wasm actors codebase across the
+network, _any_ and _every_ change in actor logic will result in different
+bytecode. Because actor code is now truly content-addressed over the bytecode,
+the CodeCIDs will change, therefore requiring a migration of all relevant actors
+in the state tree where, in the past, such migration would've not been
+necessary.
+
+There is no action to take in this FIP, but it is worth noting the difference in
+change management dynamics that this FIP will bring on.
 
 ## Test Cases
 
