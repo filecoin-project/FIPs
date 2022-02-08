@@ -2,7 +2,7 @@
 fip: <to be assigned>
 title: Atomic switch to non-programmable FVM
 authors: Raúl Kripalani (@raulk), Steven Allen (@stebalien)
-discussions-to:
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/296
 status: Draft
 type: Technical Core
 category: Core
