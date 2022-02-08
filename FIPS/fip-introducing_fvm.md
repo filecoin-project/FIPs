@@ -1,5 +1,5 @@
 ---
-fip: <to be assigned>
+fip: 0030
 title: Introducing the Filecoin Virtual Machine (FVM)
 authors: Raúl Kripalani (@raulk), Steven Allen (@stebalien)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/287
@@ -8,7 +8,8 @@ type: Technical Core
 category: Core
 created: 2022-01-26
 spec-sections: 
-  - TBD
+  - https://spec.filecoin.io/#section-intro.filecoin_vm
+  - https://spec.filecoin.io/#section-systems.filecoin_vm
 requires: N/A
 replaces: N/A
 ---
