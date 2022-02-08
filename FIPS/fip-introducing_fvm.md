@@ -978,7 +978,7 @@ introduction of the Filecoin Virtual Machine.
 ## Test Cases
 
 FVM implementations can subject themselves to the FVM-specific test vectors
-hosted at: https://github.com/filecoin-project/fvm-test-vectors.
+hosted at: [filecoin-project/fvm-test-vectors].
 
 ## Security Considerations
 
@@ -1025,3 +1025,4 @@ Copyright and related rights waived via [CC0](https://creativecommons.org/public
 [existing non-programmable VM]: https://spec.filecoin.io/intro/filecoin_vm/
 [FVM built-in actors]: https://github.com/filecoin-project/ref-fvm/tree/master/actors
 [memory64]: https://github.com/WebAssembly/memory64/blob/main/proposals/memory64/Overview.md
+[filecoin-project/fvm-test-vectors]: https://github.com/filecoin-project/fvm-test-vectors
