@@ -972,8 +972,11 @@ EVM, JavaScript/SES, LLVM IR, etc. Wasm was chosen for these reasons:
 
 ## Backwards Compatibility
 
-Existing built-in actor and system functionality will not be affected by the
-introduction of the Filecoin Virtual Machine.
+This FIP introduces a re-architecture of the execution layer, but it doesn't
+propose a specific protocol change. Existing built-in actors will continue to
+operate normally. Subsequent associated FIPs will explore the backwards
+compatibility aspects of their respective protocol changesets (e.g. atomic
+switch to the FVM, gas model changes).
 
 ## Test Cases
 
@@ -996,7 +999,15 @@ developers deploy on top of the FVM.
 
 ## Product Considerations
 
-> TBD.
+New product possibilities and horizons are brought to life by on-chain
+user-programmability on the Filecoin network. As described in the Change
+Motivation section, we expect the FVM to accelerate the pace of innovation in
+the Filecoin network. Furthermore, as system functionality moves out to user
+space, product requirements depending on protocol changes may be implemented
+entirely in user space.
+
+The FVM also creates new product requirements around developer tooling (e.g.
+sandboxes, test kits, etc.) and testnets.
 
 ## Implementation
 
