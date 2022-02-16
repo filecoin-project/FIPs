@@ -2,7 +2,7 @@
 fip: 9999 (TBD)
 title: Filecoin Message Replay Protection
 author: Afri Schoedon (@q9f)
-discussions-to: https://example.com (TBA)
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/301
 status: Draft
 type: Technical
 category: Core
