@@ -1,0 +1,106 @@
+---
+fip: 9999 (TBD)
+title: Filecoin Message Replay Protection
+author: Afri Schoedon (@q9f)
+discussions-to: https://example.com (TBA)
+status: Draft
+type: Technical
+category: Core
+created: 2022-02-16
+---
+
+## Simple Summary
+Defines Filecoin chain identifiers and adds them to unsigned messages and signatures to prevent transactions to be replayed across different Filecoin networks.
+
+## Abstract
+The proposal adds a field to unsigned messages indicating which chain a transaction is intended for. In addition, signatures encode the chain they are targeted for to prevent clients from accepting signed messages to be replayed across all Filecoin networks.
+
+## Change Motivation
+Currently, transactions signed for testnets are also valid on mainnet and could be _replayed_. The motivation of this specification is to prevent that by specifically introducing network identifiers for all Filecoin main and test networks and adding them explicitly to the unsigned messages and signatures.
+
+## Specification
+### Chain Identifiers
+The following chain IDs **MUST** be defined for the Filecoin networks.
+- Filecoin: `CHAIN_ID := 1` (TBD)
+- Interopnet: `CHAIN_ID := 10` (TBD)
+- Butterlfynet: `CHAIN_ID := 20` (TBD)
+- Calibnet: `CHAIN_ID := 30` (TBD)
+- Devnet: `CHAIN_ID := 4269` (TBD)
+
+### Unsigned Messages
+The unsigned message **SHOULD** be appended by an additional field `chain_id`. Legacy messages remain valid but **SHOULD** be deprecated.
+
+```pyhton
+from dataclasses import dataclass
+
+@dataclass
+class UnsignedMessageLegacy:
+  version: int = 0
+  from: int = 0
+  to: int = 0
+  sequence: int = 0
+  value: int = 0
+  method_num: int = 0
+  params: bytes()
+  gas_limit: int = 0
+  gas_fee_cap: int = 0
+  gas_premium: int = 0
+
+@dataclass
+class UnsignedMessageFip9999:
+  version: int = 0
+  from: int = 0
+  to: int = 0
+  sequence: int = 0
+  value: int = 0
+  method_num: int = 0
+  params: bytes()
+  gas_limit: int = 0
+  gas_fee_cap: int = 0
+  gas_premium: int = 0
+  chain_id: int = 0
+```
+
+### Signatures
+The signature of a message **SHOULD NOT** contain a recovery ID (or _"y-parity"_); instead it **MUST** contain a value `v` that encodes both the `chain_id` and the `recovery_id`.
+
+```python
+v = recovery_id + CHAIN_ID * 2 + 35
+```
+
+A signature is a serialization of the fields `r | s | v`. Note that `v` value is appended not prepended.
+
+## Design Rationale
+Both Bitcoin and Ethereum use `v` instead of a recovery ID. Bitcoin uses a value of `v` in `{27,28,29,30,31,32,33,34}` to allow recovering public keys on all four possible points on the elliptic curve for both uncompressed and compressed public keys. This does not apply to Filecoin, however, note that the `+ 35` offset in the `v` specifically allows to distinguish between Bitcoin and Filecoin signatures.
+
+Ethereum uses a similar replay protection in [EIP-155](https://eips.ethereum.org/EIPS/eip-155). It **COULD** be considered to choose a set of `CHAIN_ID`s that do not conflict with EVM chains. (TBD)
+
+The `v` value will be encoded at the end of the signature to allow for the easy determination of `v` values for `v > ff`.
+
+## Backwards Compatibility
+FIP9999 Messages and Signatures are not backward compatible and there will always be the need to maintain both, legacy transactions and FIP9999 transactions.
+
+The main breaking changes are:
+* one additional field of `chain_id` in the unsigned message
+* using `v` instead of `recovery_id` in the signatures
+* moving the `v` value to the end of the signature.
+
+## Test Cases
+_Test Cases can be provided after further discussion of the proposal._
+
+## Security Considerations
+This proposal supposedly enhances chain and user security by preventing replay protection across different Filecoin networks.
+
+Notably, EIP-155 has been in use by Ethereum for more than five years and has proven robust.
+
+## Incentive Considerations
+_Not applicable._
+
+## Product Considerations
+_Not applicable._
+
+## Implementation
+_An implementation can be provided after further discussion of the proposal._
+
+## Copyright
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
