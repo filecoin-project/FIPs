@@ -94,10 +94,12 @@ This proposal supposedly enhances chain and user security by preventing replay p
 Notably, EIP-155 has been in use by Ethereum for more than five years and has proven robust.
 
 ## Incentive Considerations
-_Not applicable._
+This FIP does not affect incentives in itself and is of pure technological nature without any impact on economic factors.
 
 ## Product Considerations
-_Not applicable._
+Applications and products should be encouraged to adapt this FIP as it enhances end-user security; at the same time legacy transactions should be discouraged.
+
+However, since legacy transactions are not invalid for the time being, the impact on applications is fairly low.
 
 ## Implementation
 _An implementation can be provided after further discussion of the proposal._
