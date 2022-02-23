@@ -52,6 +52,9 @@ Leave the initial pledge value, due when the sector is proven, unchanged.
 Remove the call to `market.VerifyDealsForActivation` during sector pre-commit, 
 and deprecate that method from the market actor.
 
+Move the DealID exists check and the cumulative size of deals check to `market.ActivateDeals` (called during
+`ProveCommit(Aggregate)`) and fail individual sectors if checks are unsuccessful.
+
 Change the parameters and return type of `market.ActivateDeals` to match those of the deprecated
 `market.VerifyDealsForActivation`, so that the market actors returns the deal weights to the miner while
 activating deals (and also [supports batching](https://github.com/filecoin-project/specs-actors/issues/474)).
