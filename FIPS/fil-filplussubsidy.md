@@ -1,14 +1,15 @@
 ---
-fip: <to be assigned>
+fip: "0033"
 title: Explicit premium for FIL+ verified deals
 author: Alex North (@anorth)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/243
-status: Draft
+status: Deferred
 type: Technical (Core)
 created: 2022-01-12
 ---
 
 This FIP is not yet 100% complete, but is substantial enough to warrant community involvement prior to completion.
+Further development is deferred until after the FVM and associated built-in actor architectural changes are completed. 
 
 Outstanding items:
 - A scheme for withholding deal reward from faulty sectors and enacting penalties
