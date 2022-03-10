@@ -1,7 +1,7 @@
 ---
 fip: <to be assigned>
 title: Fix pre-commit deposit independent of sector content
-author: Alex North (@anorth)
+author: Alex North (@anorth), Jakub Sztandera (@Kubuxu)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/290
 status: Draft
 type: Technical
@@ -15,33 +15,51 @@ Set the pre-commit deposit to a fixed value regardless of sector content.
 ## Abstract
 The sector pre-commit deposit (PCD) is currently set equal to an estimate of the _storage pledge_ for a sector.
 The storage pledge is a 20-day projection of the expected reward to be earned by the sector.
-This reward depends on power, which depends on the presence of verified deals hosted by the sector.
-This dependency means the miner actor must consult the market actor, which intermediates verified data cap,
-to determine the pre-commit deposit (and then again to compute initial pledge when the sector is proven).
+Expected reward depends on power, which in turn depends on the presence of verified deals hosted by the sector.
 
 This proposal sets the pre-commit deposit to a value independent of sector content:
 the estimated storage pledge of a sector with space-time that is exactly filled by verified deals.
+This breaks coupling between storage power mechanics and the built-in (privileged) storage market actor, 
+which is necessary as a prerequisite to a larger re-architecture supporting alternative deal markets on the FVM.
+It also presents an opportunity to reduce deal-related gas costs.
 
 ## Change Motivation
-Using the storage pledge as PCD is inefficient and constrains the design space of APIs for
-moving to a programmable storage and market architecture for the FVM.
-- The PCD calculation requires the loading of deal metadata to compute deal weight (for sectors with deals).
-This is somewhat expensive.
-This data load and computation is mostly repeated at prove-commit in order to activate deals and calculate initial pledge.
-- The PCD calculation requires a sectors deal's to be specified at pre-commit, 
-and the deal IDs and weights to be memoized for subsequent prove-commit.
-- This only works today because the market actor is a trusted network built-in. 
-This pattern cannot work for user-programmed storage markets, 
-because they cannot be trusted to calculate deal weight.
-As we decouple the accounting for verified data cap from the built-in market,
-these interactions must change anyway.
+Using the sector-specific storage pledge as PCD is inefficient and constrains the design space of APIs
+for moving to a programmable storage and market architecture for the FVM.
+The proposal at https://github.com/filecoin-project/FIPs/discussions/298 outlines an
+architectural change to the built-in miner, market, and verified registry APIs which will 
+support the deployment of alternative, equally-capable marketplace actors as user-programmed actors 
+on the FVM by removing  the privileged place of the built-in storage market actor as a mediator of storage quality.
 
-Refer to the proposal at https://github.com/filecoin-project/FIPs/discussions/298 for an
-example architectural change to the built-in miner, market, and verified registry APIs to support
-programmable storage markets on the FVM.
-That proposal relies on this change to pre-commit deposit as a pre-requisite.
+This proposal is a step towards that architecture, changing the sector onboarding process to:
+- calculate a fixed PCD regardless of sector content, and
+- commit to the sector's unsealed CID (aka CommD) at pre-commit time.
+
+This will establish the pre-commit on-chain state schema matching that required by subsequent
+removal of the market actor from the pre-commit flow entirely (simplifying future changes). 
+It also presents an opportunity to resolve some redundant loading of deal metadata from state during prove-commit,
+and so reduces the total gas consumed when onboarding sectors with deals.
+
+This change also resolves a reduction in security buffers inadvertently introduced in 
+[FIP-0019](./fip-0019.md) SnapDeals. 
+The PCD should be calculated according to the expected reward of a sector, 
+but when a committed-capacity sector is subsequently upgraded with verified deals, 
+its reward increases from that for which its PCD was calculated.
+There is sufficient buffer in the PCD calculation that no practical risk was introduced, 
+but setting the PCD to a fixed value based on the _maximum_ reward a sector might earn restores that security buffer.   
+
+The specific mechanism for implementing this change is driven by goals of:
+- retaining the current exported API, to minimise integration/operational effort,
+- retaining the current operator-friendly safety checks that prevent most instances of invalid deals
+from costing a provider their pre-commit deposit.
+
+Note that it would be possible to reduce gas costs even further by sacrificing the safety checks but,
+since those gains will be realised anyway without sacrificing ergonomics by subsequent re-architecture, 
+this proposal retains the checks (while still providing a net gas usage reduction).
+
+The architecture for programmable markets on the FVM relies on this change to pre-commit deposit as a pre-requisite.
 If the pre-commit deposit is not changed to be independent of content,
-then further state and interactions would need to be added to compute the verified deal weight 
+then further state and interactions would need to be added to compute the verified deal weight
 during sector pre-commit.
 
 ## Specification
@@ -49,14 +67,25 @@ Calculate pre-commit deposit as the 20-day projection of expected reward earned 
 sector quality of 10 (i.e. full of verified deals), _regardless of sector content_.
 Leave the initial pledge value, due when the sector is proven, unchanged.
 
-Remove the call to `market.VerifyDealsForActivation` during sector pre-commit, 
-and deprecate that method from the market actor.
+Change the `miner.SectorPreCommitOnChainInfo` structure to
+- remove the `DealWeight` and `VerifiedDealWeight` fields, and
+- add an `UnsealedCID` field.
 
-Move the DealID exists check and the cumulative size of deals check to `market.ActivateDeals` (called during
-`ProveCommit(Aggregate)`) and fail individual sectors if checks are unsuccessful.
+During sector pre-commit change the call to `market.VerifyDealsForActivation` to 
+- validate the deals, and
+- compute and return each sector's unsealed CID, and
+- no longer compute or return deal weight.
 
-Change the parameters and return type of `market.ActivateDeals` to match those of the deprecated
-`market.VerifyDealsForActivation`, so that the market actors returns the deal weights to the miner while
+Store the unsealed CID in the `SectorPreCommitOnChainInfo`.
+(This mechanism matches the future schema and flow of committing to the unsealed CID during pre-commit,
+while retaining the ergonomic deal-validity checks, which will be removed later).
+
+During sector prove-commit, remove the invocation to `market.ComputeDataCommitment`, 
+and deprecate that method. The data commitment was calculated while validating deals during pre-commit.
+This provides a net gas saving.
+
+Change the parameters and return type of `market.ActivateDeals` to match the prior types of
+`market.VerifyDealsForActivation`, so that the market actor returns the deal weights to the miner while
 activating deals (and also [supports batching](https://github.com/filecoin-project/specs-actors/issues/474)).
 
 ## Design Rationale
@@ -95,25 +124,24 @@ We expect this relationship to continue to hold, as
 (2) the expected reward per sector falls over time with growth in network capacity and decaying block reward.
 
 ## Backwards Compatibility
-This proposal changes the behaviour and APIs of the built-in storage miner and storage market actors,
+This proposal changes the behaviour of the built-in storage miner and storage market actors,
 and so requires a network upgrade.
 
-This proposal does not change any state, so does not require any state migration.
+This proposal changes the schema of `miner.SectorPreCommitInfo`, and so requires a state migration
+for in-flight pre-commits at the time of the upgrade.
+This migration must calculate the unsealed CID for those sectors by loading the relevant deal proposals
+in the same way that the new code will do so at sector pre-commit.
 
-The market actor's `VerifyDealsForActivation` call is deprecated, but may be removed in a subsequent upgrade.
-Implementations should consider adding replacement read-only methods to query and validate pending deals
-for use by clients and smart contracts on the FVM.
-
-The `DealWeight` and `VerifiedDealWeight` fields in the `miner.SectorPreCommitOnChainInfo`
-become redundant. This proposal is only to set them to zero; they may be removed in a future state migration.
+This proposal changes only APIs for inter-actor calls, not those invoked by top-level messages,
+so APIs remain backwards compatible with existing external callers.
 
 ## Test Cases
 To be provided with implementation.
 
 ## Security Considerations
 The pre-commit deposit provides as a disincentive to providers to attempt to cheat proof of replication.
-This proposal makes the pre-commit deposit for committed-capacity sectors larger than the prior value,
-thus providing even more disincentive than necessary.
+This proposal makes the pre-commit deposit for committed-capacity sectors larger than the current value,
+which restores the buffers to security inadvertantly reduced in FIP-0019.
 This deposit is still smaller than the sector initial pledge due at PoRep.
 
 ## Incentive Considerations
@@ -121,12 +149,8 @@ A larger pre-commit deposit increases the funds at risk in case a provider fails
 with a sector commitment, such as in case of an operational failure.
 If a provider expects failed pre-commitments of committed-capacity sectors to be a significant part of operational costs,
 this proposal will increase that cost by up to a factor of 10.
-
-Deferring deal weight calculation to PoRep will slightly reduce the gas cost of pre-committing a sector
-that specifies deals, bringing it on par with committed-capacity sectors.
-
-These two changes both make committing deals into a sector during PoRep incrementally more attractive,
-than introducing them later with a replica update ("snap deal").
+This proposal retains ergonomic validity checks on deals at pre-commit in order to minimise the possibility
+of operator error in specifying deals to result in loss of pre-commit deposit.
 
 ## Product Considerations
 As noted above, this proposal slightly increases the amount of time that some funds are locked by the miner actor.
@@ -134,7 +158,9 @@ In practise, we expect most providers deposit at least the expected initial pled
 up front when pre-commiting a sector, in which case this proposal requires no operational change.
 
 ## Implementation
-To be provided.
+Provided in Go in https://github.com/filecoin-project/specs-actors/pull/1575.
+
+If this FIP is implemented after the FVM, we will port the changes to the Rust built-in actors.
 
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
