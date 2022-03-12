@@ -1,0 +1,15 @@
+---
+layout: home
+title: Filecoin Improvement Proposals
+---
+
+<ul>
+<li>Read up on the process for <a href="proposing/">Proposing new FIPs</a></li>
+<li>Jump to <a href="#fips">FIPs</a></li>
+</ul>
+
+{% capture readme_include %}{% include_relative README.md %}{% endcapture %}
+{{ readme_include | markdownify }}
+
+<a id="fips"></a>
+{% include fiptable.html %}
