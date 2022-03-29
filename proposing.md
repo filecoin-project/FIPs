@@ -8,7 +8,7 @@ Filecoin Improvement Proposals (FIPs) describe standards for the Filecoin platfo
 
 # Contributing
 
- 1. Review [FIP-1](/FIPS/fip-0001/).
+ 1. Review [FIP-1](/FIPS/fip-0001.md).
  2. Fork the repository by clicking "Fork" in the top right.
  3. Add your FIP to your fork of the repository. There are [template FIPs here](/templates).
  4. Submit a Pull Request to Filecoin's [FIPs repository](https://github.com/filecoin-project/FIPs).
