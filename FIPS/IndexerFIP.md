@@ -2,29 +2,29 @@
 
 [Indexer FIP](https://www.notion.so/7d156be0cd5643269241cf2d2e13f25e)
 
-## **Simple Summary**
+## Simple Summary
 
 Indexers store mappings of content multi-hashes to provider data records. A client that wants to know where a piece of information is stored can query the indexer, using the CID or multi-hash of the content, and receive a provider record that tells where the client can retrieve the content and via which data transfer protocols.
 Content can be queried at [cid.contact](http://cid.contact).
 
-## **Abstract**
+## Abstract
 
-Filecoin stores a great deal of data, but without proper indexing of that data, clients cannot perform efficient retrieval. To improve Filecoin content discoverability, Indexer nodes are developed to store mappings of CIDs to content providers for content lookup upon retrieval request. 
+Filecoin stores a great deal of data, but without proper indexing of that data, clients cannot perform efficient retrieval. To improve Filecoin content discoverability, Indexer nodes are developed to store mappings of CID multi-hashes to content provider records, for content lookup upon retrieval request. 
 
-To provide index to indexer node, there is an [Indexer Provider](https://lotus.filecoin.io/storage-providers/operate/index-provider/) service that runs alongside with Storage Provider, which tells the Indexer what contents this storage provider has. Index Provider sends updates to the Indexer via a series of [Advertisement](https://github.com/filecoin-project/storetheindex/blob/main/api/v0/ingest/schema/schema.ipldsch) messages. Each message references a previous advertisement so that as a whole it forms an advertisement chain. The state of the indexer is a function of consuming this chain from the initial Advertisement to the latest one, and delta of indexer content is updated periodically.
+To provide index data to indexer nodes, there is the [Indexer Provider](https://lotus.filecoin.io/storage-providers/operate/index-provider/) that provides a software library for building an index data provider, and an index provider service that can run alongside with Storage Provider. Either of these may be used to tell the Indexer what content is retrievable from a storage provider. The Index Provider library or service sends updates to the Indexer via a series of [Advertisement](https://github.com/filecoin-project/storetheindex/blob/main/api/v0/ingest/schema/schema.ipldsch) messages. Each message references a previous advertisement so that as a whole it forms an advertisement chain. The indexer operates by consuming this chain from the oldest Advertisement not yet consumed, to the latest one. The Indexer fetches new advertisements periodically or in response to a notification from the Index Provider.
 
 Indexer enables content discovery within Filecoin network today, it is also a fundamental component toward the end goal of universal retrieval across IPFS/Filecoin, i.e. to be able to efficiently retrieve Filecoin content from IPFS. Combining Indexer work for content discovery with IPFS/Filecoin interoperability work for content transfer, we aim to reach the end state of efficient and universal retrieval across IPFS and Filecoin network.
 
-## **Change Motivation**
+## Change Motivation
 
-There are many reasons why Indexer is critical to the success of Filecoin network:
+Primary reasons why Indexer is critical to the success of Filecoin network:
 
 1. **Content Discovery and Retrieval**: 
 Running Indexer is required for efficient content discovery and retrieval for Filecoin network, since Filecoin needs a CID to Storage Provider mapping to enable content retrieval. It is also an important step toward retrieval across IPFS and Filecoin, as Indexer will index both IPFS and Filecoin data and support efficient and universal retrieval across IPFS and Filecoin network as the end state.
 2. **Better usage and growth of the network**: 
-By making data more accessible to the network, we could increase Filecoin data usage, which helps drive up adoption of the network to onboard more data, and then make more  data discoverable and retrievable - it is a positive growth flywheel.
+Making data more accessible to the network increases Filecoin data usage. This drives adoption of the network to onboard more data, resulting in more  data being discoverable and retrievable - it is a positive growth flywheel.
 
-## **Terminology**
+## Terminology
 
 Before we dive into the design details, here are a list of concepts we need to cover for Indexer:
 
@@ -36,148 +36,156 @@ Before we dive into the design details, here are a list of concepts we need to c
 - **Indexer**: A network node that keeps a mappings of multihashes to provider records.
 - **Metadata**: Provider-specific data that a retrieval client gets from an indexer query and passed to the provider when retrieving content. This metadata is used by the provider to identify and find specific content and deliver that content via the protocol (e.g. graphsync) specified in the metadata.
 - **Provider**: Also called a Storage Provider, this is the entity from which content can be retrieved by a retrieval client. When multihashes are looked up on an indexer, the responses contain provider that provide the content referenced by the multihashes. A provider is identified by a libp2p peer ID.
-- **Publisher**: This is an entity that publishes advertisements and index data to an indexer. It is usually, but not always, the same as the data provider. A publisher is identified by a libp2p peer ID.
+- **Publisher**: Also referred to as _Index Provider_, This is an entity that publishes advertisements and index data to an indexer. It is usually, but not always, the same as the data provider. A publisher is identified by a libp2p peer ID.
 - **Retrieval Addresses:** A list of addresses included in each advertisement that points to where you can retrieve from the advertised content.
 - **Retrieval Client**: A client that queries an indexer to find where content is available, and retrieves that content from a provider.
 - **Sync** (indexer with publisher): Operation that synchronizes the content indexed by an indexer with the content published by a publisher. A sync is initiated when an indexer receives and announces message, by an administrative command to sync with a publisher, or by the indexer when there have been no updates for a provider for some period of time (24 hours by default).
 
-## **Specification**
+## Actors
 
-**Data providers** have local indices of their content. They want to advertise the availability of this content so that any consumers can easily find it. Data providers will also want to revoke advertisements of content that they no longer provide.
+**Data Providers** store data and make it available for retrieval clients to retrieve. They want to advertise the availability of this content so that any consumers can easily find it. Data providers will also want to revoke advertisements of content that they no longer provide and update their internal location of content.
 
-**Indexer nodes** want to discover data providers and to track updates provided by the data providers.  They also want to handle incoming content requests and resolve them to providers who have that content.  Indexers may reroute client requests to other indexers if they do not handle that content.
+**Index Providers (Publishers)** maintain a history of changes to content stored by a Data Provider, and present the sequence of changes to Indexers as advertisements.  Index Providers sent notifications to Indexers to announce that new advertisements are available.  Usually a Data Provider is also its own Index Provider, but these can be different entities.   
 
-**Clients** want to issue query style requests for content to an indexer node and receive a set of providers that have that content.  The response should include any other information about how to choose between providers as well as information that the provider may have requested to present to them to authenticate the request? (e.g. deal ID)
+**Indexer nodes** receive Advertisement announcements published by Index Providers, allowing Indexers to discover Data Providers and to be notified of updates to the Data Provider content. The announcements let Indexers know that new advertisements are available.  Indexers retrieve Advertisements from the Index Providers, to get Data Provider information and associated index multihash data. The Indexer decides if and when to fetch index data from an Index Provider based on the policies the Indexer is configured with. Indexers may reroute client requests to other indexers if they do not handle that content.
 
-Indexer nodes discover new data providers and receive notification of content updates, by receiving notifications published on a known gossip pub-sub topic.  Indexers can also discover this by looking at on-chain storage provider activity.  The notifications let indexers know that new data is *available* and that index entries can be fetched from an existing or a new provider. The indexer decides if and when to pull the actual index data, and which kind of index, from a provider, based on its own policies pertaining to the data provider.
+**Clients** want to issue query style requests for content to an Indexer node and receive a set of Data Provider records that inform the client how and where to retrieve that content.  The response from an Indexer contains a set of Data Provider records, each having the Provider's ID and addresses.  Each record contains the protocol that the client must use to retrieve the data (e.g. graphsync) as well as other information that the client presents to the Provider.  This additiona data is used by the Provider to retrieve the content, and may consist of a deal ID or other lookup keys specific to the Provider. If multiple Providers provide the same content, the client may choose based on input from a reputation system, network response time, location, or any other information available to the client.
 
-**Overview design:**
+## Specification
 
-![](https://s3.us-west-2.amazonaws.com/secure.notion-static.com/44c88146-a25c-4732-92df-1c98b814bf63/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20220419%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20220419T012946Z&X-Amz-Expires=86400&X-Amz-Signature=0f8321e348f5a6a8a275b069d179460f51ef208a7c1ef0987e149e6eda34055e&X-Amz-SignedHeaders=host&response-content-disposition=filename%20%3D%22Untitled.png%22&x-id=GetObject)
+### Data Provier Interface:
 
-**Data Provier Interface:**
+Data providers maintain local records of the CIDs of the content they store and the changes to this content. Providers must be able to present this as an ordered series of changes to sets of multihashes over time. For indexing, a multihash extracted from a CID is used identify content, since indexed content does not track how the content is encoded. The source CID is the CID of a merkle-tree of content hosted by the provider.
+  
+Each addition of content is represented a set of multihashes accompanied by context information (metadata), that is within the domain of interpretation of the Provider, and an unique identifier (context ID) that identifies this context. Therefore a context ID links a set of multihashes to metadata that pertains to that set of multihashes.  Removal of content is done by deletion of a context ID, which represents removing a set of multihashes and metadata identified by that context ID.  Metadata identified by context ID may also be replaced by new metadata, as the information pertaining to the associated set of multihashes changes (change of location, storage deal, etc.).
 
-Data providers will have local indices of their content. Abstractly, we can think of the resources exposed by a data provider as a tree of the following:
+Each of these changes is a presented as a separate record, that is linked to the previous record, forming an ordered log changes to the Provider's content. Indexers track these changes to keep their view of the Provider's content in sync with the Provider.
 
-```jsx
-Catalog (List of Indexes)
-Catalog/<id> (Individual Index)
-Catalog/<id>/multihashes (list of multihashes in the Index)
+### Advertisements:
 
-Catalog/<id>/TBD (semantic for selection)
+An Advertisement is a data structure that packages information about a change to Provider content. The Advertisement contains the Provider ID and addresses, content metadata, context ID, a link to a chain of multihash blocks, and a link to the previous Advertisement. The Advertisement is also signed by the Provider or publisher of the Advertisement, using a signature computed over all of these fields.
+
+Each Advertisement is uniquely identified by a content ID (CID) that is used to retrieve that Advertisement from the Index Provider. This makes the advertisement an immutable record.  The link to the chain of multihash blocks and each link in the chain is also a CID, making the chain of multihash blocks immutable as well. The Advertisement is what is communicated from an Index Provider to an Indexer to supply the Indexer with index data.
+
+Advertisement as IPLD schema:
 ```
+# EntryChunk captures a chunk in a chain of entries that collectively contain the multihashes
+# advertised by an Advertisement.
+type EntryChunk struct {
+    # Entries represent the list of multihashes in this chunk.
+    Entries [Bytes]
+    # Next is an optional link to the next entry chunk. 
+    Next optional Link
+}
 
-A provider has a Catalog of one or more indices, where the current index is the set of all multihashes known to the provider, and the other indices are past versions of it, each representing the multihashes at some previous time. Semantically, changes to the catalog of indexes by the provider are seen as happening in a globally ordered log of additions and revocations, each referencing the previous action.  lndexers are able to track these changes to keep their view of a provider's Index current.
-
-**Advertisements:**
-
-Index providers will publish advertisements on new indices on the `ContentIndex` gossipsub pub-sub channel, which indexer nodes can subscribe to. The format of these advertisement messages of catalog entries looks like this:
-
-```jsx
-{ Index: <multihash of current index manifest>,
-  Previous: <multihash of previous index manifest>,
-  Provider: <libp2p.PeerID>,
-  Signature: <signature over index, previous>
+# Advertisement signals availability of content to the indexer nodes in form of a chunked list of 
+# multihashes, where to retrieve them from, and over protocol they are retrievable.
+type Advertisement struct {
+    # PreviousID is an optional link to the previous advertisement.
+    PreviousID optional Link
+    # Provider is the peer ID of the host that provides this advertisement.
+    Provider String
+    # Addresses is the list of multiaddrs as strings from which the advertised content is retrievable.
+    Addresses [String]
+    # Signature is the signature of this advertisement.
+    Signature Bytes
+    # Entries is a link to the chained EntryChunk instances that contain the multihashes advertised. 
+    Entries Link
+    # ContextID is the unique identifier for the collection of advertised multihashes.
+    ContextID Bytes
+    # Metadata captures contextual information about how to retrieve the advertised content.
+    Metadata Bytes
+    # IsRm, when true, specifies that the content identified by ContextID is no longer retrievalbe from the provider.
+    IsRm Bool
 }
 ```
 
-When an indexer sees an advertisement, the indexer checks to see if it already has the latest Index ID.  If it does, then the advertisement is ignored. Otherwise, the indexer sends a request to the data provider to get the set of changes starting from the previous Index ID in the advertisement up to the current index ID in the advertisement.  The indexer internally resolves the libp2p.PeerID to current libp2p endpoints.
+- The ContextID is limited to a maximum of 64 bytes.
+- The Metadata is limited to a maximum of 1024 bytes (1KiB).
 
-Besides receiving advertisements over pub-sub, the indexer can request the latest advertisement directly from a data provider. This is useful when indexing for a discovered data provider that is not publishing advertisements.
+The metadata field contains provider-specific data that pertains to the set of multihashes being added.  The metadata is prefixed with a protocol ID number followed by data encoded as per the protocol.  The content of the meta data is up to the provider, but if more then the limited size is needed, then the metadata should contain an ID identifying mode complex data stored by the provider.
 
-Note: The signature is computed over the current and the previous ID in each entry.  This guarantees that the order is correct according to the signing provider.
 
-An index ID is always a multihash, extracted from a CID (since indexed content does not track how the content is encoded).  This should be the multihash from the CID of a merkle-tree of content hosted by the provider.
+### Announcement
 
-**Advertisement Chain:**
+Index Providers announce the availability of new Advertisements by publishing a notification on a known gossipsub pub-sub channel, `/indexer/ingest/mainnet`, that indexer nodes subscribe to. Alternatively, the Index Provider may post an announcement message directly to an indexer over HTTP. Typically, gossip pub-sub is used and is preferred because the Index Providers will not necessarily know how to contact the Indexers, but will know the filecoin chain nodes that will relay gossip pub-sub to Indexers.
 
-The indexer keeps a record of the advertised Index multihashes it has received data for.  The indexer continues walking the chain of Index multihashes backward until it receives a response containing an Advertisement with the `Previous` multihash being the last one the indexer has already seen, or when the end of the chain is reached (no Previous).  When all the missing links in the chain of Indexes have been received, these are applied, in order, to update the indexer's records of multihashes and providers. 
+After receiving an announcement, the Indexer checkes if it has already retrieved the announced Advertisement, and if so, ignores the announcement.  If the Advertisement has not yet been retrieved, the Indexer contacts the Index Provider, at an address supplied in the announcement, to retrieve the announced Advertisement.  The addresses in the announcement can be libp2p addresses or an HTTP address, and the Indexer uses the addresses to retrieve the Advertisement over graphsync or HTTP respectively. 
 
-**Index Request-Index Provider Response:**
-
-Over the Provider-Indexer protocol, an indexer requests the following:
-
-```
-{ "prev_index_id": <get changes starting at this index>,
-  "index_id": <get changes up to this index>,
-  "start": n, // optional - start at this record (for pagination)
-  "count": n, // optional - maximum number of records to fetch
+Announcement message as golang struct:
+```go
+{
+	Cid:      cid.Cid
+	Addrs     [][]byte
+	ExtraData []byte `json:",omitempty"`
 }
 ```
 
-And indexer receives a possibly paginated response that has a subset of the change logs and the associated advertisement message:
+The extra data is used by Index Providers to pass identity data to filecoin nodes in order for the filecoin nodes allow the announcement to be forwarded over gossip pub-sub.
+
+### Advertisement Chain
+Once the Indexer has received an Advertisement it checks if the previous Advertisement has already been retrieved, and if not, retrieves it. This continues until all previously unseen Advertisements are retrieved or until there are no more Advertisements to retrieve, i.e. the end of the chain is reached.
+
+After the entire chain of unprocessed Advertisements has been retrieved, the Indexer walks the chain in order from oldest to newest and retrieves the chain of multihash blocks linked to by each advertisement.  A multihash block is a chunk of the multihashes in the change set with a link to the next block. Splitting all the total multihashes into blocks enables block-based data transfer mechanisms to fetch the multihash data and servies as a pagination mechanism for other transports.
 
 ```
-{ "totalEntries": n, // size of provider's catalog
-  "error": "",       // optional. indicate the request could not be served
-  "advertisement": {
-    Index: n3 <ID of index manifest>,
-    Previous: n2 <ID of previous index manifest>,
-    Provider: <libp2p.AddrInfo>, Signature: <signature(index, previous)>
-  },
-  "start": n,         // starting entry number
-  "entries": [
-    {"add_multihashes": [<multihash>, ...], "metadata": "???",
-     "del_multihashes": [<multihash>, ...]}, 
-    {"add_multihashes": [<multihash>, ...], "metadata": "???"},
-}
+   Oldest                         Newest 
++----------+     +--------+     +--------+
+|   Ad A   |     |  Ad B  |     |  Ad C  |
+| prev=nil |<----| prev=A |<----| prev=B |
++----+-----+     +---+----+     +---+----+
+     |               |              |
+     V               V              V
+[multihashes]  [multihashes]  [multihashes]
+     |               |              |
+     V               V              V 
+[multihashes]  [multihashes]  [multihashes]
 ```
 
-This is a set of changes that are applied to the index data, to go from the `prev_multihash` to the multihash in the request.  Each entry contains a set of new multihashes that the provider provides, and possibly a set of multihashes to remove that are no longer provided.  A limited-size (≤ 100 bytes) metadata field contains provider-specific data that pertains to the set of multihashes being added.  The metadata is prefixed with a protocol ID number followed by data encoded data as per the protocol.  The content of the meta data is up to the provider, but if more then the limited size is needed, then the metadata should contain an ID identifying mode complex data stored by the provider.
+### Index Data Storage
 
-It is worth noting that the same multihash may appear in entries of several different advertisements of a provider. For instance, if a Filecoin Storage Provider receives a new deal that includes a CID, that has a multihash, of some content it is already indexing, it may notify this update to the indexer node by including an entry for that multihash with new metadata (e.g. the new expiration date of the deal) in the next advertisement.
-When the indexer node comes across an advertisement that includes a multihash that it is already indexing for the provider, it will simply update the metadata with that of the latest advertisement. Finally, if all the deals that include that multihash in a Storage Provider expire, it can notify the indexer of this by simply adding that multihash in the list of `del_multihashes` for the next advertisement.
+All of the multihashes in the multihash blocks are read and stored in the indexer as a mapping of multihashes to a list of providerID-contextID in the Advertisement, and each providerID-contextID is mapped to its metadata record. This allows a multihash to resolve to a multiple provider, context ID, metadata records. It also allows a providerID-contextID to be used to identify metadata records to update and delete.
 
-The response may be paginated either by the client requesting a maximum number of entries or by the server delivering up to a configured maximum number of entries.  To get the remaining entries, a subsequent request is made with its `start` set to the number of entries from the previous response.  So, if `totalEntries` equals `100` and the response contained 50 entries, the follow-up request should specify `50` for `start` to get the remaining entries.  This continues until the indexer has the complete response.
+```
+Multihash ---+     +-----------------------+
+             |     | ProviderID-ContextID--|----> Metadata
+Multihash ---+---> | ProviderID-ContextID--|----> Metadata
+             |     +-----------------------+
+Multihash ---+
+```
 
-**Client Interface:**
+The Data Provider addresses from the Advertisement are stored separately, and are updated with each advertisement that has a different retrieval address for the Data Provider. When the Indexer responds to a client query, it adds the current Data Provider addresses to each data Provider record in the response.
+
+When an Advertisement is received that has a ProviderID-ContextID that is already stored in the indexer but different metadata, the indexer updates the metadata that the ProviderID-ContextID maps to.
+
+### Client Interface
 
 The client interface is what indexer clients use to ask an indexer which providers are able to provide content identified by multihashes. Queries for a multihash should locate the providers within 10s of milliseconds.
 
 A client sends a request containing a set of multihashes. The indexer responds with a list of provider_ids for each multihash that was requested. 
 
-Response data:
-
-```
+Find Response data:
+```json
 {
-  "multihash_providers": {
-    <multihash_from_req>: [
-      {"provider_id": <libp2p_peer_id>, "metadata": {???} }, ..],
-    <multihash_from_req>: [
-      {"provider_id": <libp2p_peer_id>, "metadata": {???} }, ..],
-    <multihash_from_req>: null,
-    ...
-  },
-  "providers": [
-    { "ID": <libp2p_peer_id>,
-      "Addrs": [<libp2p_multiaddr>, ..]
-    },
-    ...
-  ],
-  "providers_signature": <signature_over_providers">
+	"MultihashResults": [
+    {
+	    "Multihash": "multihash-string",
+	    "ProviderResults": [
+        {
+          "ContextID": "context-id-bytes",
+          "Metadata": "metadata-bytes",
+	        "Provider": {
+            "ID": "peer-id-string",
+            "Addrs": ["multiaddr-string", "multiaddr-string"]
+          }
+        }
+      ]
+    }
+  ]
 }
 ```
 
-Response data contains encoded values returned from the in-memory cache.  Responses may be paginated if there are a large number of values.
-
-## **Design Rationale**
-
-Key design considerations are:
-
-- **Indexer uses multihashes, not entire CIDs, to refer to indexed content**
-The codec in a CID is independent of the content that is indexed or how the content is retrieved from a provider.
-- **Indexer keeps an in-memory cache of multihashes that have been asked for by clients, unless configured for in-memory only operation**
-Most multihashes in an index will not be requested, since clients will generally only ask for the top-level multihash for any object. Therefore only the set that is actually requested by clients is kept in memory. The remaining will be kept in space-efficient secondary storage.  A generation cache eviction mechanism for the in-memory cache prevents unbounded growth.
-- **[storethehash](https://github.com/ipld/go-storethehash) will serve as persistent storage**
-Designed to efficiently store hash data, requires only two disk reads to get any data stored for a multihash.  This is being evaluated against more mature systems because of a high confidence assumption that it will save significant space.  However, that savings needs to be very significant to outweigh the risk and development cost of a new storage facility.  The indexer will be constructed to allow different implementations to be chosen as appropriate for different deployments.  Having an embedded storage implementation may reduce admin work and allow the indexer to be used more easily as a library.
-- **Indexer will track multihash distribution and usage**
-The indexer will keep statistics on multihashes that can be used to predict the growth rate of data stored and cached as well as the distribution of multihashes over different providers.  The usage of multihashes will also be tracked and will show the demand (by clients) for various multihahses.
-- **Indexer will not index `IDENTITY` Multihashes**
-The Indexer will not index `IDENTITY` multihashes and filters out any such multihash from the received advertisements. See: [Appendix C, Handling of `IDENTITY` Multihashes](https://www.notion.so/Indexer-Node-Design-fbd1e7d3110c4b1fb154b31f2585e6ff).
-- **Load minimization for Storage Provider**
-    
-    The indexer updates over graphsync, meaning once a day indexer connects and ask for delta of new CIDs found available on the nodes since last day, and store them to multiple providers, while indexer only need to get it from one of them. This saves bandwidth by deduping when CIDs are provided from multiple providers, so it will only take relatively small amount of bandwidth compared to actual data (Storage Provider can expect minimal bandwidth impact), with at most one or two additional connections that are short-lived for indexing.
-    
+A Find result has a list of MultihashResults.  Each element of that list contains a Multihash and a list of ProviderResults for that multihash.  Each Provider result has a ContextID, Metadata, and Provider.  The Provider has an ID and a list of Addrs.
 
 ## **Backwards Compatibility**
 
