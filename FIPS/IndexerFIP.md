@@ -1,6 +1,12 @@
-# Indexer FIP
-
-[Indexer FIP](https://www.notion.so/7d156be0cd5643269241cf2d2e13f25e)
+---
+fip: "0034"
+title: Indexer
+author: willscott, gammazero, honghao
+status: Final
+type: Technical (Core)
+created: 2022-04-26
+spec-pr: https://github.com/filecoin-project/FIPs/pull/365/files
+---
 
 ## Simple Summary
 
