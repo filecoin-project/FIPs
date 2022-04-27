@@ -1,7 +1,7 @@
 ---
 fip: "0034"
 title: Indexer
-author: willscott, gammazero, honghao
+author: willscott, gammazero, honghaoq
 status: Final
 type: Technical (Core)
 created: 2022-04-26
