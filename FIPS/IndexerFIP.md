@@ -1,10 +1,11 @@
 ---
 fip: "0034"
-title: Indexer
+title: Indexer Protocol for Filecoin Content Discovery
 author: willscott, gammazero, honghaoq
 status: Final
 type: Technical (Core)
 created: 2022-04-26
+discussion: https://github.com/filecoin-project/FIPs/discussions/337
 spec-pr: https://github.com/filecoin-project/FIPs/pull/365/files
 ---
 
@@ -211,6 +212,7 @@ Index Provider:
 [https://github.com/filecoin-project/index-provider](https://github.com/filecoin-project/index-provider)
 
 Indexer Design:
+
 [https://github.com/filecoin-project/storetheindex/blob/main/doc/indexer_ecosys.png](https://github.com/filecoin-project/storetheindex/blob/main/doc/indexer_ecosys.png)
 
 ## **Copyright**
