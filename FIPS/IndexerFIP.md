@@ -111,6 +111,7 @@ type Advertisement struct {
 
 The metadata field contains provider-specific data that pertains to the set of multihashes being added.  The metadata is prefixed with a protocol ID number followed by data encoded as per the protocol.  The content of the meta data is up to the provider, but if more then the limited size is needed, then the metadata should contain an ID identifying mode complex data stored by the provider.
 
+An index entry is always a multihash, extracted from a CID (since indexed content does not track how the content is encoded).  This should be the multihash from the CID of a merkle-tree of content hosted by the provider.
 
 ### Announcement
 
@@ -164,33 +165,6 @@ The Data Provider addresses from the Advertisement are stored separately, and ar
 
 When an Advertisement is received that has a ProviderID-ContextID that is already stored in the indexer but different metadata, the indexer updates the metadata that the ProviderID-ContextID maps to.
 
-### Client Interface
-
-The client interface is what indexer clients use to ask an indexer which providers are able to provide content identified by multihashes. Queries for a multihash should locate the providers within 10s of milliseconds.
-
-A client sends a request containing a set of multihashes. The indexer responds with a list of provider_ids for each multihash that was requested. 
-
-Find Response data:
-```json
-{
-	"MultihashResults": [
-    {
-	    "Multihash": "multihash-string",
-	    "ProviderResults": [
-        {
-          "ContextID": "context-id-bytes",
-          "Metadata": "metadata-bytes",
-	        "Provider": {
-            "ID": "peer-id-string",
-            "Addrs": ["multiaddr-string", "multiaddr-string"]
-          }
-        }
-      ]
-    }
-  ]
-}
-```
-
 A Find result has a list of MultihashResults.  Each element of that list contains a Multihash and a list of ProviderResults for that multihash.  Each Provider result has a ContextID, Metadata, and Provider.  The Provider has an ID and a list of Addrs.
 
 ## **Backwards Compatibility**
@@ -235,6 +209,9 @@ Indexer:
 Index Provider:
 
 [https://github.com/filecoin-project/index-provider](https://github.com/filecoin-project/index-provider)
+
+Indexer Design:
+[https://github.com/filecoin-project/storetheindex/blob/main/doc/indexer_ecosys.png](https://github.com/filecoin-project/storetheindex/blob/main/doc/indexer_ecosys.png)
 
 ## **Copyright**
 
