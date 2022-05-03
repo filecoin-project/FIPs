@@ -2,7 +2,7 @@
 fip: "0034"
 title: Indexer Protocol for Filecoin Content Discovery
 author: willscott, gammazero, honghaoq
-status: Final
+status: Draft
 type: Technical (Core)
 created: 2022-04-26
 discussion: https://github.com/filecoin-project/FIPs/discussions/337
@@ -12,7 +12,6 @@ spec-pr: https://github.com/filecoin-project/FIPs/pull/365/files
 ## Simple Summary
 
 Indexers store mappings of content multi-hashes to provider data records. A client that wants to know where a piece of information is stored can query the indexer, using the CID or multi-hash of the content, and receive a provider record that tells where the client can retrieve the content and via which data transfer protocols.
-Content can be queried at [cid.contact](http://cid.contact).
 
 ## Abstract
 
@@ -48,7 +47,7 @@ Before we dive into the design details, here are a list of concepts we need to c
 - **Retrieval Client**: A client that queries an indexer to find where content is available, and retrieves that content from a provider.
 - **Sync** (indexer with publisher): Operation that synchronizes the content indexed by an indexer with the content published by a publisher. A sync is initiated when an indexer receives and announces message, by an administrative command to sync with a publisher, or by the indexer when there have been no updates for a provider for some period of time (24 hours by default).
 
-## Actors
+## Parties
 
 **Data Providers** store data and make it available for retrieval clients to retrieve. They want to advertise the availability of this content so that any consumers can easily find it. Data providers will also want to revoke advertisements of content that they no longer provide and update their internal location of content.
 
@@ -185,7 +184,7 @@ The following test cases should be covered:
     - Responsiveness to indexer advertisement queries
 - Latency test:
     - Indexer query response latency: <300ms p95
-    - Indexer ingestion latency: <60 sec p95
+    - Indexing latency: <60 sec p95
 
 ## **Security Considerations**
 
