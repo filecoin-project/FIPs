@@ -109,7 +109,14 @@ type Advertisement struct {
 - The ContextID is limited to a maximum of 64 bytes.
 - The Metadata is limited to a maximum of 1024 bytes (1KiB).
 
-The metadata field contains provider-specific data that pertains to the set of multihashes being added.  The metadata is prefixed with a protocol ID number followed by data encoded as per the protocol.  The content of the meta data is up to the provider, but if more then the limited size is needed, then the metadata should contain an ID identifying mode complex data stored by the provider.
+The metadata field contains provider-specific data that pertains to the set of multihashes being added.  The metadata is prefixed with a protocol ID number followed by data encoded as per the protocol.  The content of the metadata is up to the provider, but if more than the limited size is needed, then the metadata should contain an ID identifying mode complex data stored by the provider.
+
+Graphsync is the most commonly used protocol for retrieving content from a content provider. The filecoin-graphsync transport metadata is currently defined as follows:
+
+Uvarint protcol `0x0910` (TransportGraphsyncFilecoinv1 in the [multicodec table](https://github.com/multiformats/multicodec/blob/master/table.csv#L134)). This is followed by a CBOR-encoded struct of:
+- PieceCID, a link
+- VerifiedDeal, boolean
+- FastRetrieval, boolean  
 
 An index entry is always a multihash, extracted from a CID (since indexed content does not track how the content is encoded).  This should be the multihash from the CID of a merkle-tree of content hosted by the provider.
 
