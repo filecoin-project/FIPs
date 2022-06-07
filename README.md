@@ -43,8 +43,8 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0001](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0001.md)   | FIP Purpose and Guidelines  | @Whyrusleeping  | Active  |
 |[0002](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0002.md)   | Free Faults on Newly Faulted Sectors of a Missed WindowPoSt  | @anorth, @davidad, @miyazono, @irenegia, @lucaniz, @nicola, @zixuanzh   |Final   |
 |[0003](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0003.md)   | Filecoin Plus Principles  | @feerst, @jbenet, @jnthnvctr, @tim-murmuration, @mzargham, @zixuanzh  |Active   |
-|[0004](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0004.md)   |Liquidity Improvement for Storage Miners   | @davidad, @jbenet, @zenground0, @zixuanzh, @danlessa   | Final  |
-|[0005](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0005.md)  |Remove ineffective reward vesting    | @anorth, @Zenground   |Final   |
+|[0004](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0004.md)   | Liquidity Improvement for Storage Miners   | @davidad, @jbenet, @zenground0, @zixuanzh, @danlessa   | Final  |
+|[0005](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0005.md)   | Remove ineffective reward vesting    | @anorth, @Zenground   |Final   |
 |[0006](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0006.md)   | No repay debt requirement for DeclareFaultsRecovered  |  @nicola, @irenegia  | Deferred  |
 |[0007](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0007.md)   | h/amt-v3  | @rvagg, @Stebalien, @anorth, @Zenground0   |Final   |
 |[0008](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0008.md)   | Add miner batched sector pre-commit method  |@anorth, @ZenGround0, @nicola  |Final   |
@@ -54,8 +54,8 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0012](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0012.md)   | DataCap Top up for FIL+ Client Addresses  |@dshoy, @jnthnvctr, @zx |Final  |
 |[0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md)   | Add ProveCommitSectorAggregated method to reduce on-chain congestion  | @ninitrava @nicola |Final   |
 |[0014](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0014.md)   | Allow V1 proof sectors to be extended up to a maximum of 540 days | @deltazxm, @neogeweb3 |Final   |
-|[0015](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0015.md)   |  Revert FIP-0009(Exempt Window PoSts from BaseFee burn) | @jennijuju, @arajasek |Final   |
-|[0016](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0016.md)   |  Pack arbitrary data in CC sectors | donghengzhao (@1475) |Deferred  |
+|[0015](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0015.md)   | Revert FIP-0009(Exempt Window PoSts from BaseFee burn) | @jennijuju, @arajasek |Final   |
+|[0016](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0016.md)   | Pack arbitrary data in CC sectors | donghengzhao (@1475) |Deferred  |
 |[0017](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0017.md)   | Three-messages lightweight sector updates |@nicole, @lucaniz, @irenegia |Deferred  |
 |[0018](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0018.md)   | New miner terminology proposal |@Stefaan-V |Final  |
 |[0019](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0019.md)   | Snap Deals |@Kubuxu, @lucaniz, @nicola, @rosariogennaro, @irenegia |Final  |
@@ -73,4 +73,5 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0031](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0031.md)   | Atomic switch to non-programmable FVM |@raulk, @stebalien |Accepted  |
 |[0032](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0032.md)   | Gas model adjustment for non-programmable FVM |@raulk, @stebalien |Accepted  |
 |[0033](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0033.md)   | Explicit premium for FIL+ verified deals |@anorth |Deferred  |
-|[0034](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0034.md)   | Fix pre-commit deposit independent of sector content |@anorth |Draft  |
+|[0034](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0034.md)   | Fix pre-commit deposit independent of sector content |@anorth, @kubuxu |Draft  |
+|[0035](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0035.md)   | Support actors as built-in storage market clients |@anorth |Draft  |
