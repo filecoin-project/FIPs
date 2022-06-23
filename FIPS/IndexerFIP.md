@@ -114,9 +114,15 @@ The metadata field contains provider-specific data that pertains to the set of m
 Graphsync is the most commonly used protocol for retrieving content from a content provider. The filecoin-graphsync transport metadata is currently defined as follows:
 
 Uvarint protcol `0x0910` (TransportGraphsyncFilecoinv1 in the [multicodec table](https://github.com/multiformats/multicodec/blob/master/table.csv#L134)). This is followed by a CBOR-encoded struct of:
-- PieceCID, a link
-- VerifiedDeal, boolean
-- FastRetrieval, boolean  
+```go
+type GraphsyncFilecoinV1 struct {
+	// PieceCID identifies the piece this data can be found in
+	PieceCID cid.Cid
+	// VerifiedDeal indicates if the deal is verified
+	VerifiedDeal bool
+	// FastRetrieval indicates whether the provider claims there is an unsealed copy
+	FastRetrieval bool
+}
 
 An index entry is always a multihash, extracted from a CID (since indexed content does not track how the content is encoded).  This should be the multihash from the CID of a merkle-tree of content hosted by the provider.
 
