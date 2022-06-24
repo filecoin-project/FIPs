@@ -184,21 +184,6 @@ A Find result has a list of MultihashResults.  Each element of that list contain
 
 This FIP does not change actors behavior so it does not require any Filecoin network update.
 
-## **Test Cases**
-
-The following test cases should be covered:
-
-- Index Provider functionality test:
-    - Ability to index storage deals
-    - Storage Provider able to publish index to an Indexer node
-- Scalability test: indexer need to be able to handle index storage at scale (hundreds of billions of index)
-- Availability test:
-    - 3-9s node uptime
-    - Responsiveness to indexer advertisement queries
-- Latency test:
-    - Indexer query response latency: <300ms p95
-    - Indexing latency: <60 sec p95
-
 ## **Security Considerations**
 
 This FIP does not touch underlying proofs or security.
