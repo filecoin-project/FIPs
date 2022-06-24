@@ -1,9 +1,9 @@
 ---
-fip: "0034"
+fip: "0038"
 title: Indexer Protocol for Filecoin Content Discovery
 author: willscott, gammazero, honghaoq
 status: Draft
-type: Technical (Core)
+type: FRC
 created: 2022-04-26
 discussion: https://github.com/filecoin-project/FIPs/discussions/337
 spec-pr: https://github.com/filecoin-project/FIPs/pull/365/files
