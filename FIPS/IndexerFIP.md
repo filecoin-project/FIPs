@@ -30,7 +30,10 @@ Running Indexer is required for efficient content discovery and retrieval for Fi
 2. **Better usage and growth of the network**: 
 Making data more accessible to the network increases Filecoin data usage. This drives adoption of the network to onboard more data, resulting in more  data being discoverable and retrievable - it is a positive growth flywheel.
 
-## Terminology
+
+## Specification
+
+### Terminology
 
 Before we dive into the design details, here are a list of concepts we need to cover for Indexer:
 
@@ -47,7 +50,7 @@ Before we dive into the design details, here are a list of concepts we need to c
 - **Retrieval Client**: A client that queries an indexer to find where content is available, and retrieves that content from a provider.
 - **Sync** (indexer with publisher): Operation that synchronizes the content indexed by an indexer with the content published by a publisher. A sync is initiated when an indexer receives and announces message, by an administrative command to sync with a publisher, or by the indexer when there have been no updates for a provider for some period of time (24 hours by default).
 
-## Parties
+### Parties
 
 **Data Providers** store data and make it available for retrieval clients to retrieve. They want to advertise the availability of this content so that any consumers can easily find it. Data providers will also want to revoke advertisements of content that they no longer provide and update their internal location of content.
 
@@ -57,7 +60,6 @@ Before we dive into the design details, here are a list of concepts we need to c
 
 **Clients** want to issue query style requests for content to an Indexer node and receive a set of Data Provider records that inform the client how and where to retrieve that content.  The response from an Indexer contains a set of Data Provider records, each having the Provider's ID and addresses.  Each record contains the protocol that the client must use to retrieve the data (e.g. graphsync) as well as other information that the client presents to the Provider.  This additiona data is used by the Provider to retrieve the content, and may consist of a deal ID or other lookup keys specific to the Provider. If multiple Providers provide the same content, the client may choose based on input from a reputation system, network response time, location, or any other information available to the client.
 
-## Specification
 
 ### Data Provier Interface:
 
