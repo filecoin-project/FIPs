@@ -6,7 +6,7 @@ status: Draft
 type: FRC
 created: 2022-06-24
 discussion: https://github.com/filecoin-project/FIPs/discussions/337
-spec-pr: https://github.com/filecoin-project/FIPs/pull/365/files
+spec-pr: https://github.com/filecoin-project/FIPs/pull/393/files
 ---
 
 ## Simple Summary
