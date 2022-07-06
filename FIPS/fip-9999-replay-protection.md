@@ -1,5 +1,5 @@
 ---
-fip: 9999 (TBD)
+fip: 0039
 title: Filecoin Message Replay Protection
 author: Afri Schoedon (@q9f)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/301
