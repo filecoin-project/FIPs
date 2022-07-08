@@ -77,3 +77,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0035](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0035.md)   | Support actors as built-in storage market clients | FIP  |@anorth |Draft  |
 |[0038](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0038.md)   | Indexer Protocol for Filecoin Content Discovery | FRC  |@willscott, @gammazero, @honghaoq |Draft  |
 |[0039](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0039.md)   | Filecoin Message Replay Protection | FIP  |@q9f |Draft  |
+|[0040](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0040.md)   | Boost - Filecoin Storage Deals Market Protocol | FRC  |@dirkmc, @nonsense, @jacobheun, @brendalee |Draft  |
