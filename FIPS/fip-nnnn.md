@@ -1,5 +1,5 @@
 ---
-fip: "nnnn"
+fip: "0037"
 title: Gas model adjustment for for user programmability
 author: Raúl Kripalani (@raulk), Steven Allen (@stebalien)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/316
