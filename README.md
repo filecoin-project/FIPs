@@ -75,6 +75,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0033](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0033.md)   | Explicit premium for FIL+ verified deals | FIP  |@anorth |Deferred  |
 |[0034](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0034.md)   | Fix pre-commit deposit independent of sector content | FIP  |@anorth, @kubuxu |Draft  |
 |[0035](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0035.md)   | Support actors as built-in storage market clients | FIP  |@anorth |Draft  |
+|[0037](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0037.md)   | Gas model adjustment for user programmability | FIP  |@raulk, @stebalien |Draft  |
 |[0038](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0038.md)   | Indexer Protocol for Filecoin Content Discovery | FRC  |@willscott, @gammazero, @honghaoq |Draft  |
 |[0039](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0039.md)   | Filecoin Message Replay Protection | FIP  |@q9f |Draft  |
 |[0040](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0040.md)   | Boost - Filecoin Storage Deals Market Protocol | FRC  |@dirkmc, @nonsense, @jacobheun, @brendalee |Draft  |
