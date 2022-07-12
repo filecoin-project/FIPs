@@ -47,9 +47,23 @@ The method number for a symbolic method name is calculated as the first four byt
 interpreted as an unsigned, big-endian 32-bit integer.
 
 The `hash` function is given as:
-- if `method-name == "Constructor` then `1`, else
-- if `blake2b(method-name) == 0` then `4294967295` (`0xffffffff`), else
-- `blake2b(method-name)`
+```
+let domain_separation_tag = "1|" // Note `|` is illegal in method names
+let mut digest Vec<u8>= blake2b(domain_separation_tag + method_name)
+while !digest.is_empty() {
+  let method_id = u32::from_be(digest[0..4])
+  if method_id != 0 && method_id != 1 {
+    return method_id
+  }
+  digest.remove(0) // pop-front
+}
+// probability of 2^{-248}, aka it won't happen
+panic!("Method ID could not be determined, please change it")
+```
+
+The values `0` and `1` are avoided via rejection sampling, 
+i.e. they are rejected and a subsequent slice of the blake2b hash is inspected.
+Note that the code above is not the most efficient implementation.
 
 ### Method name conventions
 A method is *exported* when a method number is computed for it and the actor will recognise this number for internal dispatch. 
@@ -59,7 +73,8 @@ Actor developers can continue to use relevant programming language conventions f
 
 Exported method names *should*:
 - Use only the ASCII characters in `[a-zA-Z0-9_]` (the same set as the C programming language). Other characters, including unicode beyond this set, are excluded in order to reduce the opportunity for misleading spelling of names in user interfaces.
-- Have an initial capital letter, and use CamelCase to identify word boundaries.
+- Start with a character in `[A-Z_]`, i.e. a capital letter or underscore, not a numeral.
+- Use CamelCase to identify word boundaries.
 - Capitalize all letters in acronyms.
 
 Examples: `Approve`, `SubmitWindowPoSt`, `MintNFT`, `FRC1234AuthorizeOperator`
