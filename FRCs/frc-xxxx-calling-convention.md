@@ -55,7 +55,7 @@ while !digest.is_empty() {
   if method_id != 0 && method_id != 1 {
     return method_id
   }
-  digest.remove(0) // pop-front
+  digest = digest[4..] // pop-front
 }
 // probability of 2^{-248}, aka it won't happen
 panic!("Method ID could not be determined, please change it")
