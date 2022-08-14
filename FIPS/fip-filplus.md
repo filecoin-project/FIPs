@@ -1,0 +1,470 @@
+---
+fip: <to be assigned>
+title: De-couple verified registry from markets
+author: Alex North (@anorth)
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/313
+status: Draft type: Technical category : Core created: 2022-08-12 requires: FIP-0034
+---
+
+TODO:
+- store allocation ID in deal state.
+- Decide whether to include the super-sector representations now, or defer to later
+- Find a better (compressed) representation of the piece ranges in a claim
+- Discuss how market delegate means no external API changes
+- Discuss mechanisms for conditional allocations, negatively priced deals
+
+## Simple Summary
+<!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
+TODO
+
+## Abstract
+<!--A short (~200 word) description of the technical issue being addressed.-->
+TODO
+
+## Change Motivation
+<!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
+TODO
+
+## Specification
+**Terminology**
+- *Allowance*: data cap provided to a verifier by the root, or to a client by a verifier.
+- *Allocation*: data cap allocated by a client to a specific piece of data.
+- *Term*: period of time for which a sector/deal/allocation is active or valid.
+- *Claim*: a provider's assertion they are storing all or part of an allocation
+
+### Data cap allocations
+
+The Filecoin Plus verified registry actor is extended to record allocations of data cap to specific
+pieces of data to be stored by a provider. An allocation is independent of any deal with the
+built-in storage market (or any future market).
+
+```
+struct Allocation {
+    // The verified client which allocated the data cap.
+    Client: Address
+    // The provider (miner actor) which may claim the allocation.
+    Provider: Address
+    // Identifier of the data to be committed.
+    Data: CID
+    // The (padded) size of data.
+    Size: uint64
+    // The minimum duration which the provider must commit to storing the piece to avoid
+    // early-termination penalties (epochs).
+    TermMinimum: uint64
+    // The maximum period for which a provider can earn quality-adjusted power 
+    // for the piece (epochs).
+    TermMaximum: uint64
+    // The latest epoch by which a provider must commit data before the allocation expires.
+    Expiration: Epoch
+    // Whether the provider must commit the entire piece in a single sector.
+    // This is initially un-used, but supports allocations larger than a full sector in the future. 
+    AllOrNothing: bool
+}
+```
+
+An allocation specifies a range of terms for which the provider may commit the data, between some
+minimum and maximum. An allocation's minimum term must be at least as large as its maximum term.
+
+Due to the implementation of term enforcement (details below), clients should leave a large buffer
+between the minimum and maximum term to make the allocation practical for a provider.
+
+**Parameters**
+
+- The minimum allowed value for `TermMinimum` is 6 months.
+- The maximum allowed value for `TermMaximum` is 5 years (can be increased by a future FIP).
+
+Allocations are stored in the verified registry actor's state, grouped by client address. Nesting by
+client promotes more efficient lookups at scale, and supports per-client iteration for revocation.
+
+```
+struct State {
+    // ... Existing verified registry state ...
+    
+    // Allocations indexed by client, then by ID.
+	Allocations: HAMT[Address]AMT[AllocationID]Allocation
+	
+	// Sequence number for allocation IDs.
+    NextAllocationId: AllocationID // uint64
+}
+```
+
+#### Operations
+
+An allocation is created by a verified client by transferring data cap tokens (see below)
+to the verified registry. The `Allocation` metadata must be provided as transfer metadata. The
+verified registry checks the same preconditions as the existing `UseBytes` method. The size of the
+allocation must match the number of tokens received.
+
+An allocation may be revoked after its expiration epoch has passed. When revoked, the data cap
+tokens are transferred back to the client. The verified registry provides a new method to process
+revocations.
+
+```
+struct RevokeExpiredAllocationsParams {
+	AllocationIDs: []AllocationID // empty for "all", or specify a set
+}
+
+// Removes all expired allocations for a client.
+// The data cap for cleaned-up allocations is returned to the client.
+// Note that un-expired allocations cannot be revoked.
+fn RevokeAllocations(params: RevokeExpiredAllocationsParams)
+
+```
+
+Allocations are also removed when claimed by a provider (see below).
+
+### Data cap claims
+
+The verified registry actor is further extended to record each storage provider's commitment to a
+data cap allocation, called a claim. A claim represents a provider's obligation to store a piece of
+data, and corresponding benefit of incentivized storage power.
+
+```
+struct Claim {
+    // The provider storing the data (from allocation).
+	Provider: Address
+	// The client which allocated the data cap (from allocation).
+	Client: Address
+    // Identifier of the data committed (from allocation).
+    Data: CID
+    // The (padded) size of data (from allocation).
+    Size: uint64
+    // The minimum period which the provider must commit to storing the piece (from allocation).
+    TermMinimum: uint64
+    // The maximum period for which the provider can earn QA-power for the piece (from allocation).
+    TermMaximum: uint64
+	// The epoch at which the (first chunk of the) piece was committed.
+	TermStart: uint64
+    // The sector(s) in which the data is committed.
+    // This representation permits a claim to span pieces of data in multiple sectors.
+    // Ranges are over the allocation data, and are non-overlapping. (0, 0) means all.
+    // This structure initially un-used (just a single entry) but supports claims larger
+    // than a single sector.
+	Sectors [] {
+		Sector SectorID,
+		RangeStart uint64, 
+		RangeSize uint64, 
+	}
+}
+```
+
+Claims are stored in the verified registry actor state, grouped by provider address. A claim's ID is
+inherited from the allocation that created it.
+
+```
+struct State {
+    // ... Existing verified registry state ...
+
+	// Claims by provider ID, then Claim ID.
+	Claims HAMT[Address]AMT[ClaimID]Claim
+}
+```
+
+A data cap allocation may identify data that is larger than a single sector.
+Such an allocation may be satisfied by multiple claims, committed to different sectors,
+each for a distinct, non-overlapping range of the allocation's data.
+Each sector hosting a range of an allocation gains power individually.
+All ranges from a single allocation must be claimed by the same provider.
+If a sector hosting one range of an allocation is lost, 
+the provider will pay the usual termination penalty but can re-seal the range into a new sector
+to regain the same power.
+This maintains the incentive to host a complete replica of the allocation.
+An allocation must be fully satisifed by a _single_ claim if `AllOrNothing` is true.
+
+An allocation is successfully claimed if at least one range of the allocation 
+is committed before the allocation expires.
+Other ranges may be committed after the expiration epoch. 
+This provides symmetry with resumption after faults.
+
+This larger-than-sector allocation capability will a more scalable representation within
+the verified registry actor.
+Full realisation of this capability will require changes to the
+storage miner actor that are beyond the scope of this proposal.
+
+
+
+#### Operations
+An allocation is claimed when a storage miner actor proves the corresponding piece of data 
+is committed to a sector.
+
+```
+struct SectorAllocationClaim {
+    // The allocation being claimed.
+	AllocationID: AllocationID
+	// The piece data committed (either the allocations data, or a part of it).
+	PieceCID: CID
+	// The (padded) size of the data committed (up to the allocation's data size).
+	PieceSize: uint64
+	// The offset into the allocation's data the piece committed.
+	PieceOffset: uint64, 
+	// A proof that the committed PieceCID and PieceSize is included in the allocation's
+	// data at PieceOffset.
+	// Only when the PieceCID and PieceSize do not match the allocation's Data and Size.
+	InclusionProof: []byte
+    // The sector into which the piece has been committed.
+	SectorID: uint64,
+ 
+}
+struct ClaimAllocationsParams {
+	Sectors: []SectorAllocationClaim
+}
+struct SectorClaimResult {
+	// The IDs of allocation claims that succeeded.
+	SuccessfulClaims: []AllocationID
+}
+// Called by storage miner actor to claim allocations for data provably committed to storage.
+// For each allocation claim, the registry checks that the provided piece CID
+// and size match that of the allocation.
+fn ClaimAllocations(params: ClaimAllocationsParams) -> ClaimAllocationsResult
+```
+
+FIXME: distinguish sub-pieces in SectorClaimResult, that share allocation ID
+
+The record of a claim may be removed by the provider after it has been completed.
+
+The maximum term for a claim may be increased by the client which originally made the allocation,
+up to the network policy maximum.
+
+A verified client can extend the term for a claim _beyond_ the initial maximum term by 
+spending new data cap. 
+The term maximum can be extended up to the network policy maximum beyond the current epoch.
+The client extending the claim need not be the one that made the original allocation.
+This is similar to issuing a new allocation for the same data, but avoids overheads of re-sealing.
+
+```
+TODO: spec method to adjust claim terms
+```
+
+
+
+### Data cap token
+The `Clients` map of addreses to balances is removed from the verified registry state.
+The balances of data cap tokens held by verified clients are extracted to a data cap token actor.
+This actor represents un-allocated data cap as a fungible token.
+Token balances are represented as BigIntegers with 18 decimal places of precision, 
+a standard which is likely to be adopted by future token standards.
+Token quantities are constrained to be whole multiples of `10^18`, 
+thus matching the existing whole unit semantics.
+
+The data cap token is generally non-transferable, except to or from the verified registry actor.
+The verified registry actor can invoke privileged methods to create and destroy tokens.
+
+A token standard is expected to support delegation of control of token balances to specified
+third-party actors.
+The built-in storage market actor is pre-authorized as a delegate for all verified clients.
+Thus, the built-in market actor can allocate data cap on clients' behalf.
+This mechanism allows this proposal to be impelemented without changing any clients' or
+providers' workflows.
+It also will support user-programmed market actors dealing in datacap in the future.
+The data cap token actor is intended to present a public interface conforming to standards for
+fungible token behaviour and an extensible calling convention.
+Neither of those standards are pre-requisite for this proposal, however.
+The built-in actors will be retroactively updated to support those standards when they settle.
+
+#### Operations
+The `AddVerifiedClient` method is changed to invoke the data cap token actor to
+mint new tokens to the client's balance.
+
+The `UseBytes` method is removed.
+To create an allocation, a verified client transfers data cap tokens to the verified registry actor.
+The transfer must be accompanied by one or more `Allocation` records which specify 
+the allocation(s) to create.
+The registry may reject the transfer if the allocations are invalid.
+
+The `RestoreBytes` method is also removed.
+Instead, the `RevokeAllocations` method on the verified registry actor transfers any released
+data cap tokens back to the client's balance for re-use.
+
+### Simplified quality-adjusted power
+A data cap allocation/claim is valid for a range of commitment terms, between a client-specified
+minimum and maximum.
+
+The actual term for a claim begins at the epoch the data is committed into a sector,
+proven either with proof-of-replication or replica-update. 
+There is no distinct "deal start epoch".
+A sector containing a data cap claim is immediately eligible for a power multiplier of 10 
+for that fraction of the sector's capacity occupied by the incentivized data.
+
+The actual term for a claim ends the epoch that the sector containing the data expires, 
+or that data is replaced. 
+The term cannot end during a sector's lifetime, except by explicit replacement of data.
+If data is replaced, the sector immediately losses the power multiplier for that fraction
+of the sector's capacity.
+(Replacing non-zero data in a sector is not possible today).
+
+Aligning the claim's term with the sector's expiration exactly in this way removes the
+"spreading-out" of QA power over a sector's life in the current method of computation.
+Providers gain 10x power for each byte of verified data exactly while that data is proven.
+The miner actor computes a sector’s power as `SectorSize + (9 * VerifiedSize)`.
+
+#### Pledge
+A sector's pledge requirement is proportional to its share of power, just as today.
+When the minimum term for a verified piece expires, the pledge requirement does not change.
+The provider's commitment to storing the verified piece extends until 
+the sector's scheduled expiration. 
+If the sector is terminated early, the termination penalty includes the boosted power.
+
+If a verified piece is transferred to new sector (see below),
+the initial pledge for the new sector is calculated using the network conditions at the time.
+The pledge requirement for the old sector is not decreased, 
+but any subsequent penalty is calculated using the current (reduced) power.
+
+### Storage miner actor
+The built-in miner actor is trusted to enforce the verified and the continual storage of the data.
+
+The miner actor requires that the sector into which a claimed piece is committed must have a
+**remaining lifespan that is sufficient to fulfil the minimum term**.
+Thus, when a sector terminates at its scheduled expiration epoch, the claim's term has been met.
+
+Similarly, the miner actor requires that sector into which the piece is committed must have a
+**remaining lifespan no longer than that which would reach the maximum term**. 
+That is, a sector's commitment expiration epoch must fall between the minimum and maximum terms
+of any verified claim it holds.
+
+The longest practical _minimum_ term for a verified data cap allocation is
+the maximum initial sector commitment duration.
+
+#### Failure and repair
+There is **no change to termination penalty** calculations. 
+If a sector is terminated early (continual faults, or manual termination),
+the provider will pay a penalty related to the expected reward earned by the sector (up to some limit).
+
+The verified registry can support re-commitment of the same data
+(even though the built-in storage market actor does not support resumption of a terminated deal).
+If a claim’s maximum term has not been reached when a sector terminates,
+the provider may commit the same piece into a new sector and regain the quality-adjusted power.
+The new sector’s committed lifespan is still constrained to fit within the claim’s term.
+
+#### Sector extension
+A provider cannot extend the scheduled expiration for a sector past the maximum term 
+of any piece of verified data that it holds. 
+The provider must forgo the verified power boost when processing such a sector extension. 
+This does not reduce the sector’s pledge requirement, 
+but does reduce penalties to be paid on any future fault to reflect the new, lower power.
+
+This facility to drop a claim can only be exercised:
+- for claims that have passed their minimum commitment,
+- for non-faulty sectors, and
+- in the final 30 days of the sector's currently committed lifespan
+
+These restrictions prevent a provider using extension as a means of escaping their commitment to 
+store the claimed piece for the sector’s full originally-committed lifetime. 
+
+### Built-in storage market as a delegate
+The workflows described above are independent of any market actor, 
+and take place through interactions by the client and provider with 
+the verified registry actor directly.
+
+However, in order to maintain current client and provider workflows, 
+the built-in market actor can act as a delegate.
+
+The built-in storage market actor is pre-authorized as a data cap token delegate for all clients.
+When a deal proposal is published with `VerifiedDeal=true`, the market actor transfers
+the corresponding data cap tokens from the client to the verified registry actor.
+This transfer is accompanied by an `Allocation` record populated with data from the deal.
+The built-in market specifies an allocation's minimum term to be equal to the deal duration,
+and maximum term to be one year greater than the deal duration.
+
+```
+let dealAllocation = Allocation {
+  Client: deal.Client
+  Provider: deal.Provider
+  Data: deal.PieceCID
+  Size: deal.PieceSize
+  TermMinimum: deal.EndEpoch - deal.StartEpoch
+  TermMaximum: deal.EndEpoch - deal.StartEpoch + EPOCHS_IN_YEAR
+  Expiration: deal.StartEpoch
+  AllOrNothing: true
+  }
+```
+
+The market stores the allocation ID in deal state.
+
+```
+struct DealState {
+  // Existing state
+  SectorStartEpoch: int64,
+  LastUpdatedEpoch: int64,
+  SlashEpoch: int64,
+  // New
+  AllocationID: uint64
+}
+```
+
+When a verified deal expires without being committed, the market revokes the allocation.
+
+When a verified deal is activated by the provider, the market actor returns 
+the allocation ID and piece metadata to the storage miner actor.
+The miner actor then invokes `ClaimAllocations` and, if successful,
+computes quality adjusted power for the sector according to the piece size and QA power multiplier.
+
+
+
+### Migration
+TODO!
+
+### Outline of main algorithms
+Describe the common flows.
+
+
+## Design Rationale
+
+<!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
+
+Remaining work to fully remove trust in market actor (API changes)
+
+Future capabilities
+- Internal transfer between sectors (requires new miner APIs)
+- Transferable claims to new provider (new APIs)
+
+See https://github.com/filecoin-project/FIPs/discussions/298.
+
+## Backwards Compatibility
+<!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
+TODO
+
+## Test Cases
+<!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
+TODO
+
+## Security Considerations
+<!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
+TODO
+
+## Incentive Considerations
+<!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
+TODO
+
+## Product Considerations
+<!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
+
+TODO:
+- make third-party markets possible (after subsequent changes)
+- allocations larger than sectors (and towards deals similar), scalable representation
+- potential for direct route to FIL+ allocations (realised in next set of changes)
+
+
+The pattern of proxying verified registry interactions through the built-in market actor will
+initially raise the gas cost of deals, but this is a transitional state:
+
+This proposal is a stepping stone toward greater potential gas efficiency of deals.
+- For verified data where the client is offering no payment above the verified rewards, 
+  no deal with a market will be necessary at all.
+  A client need only make an allocation directly with the verified registry.
+  This allocation is much cheaper to make and maintain than a deal.
+- The proposed representations make possible data cap allocations larger than a single sector.
+  As well as improvements in utility, such allocations will be far more gas efficient than
+  negotiating a separate deal for each sector-sized unit.
+- For deals where additional payment or terms are necessary, 
+  this decoupling opens the potential to develop alternative storage markets, 
+  including ones much more efficient than the built-in one.
+  We can expect deal costs to decrease over time.
+
+## Implementation
+<!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
+Implementation is in progress on the `decouple-fil+` branch of the built-in actors repository:
+https://github.com/filecoin-project/builtin-actors/tree/decouple-fil+.
+
+
+## Copyright
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
