@@ -83,3 +83,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0041](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0041.md)   | Forward Compatibility for PreCommit and ReplicaUpdate | FIP  |@Kubuxu |Draft  |
 |[0042](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0042.md)   | Calling Convention for Hashed Method Name | FRC  |@Kubuxu, @anorth |Draft  |
 |[0045](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0045.md)   | De-couple verified registry from markets | FIP  |@anorth |Draft  |
+|[0046](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0046.md)   | Fungible token standard | FRC  |@anorth, @jsuresh, @alexytsu |Draft  |
