@@ -1,5 +1,5 @@
 ---
-fip: <to be assigned>
+fip: 0047
 title: Proof Expiration & PoRep Security Policy
 author: Jakub Sztandera (@Kubuxu), Irene (@irenegia), Alex North (@anorth)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/415
@@ -98,19 +98,38 @@ should be pre-requisite to increasing the maximum sector commitment duration.
   but takes a value that is derived from and quantised to the sector’s activation epoch.
     - During activation, It is calculated as: `ProofExpiration = SectorActiviation + MaxProofDuration`
     - On refresh: `ProofExpiration = ProofExpiration + (MaxProofDuration - ProofRefreshWindow)`
-    - Where
-        - `MaxProofDuration`: (new protocol parameter) maximum period from last commitment or refresh 
-          for which a PoRep is valid, set to 1.5y to match current behaviour;
-        - `ProofRefreshWindow`: (new protocol parameter) a window of time before ProofExpiration epoch 
-          when the proof can be extended, set to 4 months to cover a MaxSectorLifetime of 5 years with only 3 refreshes.
 - If a sector’s `ProofExpiration` epoch is reached before its `CommitmentExpiration`, 
   the sector is terminated and the provider pays a termination fee (the same value as for manual termination).
 - The storage provider can call a new method `RefreshProofExpiration(SectorSelector)` requesting a refreshed proof expiration.
   This call is only available after `ProofExpiration - ProofRefreshWindow` and is disallowed past the `ProofExpiration`.
   It will increase the `ProofExpiration` of each of the requested sectors by `MaxProofDuration - ProofRefreshWindow`.
+- When extending a sector's commitment expiration, the existing `ExtendSectorExpiration` method
+  also refreshes the sector's proof expiration, if it is within the proof expiration window.
 
 This mechanism is implemented by adapting the existing expiration queue mechanism in the miner actor 
 to schedule sectors according to the earlier of their proof expiration or commitment expiration.
+
+#### Parameters
+Two new protocol parameters are defined:
+- `MaxProofDuration`: the maximum period from last commitment or refresh 
+  for which a PoRep is valid, set to 1.5y to match current behaviour;
+- `ProofRefreshWindow`: the window of time before ProofExpiration epoch 
+  when the proof can be extended, set to 4 months.
+
+These values together support a `MaxSectorLifetime` of 5 years with only 3 proof refreshes, 
+which is the same number of commitment extensions currently required.
+
+The existing `MinSectorExpiration` and `MaxSectorExpirationExtension` parameters now refer
+to the commitment expiration.
+A new, larger, value for `MaxSectorExpirationExtension` may be considered.
+- If the current value of 1.5 years is retained, then a sector's initial commitment will always
+  expire before its proof expiration is reached.
+- If the value is increased, then a sector may take an initial commitment longer than the proof
+  expiration, and so must be refreshed.
+  
+If `MaxSectorExpirationExtension` is increased, then the built-in storage market's 
+maximum deal duration is increased to match.
+This could permit deals up to 5 years in duration.
 
 ### Policy
 If we were to discover a flaw in PoRep theory or implementation:
