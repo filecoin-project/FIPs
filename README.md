@@ -66,7 +66,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0024](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0024.md)   | BatchBalancer & BatchDiscount Post -Hyperdrive adjustment | FIP  |@zx, @jbenet, @zenground0, @momack2 |Final  |
 |[0025](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0025.md)   | Handle expired deals in ProveCommit | FIP  |@ZenGround0 |Deferred  |
 |[0026](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0026.md)   | Extend sector fault cutoff period from 2 weeks to 6 weeks | FIP  |@IPFSUnion |Final  |
-|[0027](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0027.md)   | Change type of DealProposal Label field from a (Golang) String to a Union | FIP  |@laudiacay |Accepted  |
+|[0027](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0027.md)   | Change type of DealProposal Label field from a (Golang) String to a Union | FIP  |@laudiacay, @Stebalien, @arajasek |Accepted  |
 |[0028](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0028.md)   | Remove DataCap and verified client status from client address | FIP  |@jennijuju, @dkkapur |Final  |
 |[0029](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0029.md)   | Beneficiary address for storage providers | FIP  |@steven004 |Accepted  |
 |[0030](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0030.md)   | Introducing the Filecoin Virtual Machine (FVM) | FIP  |@raulk, @stebalien |Final  |
