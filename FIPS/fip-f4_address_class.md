@@ -15,7 +15,7 @@ spec-sections:
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 
-This FIP adds an extensible address class, `f4`, to support new user-defined actor addressing schemes. Specifically, the actor at `{some-actor-id}` (e.g., `123`) will manage all addresses starting with `f4{some-actor-id}-` (`f4123-`).
+This FIP adds an extensible address class, `f4`, to support the creation of new user-defined actor addressing schemes. Specifically, the actor at `{some-actor-id}` (e.g., `123`) will manage all addresses starting with `f4{some-actor-id}-` (`f4123-`).
 
 Additionally, this FIP adds the ability to send funds to such an address before deploying an actor there. As of today, it's possible to send funds to an account (`f1` or `f3`) that doesn't yet exist on-chain, but there's no way to send funds to an _actor_ that doesn't yet exist on-chain.
 
