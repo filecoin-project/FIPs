@@ -1,6 +1,6 @@
 ---
 fip: <to be assigned>
-title: F4 Address Class
+title: f4 Address Class
 author:  Steven Allen <stebalien@protocol.ai>, Melanie Riise <melanie.riise@protocol.ai>, Rául Kripalani <raul@protocol.ai>
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/473
 status: Draft
@@ -17,7 +17,7 @@ spec-sections:
 
 This FIP adds an extensible address class, `f4`, to support the creation of new user-defined actor addressing schemes. Specifically, the actor at `{some-actor-id}` (e.g., `123`) will manage all addresses starting with `f4{some-actor-id}-` (`f4123-`).
 
-Additionally, this FIP adds the ability to send funds to such an address before deploying an actor there. As of today, it's possible to send funds to an account (`f1` or `f3`) that doesn't yet exist on-chain, but there's no way to send funds to an _actor_ that doesn't yet exist on-chain.
+Additionally, this FIP adds the ability to send funds to such an address before deploying an actor there. As of today, it's possible to send funds to an account (`f1` or `f3`) that doesn't yet exist on-chain, but there's no way to send funds to an _actor_ (e.g., a multisig actor with an `f2` address) that doesn't yet exist on-chain.
 
 This will allow users to:
 
@@ -25,7 +25,7 @@ This will allow users to:
 - Implement predictable addressing systems so that an actor's address may be computed _before_ deployment.
 - Send funds to such a pre-computed actor address before actually deploying the actor there.
 
-**NOTE:** While the `f4` address class is designed and intended to be managed by user-defined actors, this FIP currently restricts `f4` assignment to built-in singleton actors. This restriction will be relaxed in a future FIP once users are allowed to deploy native WebAssembly actors.
+**NOTE:** While the `f4` address class is designed and intended to be managed by user-defined actors, this FIP currently restricts `f4` assignment to built-in singleton (f00-f099) actors. This restriction will be relaxed in a future FIP once users are allowed to deploy native WebAssembly actors.
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
