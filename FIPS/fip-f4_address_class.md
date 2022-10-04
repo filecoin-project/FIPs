@@ -15,36 +15,53 @@ spec-sections:
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 
-Support new actor addressing schemes and interactions with addresses that do not yet exist on-chain by introducing a new address type where sub-namespaces within this new address type can be managed by user-deployed actors called "address managers".
+This FIP adds an extensible address class, `f4`, to support new user-defined actor addressing schemes. Specifically, the actor at `{some-actor-id}` (e.g., `123`) will manage all addresses starting with `f4{some-actor-id}-` (`f4123-`).
+
+Additionally, this FIP adds the ability to send funds to such an address before deploying an actor there. As of today, it's possible to send funds to an account (`f1` or `f3`) that doesn't yet exist on-chain, but there's no way to send funds to an _actor_ that doesn't yet exist on-chain.
+
+This will allow users to:
+
+- Implement foreign addressing systems (e.g., the one used in Ethereum) in Filecoin.
+- Implement predictable addressing systems so that an actor's address may be computed _before_ deployment.
+- Send funds to such a pre-computed actor address before actually deploying the actor there.
+
+**NOTE:** While the `f4` address class is designed and intended to be managed by user-defined actors, this FIP currently restricts `f4` assignment to built-in singleton actors. This restriction will be relaxed in a future FIP once users are allowed to deploy native WebAssembly actors.
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
 
-This FIP adds a new extensible address class (`f4`) where an address management actor will be able to create new actors with `f4` addresses under a specific `f4` address prefix, in addition to the `f2` address assigned today. This will allow Filecoin to support the native addressing schemes of foreign runtimes like the EVM and support interactions (both actually and counterfactually) with addresses that do not yet exist on-chain..
+Currently, adding new address types and address derivation methods to the Filecoin network requires extensive changes and a network upgrade. This FIP introduces a new user-extensible address class such that new addressing systems can be added by _users_ without extensive changes and network upgrades network upgrades.
 
-This FIP achieves this by:
+It achieves this by adding a new address class (`f4`) where user-definable "address management" actors will be able to create new actors under an address-manager specific `f4` prefix (specifically, `f4{address-manager-actor-id}-`). This will allow Filecoin to support the native addressing schemes of foreign runtimes like the EVM and create new _predictable_ addressing scheme to support interactions (both actually and counterfactually) with addresses that do not yet exist on-chain.
 
-1. Introducing a new extensible address class (`f4`) to support new addressing schemes.
-2. Introducing a special "embryo" actor type to hold funds sent to an address before code is deployed to that address to support interactions with addresses that to not yet exist.
-3. Introducing a new `Exec4` method on the `Init` actor to create actors with addresses within this address class.
+Specifically, this FIP:
+
+1. Creates a new extensible address class (`f4`) to support new addressing schemes.
+2. Allows funds to be sent to an `f4` address before an actor has been deployed to the address.
+3. Extends the `Init` actor with a new `Exec4` method for creating actors with specific `f4` addresses.
 
 ## Change Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
 
-The FVM aims to be a hypervisor with first-class support for runtimes like the EVM. To achieve full compatibility, the FVM must support:
+There are two primary motivations for this FIP:
 
-1. The addressing schemes used by said runtimes (e.g., Ethereum addressing) as said runtimes often rely on particular address formats and derivation logic.
+1. While Filecoin _currently_ allows allows users to interact with and/or predict the addresses of _account_ actors (f1 and f3) that do not yet exist on-chain, it _doesn't_ currently allow users to interact with and/or predict the addresses of _non-account_ actors (f2) before deployment. This FIP supersedes [Predictable actor address generation for wallet contracts, state channels (aka CREATE2)](https://github.com/filecoin-project/FIPs/discussions/379).
+    - This functionality is important for custom wallet types where a user may want to generate a wallet's address _before_ deploying the wallet (e.g., because the wallet may never actually receive funds).
+    - This functionality is _especially_ important for state-channel applications where a state-channel may need to be able to refer to actors that, in the "optimistic" case, will never actually be deployed on-chain.
+2. The FVM aims to be a hypervisor with first-class support for runtimes like the EVM but to achieve full compatibility, the FVM must support the addressing schemes used by said runtimes (e.g., Ethereum addressing) as said runtimes often rely on particular address formats and derivation logic.
     - EVM tooling expects Ethereum addresses.
     - Tools that interact with EVM actors counterfactually expect the addresses of said actors to be derived via the precise method specified in the CREATE2 opcode.
     - Tools like, e.g., Metamask will derive Ethereum addresses for wallets, not Filecoin addresses, and converting between the two is impossible due to the hash functions involved.
-2. Interactions with addresses that do not yet exist on-chain.
 
-This FIP supersedes [Predictable actor address generation for wallet contracts, state channels (aka CREATE2)](https://github.com/filecoin-project/FIPs/discussions/379).
+This FIP achieves this by:
+
+1. Providing a way to create new "predictable" addressing schemes that will allow users to pre-compute the address at which some actor _could_ be deployed on-chain, without forcing them to actually deploy it (yet).
+2. More generally, allowing users to deploy _arbitrary_ user-defined addressing schemes.
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
 
-This FIP adds a new extensible address class (`f4`) where an address management actor will be able to create new actors with `f4` addresses under a specific `f4` address prefix, in addition to the `f2` address assigned today.
+This FIP adds a new extensible address class (`f4`) where user-defined address management actors will be able to create new actors and assign them `f4` addresses starting with the address manager's actor ID.
 
 For now, this FIP proposes that address management actors be limited to built-in "singleton" actors, but expect users to be able to deploy their own address management actors in the future.
 
