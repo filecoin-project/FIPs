@@ -101,8 +101,8 @@ Sending to an unassigned `f2` address will not be supported as `f2` addresses ar
 Specifically, the FVM will:
 
 1. Create a new embryo actor with a well-known embryo code CID and a zero nonce.
-5. Deposited the funds in said actor.
-6. Assign the target `f4` address to that actor (but don't yet assign an `f2` address).
+2. Deposited the funds in said actor.
+3. Assign the target `f4` address to that actor (but don't yet assign an `f2` address) by updating the `Init` actor's address map.
 
 ### Exec4
 
@@ -121,13 +121,11 @@ struct Exec4Params {
 `Exec4` will:
 
 1. Compute the `f4` address as `4{leb128(caller-actor-id)}{subaddress}` where `{caller-actor-id}` is the actor ID of the actor invoking the init actor and `{subaddress}` is the sub-address specified in the `Exec4` parameters.
-2. If an actor exists at that address:
-    1. If it's an embryo, it will be overwritten.
-    2. Otherwise, abort. `f4` addresses MUST NOT be reassigned once code has been deployed.
-7. If an actor does not exist at that address, create a new actor (with a new actor ID) and assign the `f4` address to that actor.
-8. Assign an `f2` (stable) address to the actor (the `f4` address may not be reorg stable).
-9. Set the actor's code CID to `code` and invoke the actor's constructor.
-10. Finally, `Exec4` will return the actor's ID and `f2` (stable) address. It will not return the `f4` address as the caller should be able to compute that locally.
+2. If an actor exists at that address and is not an embryo, abort.
+3. If an actor does not exist at that address, create a new actor (with a new actor ID) and assign the `f4` address to that actor.
+4. Assign an `f2` (stable) address to the actor (the `f4` address may not be reorg stable).
+5. Set the actor's code CID to `code` and invoke the actor's constructor.
+6. Finally, `Exec4` will return the actor's ID and `f2` (stable) address. It will not return the `f4` address as the caller should be able to compute that locally.
 
 **NOTE**: For now, `Exec4` will be restricted to _singleton_ actors (actors in the f00-f099 address range). Once users are able to deploy custom WebAssembly actors, this restriction should be relaxed (in a future FIP).
 
@@ -143,7 +141,7 @@ In this section, we discuss some of the tradeoffs and alternatives considered.
 
 ### Init Actor State
 
-As this FIP stores f4 addresses alongside f2 addresses in the same map, actors with f4 addresses will have _two_ entries in this map. We could, alternatively, put these addresses in a separate map but the current FIP lets us avoid changing the Init actor's state layout (for now).
+As this FIP stores `f4` addresses alongside `f2` addresses in the same map, actors with f4 addresses will have _two_ entries in this map. We could, alternatively, put these addresses in a separate map but the current FIP lets us avoid changing the Init actor's state layout (for now).
 
 ### Hashing v. Prefixing
 
@@ -156,12 +154,31 @@ The primary benefit of this approach is that addresses have a predictable size. 
 
 ### Control Inversion
 
-One drawback with the current "factory" approach is that the newly created actor's constructor will see the factory (the address manager) as the sender, not the *real* sender. An alternative would be to invert the flow and have:
+An alternative to the factory approach would be to invert the flow and:
 
-1. The "creating" actor call `Exec4` on the init actor with the address of the address manager.
+1. Have the "creating" actor call `Exec4` on the init actor with the address of the address manager.
 2. Have the init actor call some `GenerateAddress` method on the address manager.
 
 However, the current approach gives the address manager more control as it effectively gets to act as a user-defined "init" actor, sitting between the user and the real init actor.
+
+<details>
+<summary>Aside explaining why we even considered this approach...</summary>
+
+Currently (and unchanged by this proposal), new actors are constructed by the init actor as follows:
+
+1. The init actor creates a new actor object, assigns it a new ID, and hooks it into the state-tree.
+2. The init actor then calls method 1 on this new actor to "construct" it.
+
+This means that an actor's constructor will always see the init actor as the "sender" and has no real way to know the "ultimate" actor that created it.
+
+However, there have been discussions about replacing method 1 with a new top-level WebAssembly function, replacing step 2 above with a special privileged syscall to construct an actor. This would:
+
+1. Make the "creating" actor (not the init actor) appear as the sender inside the constructor.
+2. Ensure that actors can't be confused as to whether they're being invoked (via a message) or constructed.
+
+Unfortunately, the actor factory approach proposed in this FIP means that the address manager would appear as the "sender", not the ultimate "creating" actor. On the other hand, we were unable to find any strong arguments for this being an issue in practice.
+
+</details>
 
 ### Bind4
 
@@ -210,7 +227,6 @@ This FIP aims to minimize backwards incompatible changes to the chain state and 
 - The address map in the init actor may now map multiple addresses to the same actor. Clients (especially dashboards) that aggregate/parse chain state will need to handle this case.
 - The code CID of a deployed actor may now change from the "embryo" code CID to an actual code CID. Implementations that cache code CIDs will need to handle this case.
 - This FIP introduces a new address class (`f4`). Implementations of the Filecoin addressing standard will need to handle parsing of this new address class.
-- Method 0 sends may now invoke the constructor of an _arbitrary_ actor, which may be costly relative to invoking the constructor of the account actor. This could break assumptions that sends are "basically free" in terms of gas and clients will have to handle this case appropriately.
 
 ## Test Cases
 <!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
