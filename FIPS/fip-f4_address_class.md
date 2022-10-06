@@ -17,7 +17,7 @@ spec-sections:
 
 This FIP adds an extensible address class, `f4`, to support the creation of new user-defined actor addressing schemes. Specifically, the actor at `{some-actor-id}` (e.g., `123`) will manage all addresses starting with `f4{some-actor-id}-` (`f4123-`).
 
-Additionally, this FIP adds the ability to send funds to such an address before deploying an actor there. As of today, it's possible to send funds to an account (`f1` or `f3`) that doesn't yet exist on-chain, but there's no way to send funds to an _actor_ (e.g., a multisig actor with an `f2` address) that doesn't yet exist on-chain.
+Additionally, this FIP adds the ability to send funds to such an address before deploying an actor there. As of today, it's possible to send funds to an account (`f1` or `f3`) that doesn't yet exist on-chain, but there's no way to send funds to a non-account actor (e.g., a multisig actor with an `f2` address) that doesn't yet exist on-chain.
 
 This will allow users to:
 
@@ -73,7 +73,7 @@ There are three key parts to the design:
 
 **Parameters**
 
-| Parameter              | Value | Rational                      |
+| Parameter              | Value | Rationale                     |
 |------------------------|-------|-------------------------------|
 | `MAX_SUBADDRESS_BYTES` | 54    | fits in 64 bytes when encoded |
 
