@@ -15,7 +15,7 @@ spec-sections:
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 
-This FIP adds an extensible address class, `f4`, to support the creation of new user-defined actor addressing schemes. Specifically, the actor at `{some-actor-id}` (e.g., `123`) will manage all addresses starting with `f4{some-actor-id}-` (`f4123-`).
+This FIP adds an extensible address class, `f4`, to support the creation of new user-defined actor addressing schemes. Specifically, the actor at `{some-actor-id}` (e.g., `123`) will manage all addresses starting with `f4{some-actor-id}f` (`f4123f`).
 
 Additionally, this FIP adds the ability to send funds to such an address before deploying an actor there. As of today, it's possible to send funds to an account (`f1` or `f3`) that doesn't yet exist on-chain, but there's no way to send funds to a non-account actor (e.g., a multisig actor with an `f2` address) that doesn't yet exist on-chain.
 
@@ -32,7 +32,7 @@ This will allow users to:
 
 Currently, adding new address types and address derivation methods to the Filecoin network requires extensive changes and a network upgrade. This FIP introduces a new user-extensible address class such that new addressing systems can be added by _users_ without extensive changes and network upgrades network upgrades.
 
-It achieves this by adding a new address class (`f4`) where user-definable "address management" actors will be able to create new actors under an address-manager specific `f4` prefix (specifically, `f4{address-manager-actor-id}-`). This will allow Filecoin to support the native addressing schemes of foreign runtimes like the EVM and create new _predictable_ addressing scheme to support interactions (both actually and counterfactually) with addresses that do not yet exist on-chain.
+It achieves this by adding a new address class (`f4`) where user-definable "address management" actors will be able to create new actors under an address-manager specific `f4` prefix (specifically, `f4{address-manager-actor-id}f`). This will allow Filecoin to support the native addressing schemes of foreign runtimes like the EVM and create new _predictable_ addressing scheme to support interactions (both actually and counterfactually) with addresses that do not yet exist on-chain.
 
 Specifically, this FIP:
 
@@ -81,7 +81,7 @@ There are three key parts to the design:
 
 An address manager will own `f4` addresses (in the binary representation) starting with the leb128-encoded actor ID and followed by an arbitrary (chosen by the address management actor, up to `MAX_SUBADDRESS_BYTES` bytes) sub-address: `[0x4 (f4 address class)] || {leb128(actor-id)} || {sub-address}`.
 
-In text, this address will be formatted as `f4{decimal(actor-id)}-{base32(sub-address || checksum)}` where `checksum` is the blake2b-32 (32bit/4byte blake2b) hash of the address in its binary representation (protocol included). This is the same checksumming approach used in the textual representation of f1-f3 addresses.
+In text, this address will be formatted as `f4{decimal(actor-id)}f{base32(sub-address || checksum)}` where `checksum` is the blake2b-32 (32bit/4byte blake2b) hash of the address in its binary representation (protocol included). This is the same checksumming approach used in the textual representation of f1-f3 addresses.
 
 For example, an address management actor at `f010` will be able to assign addresses starting with `f410-` in text or `[4, 10, ...]` in binary. [^1]
 
@@ -91,7 +91,7 @@ For example, an address management actor at `f010` will be able to assign addres
 
 To support interactions with addresses that do not yet exist on-chain, the FVM must support sending funds to an address before an actor is deployed there. It's already possible to automatically create an account (f1 or f3) on send, but it's not possible to do the same for arbitrary actors.
 
-On `send` to an unassigned `f4` address `f4{actor-id}{subaddress}`, the FVM will:
+On `send` to an unassigned `f4` address `f4{actor-id}f{subaddress}`, the FVM will:
 
 1. Validate that an actor with ID `actor-id` exists.
 2.  Create a new "embryo actor" with a placeholder code CID to hold the received funds, assigning the `f4` address to that new actor.
@@ -145,7 +145,7 @@ As this FIP stores `f4` addresses alongside `f2` addresses in the same map, acto
 
 ### Hashing v. Prefixing
 
-An alternative to prefixing (`f4{actor-id}-{subaddress}`) would be to define a namespace via a hash function. I.e., an actor would own `f4{hash(actor-id || subaddress)}`.
+An alternative to prefixing (`f4{actor-id}f{subaddress}`) would be to define a namespace via a hash function. I.e., an actor would own `f4{hash(actor-id || subaddress)}`.
 
 The primary benefit of this approach is that addresses have a predictable size. The primary *downside* is that:
 
@@ -192,9 +192,11 @@ Unfortunately, by step 3, both accounts would have been assigned separate `f0` a
 
 ### Textual Format
 
-The *universal* textual format of f4 addresses, `f4{decimal(actor-id)}-{base32(sub-address || checksum)}`, is a trade-off between verbosity, readability, and determinism.
+The *universal* textual format of f4 addresses, `f4{decimal(actor-id)}f{base32(sub-address || checksum)}`, is a trade-off between verbosity, readability, and determinism.
 
-- We split the actor-assigned "sub-address" with a dash for easy readability. We could have encoded this address as `f4{base32(leb-encoded-actor-id || sub-address || checksum)}`, but that would have been impossible for a human to read.
+- We split the actor-assigned "sub-address" with an `f` to make it possible to "read" the address management actor's ID without having to decode the address.
+    - We could have encoded this address as `f4{base32(leb-encoded-actor-id || sub-address || checksum)}`, but that would have been impossible for a human to read.
+    - We considered splitting the address with a dash (`f4123-abcde`), but @jbenet pointed out that dashes in identifiers have poor UX: they don't select as one word on double-click.
 - We chose to encode the actor-id as a decimal to mirror `f0`.
 - We chose to `base32` encode the sub-address because it may be long. The main downside is that converting to/from an Ethereum address may require re-encoding from hex to base32 (but this point is somewhat moot given the checksum anyways).
 - We chose to require a specific checksum format and to not support multiple bases (e.g., multibase) in this address format to ensure that two `f4` addresses are equivalent if and only if they have the same textual representation. This unfortunately means that converting to and from external addressing schemes like Ethereum/EVM addresses cannot be done by hand.
@@ -270,7 +272,7 @@ In a future FIP, we will propose a Ethereum Address Manager (EAM) actor, likely 
 
 #### Ethereum Addresses
 
-With this FIP, the full Ethereum address would be preserved inside the `f432-` address sub-namespace making it easy to:
+With this FIP, the full Ethereum address would be preserved inside the `f432f` address sub-namespace making it easy to:
 
 1. Recognize Ethereum addresses (likely displaying them in their usual `0x...` format).
 2. Convert back and forth between the Ethereum address format (`0x...`) and the Filecoin (`f4...`) format.
@@ -338,6 +340,6 @@ TODO: IN PROGRESS
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
 
-[^1]: Where address manager ID address is `f01111` and the sub-address is `0xeff924032365F51a36541efA24217bFc5B85bc6B` the resulting textual format would be `f41111-574siazdmx2runsud35ciil37rnylpdl`
+[^1]: Where address manager ID address is `f01111` and the sub-address is `0xeff924032365F51a36541efA24217bFc5B85bc6B` the resulting textual format would be `f41111f574siazdmx2runsud35ciil37rnylpdl`
 
-[^2]: Example of a (not being proposed here) address manager (`f01112`) that manages a namespace of raw ascii addresses (`hello world` for example), the standard format would be `f41112-nbswy3dpeb3w64tmmqqq` though clients might recognize the address manager and display it as text: `f41112-hello world`
+[^2]: Example of a (not being proposed here) address manager (`f01112`) that manages a namespace of raw ascii addresses (`hello world` for example), the standard format would be `f41112fnbswy3dpeb3w64tmmqqq` though clients might recognize the address manager and display it as text `{hello world}`
