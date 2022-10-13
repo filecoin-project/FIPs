@@ -2,7 +2,7 @@
 fip: <to be assigned>
 title: Actor events
 author: Raúl Kripalani (@raulk), Steven Allen (@stebalien)
-discussions-to: <URL>
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/484
 status: Draft
 type: Technical Core
 category: Core
