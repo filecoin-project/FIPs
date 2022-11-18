@@ -75,14 +75,15 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0033](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0033.md)   | Explicit premium for FIL+ verified deals | FIP  |@anorth |Deferred  |
 |[0034](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0034.md)   | Fix pre-commit deposit independent of sector content | FIP  |@anorth, @Kubuxu |Accepted |
 |[0035](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0035.md)   | Support actors as built-in storage market clients | FIP  |@anorth |Withdrawn  |
-|[0036](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0036.md)   | Introducing a Sector Duration Multiple for Longer Term Sector Commitment | FIP  |@AxCortesCubero, @jbenet, @misilva73, @momack2, @tmellan, @vkalghatgi, @zixuanzh |Draft  |
+|[0036](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0036.md)   | Introducing a Sector Duration Multiple for Longer Term Sector Commitment | FIP  |@AxCortesCubero, @jbenet, @misilva73, @momack2, @tmellan, @vkalghatgi, @zixuanzh |Rejected  |
 |[0037](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0037.md)   | Gas model adjustment for user programmability | FIP  |@raulk, @stebalien |Draft  |
 |[0038](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0038.md)   | Indexer Protocol for Filecoin Content Discovery | FRC  |@willscott, @gammazero, @honghaoq |Draft  |
 |[0039](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0039.md)   | Filecoin Message Replay Protection | FIP  |@q9f |Draft  |
 |[0040](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0040.md)   | Boost - Filecoin Storage Deals Market Protocol | FRC  |@dirkmc, @nonsense, @jacobheun, @brendalee |Draft  |
 |[0041](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0041.md)   | Forward Compatibility for PreCommit and ReplicaUpdate | FIP  |@Kubuxu |Accepted  |
 |[0042](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0042.md)   | Calling Convention for Hashed Method Name | FRC  |@Kubuxu, @anorth |Draft  |
-|[0044](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0044.md)   | Standard Authentication Method for Actors | FIP  |@arajasek, @anorth |Last Call  |
-|[0045](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0045.md)   | De-couple verified registry from markets | FIP  |@anorth, @zenground0 |Last Call  |
+|[0044](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0044.md)   | Standard Authentication Method for Actors | FIP  |@arajasek, @anorth |Accepted  |
+|[0045](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0045.md)   | De-couple verified registry from markets | FIP  |@anorth, @zenground0 |Accepted  |
 |[0046](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0046.md)   | Fungible token standard | FRC  |@anorth, @jsuresh, @alexytsu |Draft  |
-|[0047](https://github.com/filecoin-project/FIPs/blob/master/FRCs/fip-0047.md)   | Proof Expiration & PoRep Security Policy | FIP  |@Kubuxu, @irenegia, @anorth |Draft  |
+|[0047](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0047.md)   | Proof Expiration & PoRep Security Policy | FIP  |@Kubuxu, @irenegia, @anorth |Accepted  |
+|[0048](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0048.md)   | f4 Address Class | FIP  |@stebalien, @mriise, @raulk | Draft  |
