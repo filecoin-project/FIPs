@@ -51,7 +51,7 @@ The design goal is to introduce a simple change without severe repercussion to o
 ### Potential strategies
 The ConsensusLab team explored potential mitigation strategies and narrowed down the list for the following possible strategies: (for more details see [this document](https://hackmd.io/@consensuslab/HyaNMcMAq))
 
-- Removing tipsets from EC, effectivelly boiling down the protocol to a longest-chain instead of a longest-tipset protocol. By removing tipsets and having a traditional blockchain design (i.e., one block per epoch) the problem is mitigated.
+- Removing tipsets (in expectation) from EC, effectivelly boiling down the protocol to an almost longest-chain protocol instead of a longest-tipset protocol. By removing tipsets and having a more similar design to traditional blockchains (i.e., one block per epoch in expectation) the problem is mitigated.
 
     :+1: Simple to implement -- changing the expected number of blocks from 5 to 1.
 
