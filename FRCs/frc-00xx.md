@@ -25,8 +25,7 @@ in [FRC-0046](https://github.com/filecoin-project/FIPs/pull/435/files). As such
 it brings along equivalent specifications for:
 
 - Standard token/name/symbol/supply/balance queries
-- Standard allowance protocol for delegated control, but with an API robust to
-  [front-running](https://ieeexplore.ieee.org/document/8802438)
+- Standard allowance protocol for delegated control
 - Mandatory universal receiver hooks for incoming tokens
 
 The interface has been designed with gas-optimisations in mind and hence methods
@@ -76,14 +75,14 @@ fn Symbol() -> String
 /// Should equal the sum of all minted tokens less tokens burnt
 fn TotalSupply() -> u64
 
-/// Returns a link that resolves to the metadata for a particular token
+/// Returns a URI that resolves to the metadata for a particular token
 fn MetadataID(tokenID: TokenID) -> String
 
 /// Returns the balance of an address which is the number of unique NFTs held
 /// Must be non-negative
-fn BalanceOf(owner: Address) -> String
+fn BalanceOf(owner: Address) -> u64
 
-/// Returns the f0 ID-address that own the specified tokens
+/// Returns a parallel list of f0 ID-addresses that own the specified tokens
 fn OwnerOf(tokenIDs: TokenList) -> Vec<ActorID>
 
 /// Transfers tokens from caller to the specified address
@@ -105,17 +104,15 @@ fn Transfer({to: Address, tokenIDs: TokenList, operatorData: Bytes})
 /// The operatorData is passed through to the receiver hook directly
 ///
 /// Returns tokens that were successfully transferred are returned along with the new balance of the receiving address
-fn TransferFrom({to: Address, tokenIDs: TokenList, operatorData: Bytes})
+fn TransferFrom({to: Address, from: Address, tokenIDs: TokenList, operatorData: Bytes})
   -> {toBalance: u64}
 
 /// Authorizes an address as the specified operator for a set of tokens
-/// The method returns the IDs of tokens that were succesfully approved for the operator
+/// The caller must own all the specified tokens, or be an account-level operator for every token specified. If not, the entire batch will fail to be approved.
 fn Approve({operator: Address, tokenIDs: TokenList}) -> ()
 
 /// Revokes an address as an authorized operator for a set of tokens
-/// Tokens that are not owned by the caller are ignored
-///
-/// Returns the list of IDs that were succesfully revoked
+/// The caller must own all the specified tokens, or be an account-level operator for every token specified. If not, the entire batch will fail to be revoked. If the specified operator is not currently an approved operator for some tokens in the list, the method can still succeed but will be a no-op on those tokens.
 fn RevokeApproval({operator: Address, tokenIDs: TokenList}) -> ()
 
 /// Returns whether an address is an approved operator for a particular set of tokens
@@ -140,7 +137,36 @@ fn Burn({tokenIDs: TokenList}) -> u64;
 
 /// Burns the specified tokens where the caller is an approved operator
 /// The entire burn operation aborts if the caller is not an approved operator on any of the tokens
-fn BurnFrom({tokenIDs: TokenList}) -> ();
+fn BurnFrom({from: Address, tokenIDs: TokenList}) -> ();
+```
+
+**Optional Extension - Enumerable TokenIDs**
+
+An actor may choose to implement a method to retrieve the list of all
+circulating NFTs.
+
+```rust
+/// Enumerates `count` number of circulating Token IDs
+fn ListTokens({tokenRangeStart: TokenID, count: u64}) -> TokenList
+```
+
+When listing NFTs the actor must return the next `count` number of TokenIDs in
+ascending order if exist. The returned IDs should start from and include
+`tokenRangeStart` if it exists or the next lowest Token ID if it does not. When
+a TokenList is returned with less than `count` IDs specified, the caller can
+assume there are no more IDs to enumerate.
+
+**Optional Extension - Enumerable Operators**
+
+An actor may choose to implement any number of the following methods to support
+enumeration of operators.
+
+```rust
+/// Returns all the token-level operators that are currently approved
+fn TokenOperatorsFor(tokenID: TokenID) -> ActorList
+
+/// Returns all the account-level operators that are currently approved
+fn AccountOperatorsFor(actorID: ActorID) -> ActorList
 ```
 
 ### Receiver Interface
@@ -157,6 +183,8 @@ struct FRCXXTokensReceived {
     tokenIDs: TokenList,
     // The address to which tokens were credited (which will match the hook receiver)
     to: Address,
+    // The address from which tokens were debited
+    from: Address,
     // The actor which initiated the mint or transfer
     operator: Address,
     // Arbitrary data provided by the operator when initiating the transfer
@@ -234,36 +262,6 @@ balances, and invoke the receiver hook when crediting tokens.
 
 An NFT collection may implement restrictions on allowances and transfer of
 tokens.
-
-**Optional Extension - Enumerable TokenIDs**
-
-An actor may choose to implement a method to retrieve the list of all
-circulating NFTs.
-
-```rust
-/// Enumerates `count` number of circulating Token IDs
-fn ListTokens({tokenRangeStart: TokenID, count: u64}) -> TokenList
-```
-
-When listing NFTs the actor must return the next `count` number of TokenIDs in
-ascending order if exist. The returned IDs should start from and include
-`tokenRangeStart` if it exists or the next lowest Token ID if it does not. When
-a TokenList is returned with less than `count` IDs specified, the caller can
-assume there are no more IDs to enumerate.
-
-**Optional Extension - Enumerable Operators**
-
-An actor may choose to implement any number of the following methods to support
-enumeration of operators.
-
-```rust
-/// Returns all the token-level operators that are currently approved
-fn TokenOperatorsFor(tokenID: TokenID) -> ActorList
-
-/// Returns all the account-level operators that are currently approved
-fn AccountOperatorsFor(actorID: ActorID) -> ActorList
-
-```
 
 ## Design Rationale
 
