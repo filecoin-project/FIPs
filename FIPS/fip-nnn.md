@@ -1,5 +1,5 @@
 ---
-fip: "00xx"
+fip: "0051"
 title: mproving EC security with Consistent Broadcast
 author:  Guy Goren <guy.goren@protocol.ai>, Alfonso de la Rocha <alfonso@protocol.ai>
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/501
