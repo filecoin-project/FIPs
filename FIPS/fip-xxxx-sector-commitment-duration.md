@@ -1,0 +1,118 @@
+---
+fip: "<to be assigned>"
+title: Increase max sector commitment to 3.5 years
+author: @anorth
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/475
+status: Draft
+type: Technical (Core)
+category Core
+created: 2022-12-06
+requires: FIP-0047
+---
+## Simple Summary
+Increase the maximum sector commitment duration from 540 days to 1278 days (3.5 years).
+
+## Abstract
+FIP-0047 introduces a mechanism to decouple a sector’s PoRep validity from its commitment duration.
+After this, we are free to increase the maximum sector commitment duration from the current 1.5 years
+up to any value below 5 years (the maximum sector total lifetime).
+
+This is a proposal to increase the maximum commitment duration, motivated primarily by the product benefits.
+This proposal does not include a multiplier or other direct incentive to make longer commitments,
+but does not prevent such incentives being added later.
+Other values derived from the maximum sector commitment duration, 
+such as the built-in market actor's maximum deal duration, are increased in line.
+
+## Change Motivation
+At present, storage providers can commit sectors only for 1.5 years at a time.
+Toward the end of that commitment, they can then extend the commitment for a further 1.5 years,
+up to a limit on the sector's total active life of 5 years.
+This limit (coupled with current limitations of sector storage and markets) in turn prevents a provider
+from committing to a deal any longer than 1.5 years.
+
+There is significant client demand for longer deal terms.
+Longer commitments will also contribute to both the stability of the storage-powered consensus base,
+and decrease the velocity of tokens that are pledged to those sectors.
+
+## Specification
+- Set the built-in miner actor's maximum sector expiration extension to 1278 days.
+This value bounds the initial commitment duration as well as any subsequent extension.
+- Set the built-in storage market actor's maximum deal duration to 1278 days.
+
+All sectors, including those already committed, are eligible for extension up by to 1278 days (subject to the 5-year maximum lifetime).
+
+## Design Rationale
+This proposal was borne out of the decoupling of proof validity duration from sector commitment duration in
+[FIP-0047](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0047.md), itself initially created 
+to support [FIP-0036](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0036.md).
+This proposal is intended to be the simplest and least-controversial change possible to enable the 
+product utility of longer deals, with minimal direct crypto-economic impact.
+
+This proposal does not exclude the addition of incentives, such as a duration multiplier, by future FIPs.
+Discussion about proposals for commitment incentives is ongoing, e.g. in [#554](https://github.com/filecoin-project/FIPs/discussions/554).
+This proposal has been formalised in order that we can _at least_ gain the benefits of longer commitments, 
+even if we can't reach sufficient acceptance of higher impact proposals.
+
+The value of 3.5y for the maximum commitment is chosen as the smaller of values discussed so far.
+A smaller value limits potential for any unexpected consequences.
+It will be easy to increase this to 5y (effectively removing the parameter) in the future either
+alongside a proposal for incentives, 
+or if we observe sufficient realised demand for long deals in mainnet.
+
+## Backwards Compatibility
+This proposal does not introduce any conceptual or API backwards incompatibility.
+However, because the parameters in question are encoded in the built-in actors, 
+it requires a network upgrade and re-deployment of the actors in question to implement it.
+
+## Test Cases
+To be provided with implementation:
+- A miner can commit a sector for 3.5y
+- A miner can commit a sector for 1.5y, then immediately extend to 3.5y
+- A miner can commit a sector for 1.5y, wait until near expiration, then extend it by an additional 3.5y
+- A deal can be made for just below 3.5y, and accepted into a sector with sufficient remaining commitment
+
+## Security Considerations
+This proposal does not change anything about the security of PoRep.
+Lifetime proof validity remains bounded by 5 years, 
+and incremental PoRep validity still requires refreshing according to the mechanism described in FIP-0047.
+
+A storage provider making a commitment for >1.5 years (the FIP-0047 proof refresh period) will
+face the possibility of sector termination if they fail to post the proof refresh message on schedule.
+
+## Incentive Considerations
+<!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
+All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.
+
+This proposal introduces only weak direct incentives to make longer commitments on CC sectors,
+vs the status quo of rolling 1.5-year extensions.
+A storage provider may be induced to do so in order to supply a client deal
+requiring a minimum term in excess of 1.5y.
+
+When the per-sector initial pledge amount is increasing (as is the case when net onboarding falls behind net token emissions),
+committed-capacity providers can lock-in the current, lower, pledge amount for a longer term
+rather than face a decision between re-pledging a higher amount when extending their incremental commitment,
+or letting the sector expire.
+A longer commitment has the small beneficial effect to the network of locking that pledge for longer, delaying future emissions.
+
+## Product Considerations
+The primary impact of this proposal is on deal clients and the storage providers serving them.
+Supporting a longer deal minimum-term allows clients with long-term archival data to secure storage for their data for that term.
+Specifying this term up front will avoid numerous costs and overheads of making replacement deals every 1.5 years,
+amortizing fixed costs over longer terms.
+It will also allow clients to lock in the negligible price of storage given the current incentives and supply surplus.
+This general improvement in capability of storage would make it cheaper and better for clients,
+and thus might encourage additional marginal net demand (especially through not having deals expire every 1.5y).
+
+Providers serving these deals will be required to make a long sector commitment in order to accept them,
+but can lock in the payment (including the FIL+ verified data subsidy) for the entire duration.
+Such a deal can be served either by a newly-committed sector, or an existing committed-capacity sector
+that is extended to meet the necessary commitment term.
+While there is no additional multiplier for the longer term,
+locking in the full 10x QA-power benefit for many years may be attractive to these providers.
+When the protocol supports long commitments, a market for them will become possible.
+
+## Implementation
+To be provided.
+
+## Copyright
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
