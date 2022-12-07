@@ -13,9 +13,10 @@ requires: FIP-0047
 Increase the maximum sector commitment duration from 540 days to 1278 days (3.5 years).
 
 ## Abstract
-FIP-0047 introduces a mechanism to decouple a sector’s PoRep validity from its commitment duration.
+[FIP-0047](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0047.md) 
+introduces a mechanism to decouple a sector’s PoRep validity from its commitment duration.
 After this, we are free to increase the maximum sector commitment duration from the current 1.5 years
-up to any value below 5 years (the maximum sector total lifetime).
+up to any value below 5 years (the maximum PoRep validity lifetime).
 
 This is a proposal to increase the maximum commitment duration, motivated primarily by the product benefits.
 This proposal does not include a multiplier or other direct incentive to make longer commitments,
@@ -35,9 +36,11 @@ Longer commitments will also contribute to both the stability of the storage-pow
 and decrease the velocity of tokens that are pledged to those sectors.
 
 ## Specification
-- Set the built-in miner actor's maximum sector expiration extension to 1278 days.
-This value bounds the initial commitment duration as well as any subsequent extension.
-- Set the built-in storage market actor's maximum deal duration to 1278 days.
+- Set the built-in miner actor's maximum sector expiration extension to 1278 days 
+  ([code](https://github.com/filecoin-project/builtin-actors/blob/a6250c71cd099b781912b71ae4dec9809aec3fb9/runtime/src/runtime/policy.rs#L367)).
+  This value bounds the initial commitment duration as well as any subsequent extension.
+- Set the built-in storage market actor's maximum deal duration to 1278 days
+  ([code](https://github.com/filecoin-project/builtin-actors/blob/dc8077c30694bda58559cd057c6d1a0e1b73fc6e/actors/market/src/policy.rs#L22)).
 
 All sectors, including those already committed, are eligible for extension up by to 1278 days (subject to the 5-year maximum lifetime).
 
@@ -47,17 +50,25 @@ This proposal was borne out of the decoupling of proof validity duration from se
 to support [FIP-0036](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0036.md).
 This proposal is intended to be the simplest and least-controversial change possible to enable the 
 product utility of longer deals, with minimal direct crypto-economic impact.
-
-This proposal does not exclude the addition of incentives, such as a duration multiplier, by future FIPs.
-Discussion about proposals for commitment incentives is ongoing, e.g. in [#554](https://github.com/filecoin-project/FIPs/discussions/554).
-This proposal has been formalised in order that we can _at least_ gain the benefits of longer commitments, 
+This proposal has been formalised in order that we can _at least_ gain the benefits of longer commitments,
 even if we can't reach sufficient acceptance of higher impact proposals.
 
-The value of 3.5y for the maximum commitment is chosen as the smaller of values discussed so far.
+The value of 3.5y for the maximum commitment is chosen as the most conservative of values discussed so far.
 A smaller value limits potential for any unexpected consequences.
 It will be easy to increase this to 5y (effectively removing the parameter) in the future either
 alongside a proposal for incentives, 
 or if we observe sufficient realised demand for long deals in mainnet.
+
+### Constraints on future design
+This proposal does not exclude the addition of incentives, such as a duration multiplier, by future FIPs.
+Discussion about proposals for commitment incentives is ongoing, 
+e.g. in [#554](https://github.com/filecoin-project/FIPs/discussions/554).
+
+If this proposal is implemented in advance of any multiplier proposal, 
+any future proposal that calculates a commitment-duration-based multiplier at the time of sector commitment 
+would need to address those sectors already committed with a long term.
+One possible mechanism might be for sector extension methods to support a no-op 
+that merely recalculates weight/power according to the remaining commitment duration.
 
 ## Backwards Compatibility
 This proposal does not introduce any conceptual or API backwards incompatibility.
@@ -80,9 +91,6 @@ A storage provider making a commitment for >1.5 years (the FIP-0047 proof refres
 face the possibility of sector termination if they fail to post the proof refresh message on schedule.
 
 ## Incentive Considerations
-<!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
-All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.
-
 This proposal introduces only weak direct incentives to make longer commitments on CC sectors,
 vs the status quo of rolling 1.5-year extensions.
 A storage provider may be induced to do so in order to supply a client deal
@@ -96,7 +104,7 @@ A longer commitment has the small beneficial effect to the network of locking th
 
 ## Product Considerations
 The primary impact of this proposal is on deal clients and the storage providers serving them.
-Supporting a longer deal minimum-term allows clients with long-term archival data to secure storage for their data for that term.
+Supporting a longer deal maximum-term allows clients with long-term archival data to secure storage for their data for that term.
 Specifying this term up front will avoid numerous costs and overheads of making replacement deals every 1.5 years,
 amortizing fixed costs over longer terms.
 It will also allow clients to lock in the negligible price of storage given the current incentives and supply surplus.
