@@ -1,5 +1,5 @@
 ---
-fip: "<to be assigned>"
+fip: "0052"
 title: Increase max sector commitment to 3.5 years
 author: @anorth
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/475
