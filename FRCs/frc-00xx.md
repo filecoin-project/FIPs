@@ -116,8 +116,9 @@ fn Approve({operator: Address, tokenIDs: TokenList}) -> ()
 fn RevokeApproval({operator: Address, tokenIDs: TokenList}) -> ()
 
 /// Returns whether an address is an approved operator for a particular set of tokens
-/// The owner of a token is implicitly considered as a valid operator of that token
-fn IsApprovedFor({operator: Address, tokenIDs: TokenList}) -> bool[]
+/// The owner of a token is not implicitly considered as a valid operator of that token
+/// The return value is encoded as a bitfield with the marked bits corresponding to the indices of approved tokens if tokenIDs were interpreted as a vector of TokenIDs
+fn IsApprovedFor({operator: Address, tokenIDs: TokenList}) -> BitField
 
 /// Authorizes the specified address as an operator for any token (including future tokens) that are owned by the caller's address
 fn ApproveForAll({operator: Address}) -> ()
@@ -146,8 +147,10 @@ An actor may choose to implement a method to retrieve the list of all
 circulating NFTs.
 
 ```rust
-/// Enumerates `count` number of circulating Token IDs
-fn ListTokens({tokenRangeStart: TokenID, count: u64}) -> TokenList
+/// Enumerates some number of circulating Token IDs
+/// The method must return all the IDs for tokens in circulation in the range [rangeStart, next)
+/// The method must return next = 0 if the entire range of TokenIDs has been exhausted
+fn ListTokens(rangeStart: TokenID) -> {tokens: TokenList, next: TokenID}
 ```
 
 When listing NFTs the actor must return the next `count` number of TokenIDs in
