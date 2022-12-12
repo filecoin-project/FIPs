@@ -13,6 +13,8 @@ requires: N/A
 replaces: N/A
 ---
 
+# Filecoin EVM compatibility (FEVM)
+
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
@@ -20,45 +22,44 @@ replaces: N/A
 - [Simple Summary](#simple-summary)
 - [Abstract](#abstract)
 - [Change Motivation](#change-motivation)
-- [Specification](#specification)
-  - [EVM runtime actor](#evm-runtime-actor)
-    - [Deployment](#deployment)
-    - [State](#state)
-    - [Actor interface (methods)](#actor-interface-methods)
-      - [Method number `0` (`Constructor`)](#method-number-0-constructor)
-      - [Method number `2` (`InvokeContract`)](#method-number-2-invokecontract)
-      - [Method number `3` (`GetBytecode`)](#method-number-3-getbytecode)
-      - [Method number `4` (`GetStorageAt`)](#method-number-4-getstorageat)
-      - [Method number `5` (`InvokeContractDelegate`)](#method-number-5-invokecontractdelegate)
-      - [Method numbers >= 1024**](#method-numbers--1024)
-    - [Smart contract deployment](#smart-contract-deployment)
-    - [Smart contract execution](#smart-contract-execution)
-    - [Cross-contract calls](#cross-contract-calls)
-    - [Ethereum addressing](#ethereum-addressing)
-    - [Opcode support](#opcode-support)
-      - [Opcodes without remarks](#opcodes-without-remarks)
-      - [Opcodes with remarks](#opcodes-with-remarks)
-    - [Precompiles](#precompiles)
-    - [Gas](#gas)
-    - [Errors](#errors)
-  - [Ethereum Address Manager (EAM)](#ethereum-address-manager-eam)
-    - [Deployment](#deployment-1)
-    - [Procedure](#procedure)
-    - [State](#state-1)
-    - [Actor interface (methods)](#actor-interface-methods-1)
-      - [Method number `1` (`Create`)](#method-number-1-create)
-      - [Method number `2` (`Create2`)](#method-number-2-create2)
-  - [Ethereum Externally Owned Account (EEOA)](#ethereum-externally-owned-account-eeoa)
-  - [Ethereum JSON-RPC API](#ethereum-json-rpc-api)
-  - [Filecoin Virtual Machine changes](#filecoin-virtual-machine-changes)
-    - [Added syscalls](#added-syscalls)
-    - [Removed syscalls](#removed-syscalls)
-    - [Changed syscalls](#changed-syscalls)
-    - [New externs](#new-externs)
-    - [Memory limits](#memory-limits)
+- [Specification: EVM runtime actor](#specification-evm-runtime-actor)
+  - [Deployment](#deployment)
+  - [State](#state)
+  - [Actor interface (methods)](#actor-interface-methods)
+    - [Method number `0` (`Constructor`)](#method-number-0-constructor)
+    - [Method number `2` (`InvokeContract`)](#method-number-2-invokecontract)
+    - [Method number `3` (`GetBytecode`)](#method-number-3-getbytecode)
+    - [Method number `4` (`GetStorageAt`)](#method-number-4-getstorageat)
+    - [Method number `5` (`InvokeContractDelegate`)](#method-number-5-invokecontractdelegate)
+    - [Method numbers >= 1024**](#method-numbers--1024)
+  - [Smart contract deployment](#smart-contract-deployment)
+  - [Smart contract execution](#smart-contract-execution)
+  - [Cross-contract calls](#cross-contract-calls)
+  - [Ethereum addressing](#ethereum-addressing)
+  - [Opcode support](#opcode-support)
+    - [Opcodes without remarks](#opcodes-without-remarks)
+    - [Opcodes with remarks](#opcodes-with-remarks)
+  - [Precompiles](#precompiles)
+  - [Gas](#gas)
+  - [Errors](#errors)
+- [Specification: Ethereum Address Manager (EAM)](#specification-ethereum-address-manager-eam)
+  - [Deployment](#deployment-1)
+  - [Procedure](#procedure)
+  - [State](#state-1)
+  - [Actor interface (methods)](#actor-interface-methods-1)
+    - [Method number `1` (`Create`)](#method-number-1-create)
+    - [Method number `2` (`Create2`)](#method-number-2-create2)
+- [Specification: Ethereum Externally Owned Account (EEOA)](#specification-ethereum-externally-owned-account-eeoa)
+- [Specification: Ethereum JSON-RPC API](#specification-ethereum-json-rpc-api)
+- [Specification: Filecoin Virtual Machine changes](#specification-filecoin-virtual-machine-changes)
+  - [Added syscalls](#added-syscalls)
+  - [Removed syscalls](#removed-syscalls)
+  - [Changed syscalls](#changed-syscalls)
+  - [New externs](#new-externs)
+  - [Memory limits](#memory-limits)
   - [Client changes](#client-changes)
-    - [Tipset CID](#tipset-cid)
-    - [Actor events](#actor-events)
+  - [Tipset CID](#tipset-cid)
+  - [Actor events](#actor-events)
 - [Design Rationale](#design-rationale)
 - [Backwards Compatibility](#backwards-compatibility)
 - [Test Cases](#test-cases)
@@ -126,9 +127,7 @@ introduced to back the above components.
 
 TODO.
 
-## Specification
-
-### EVM runtime actor
+## Specification: EVM runtime actor
 
 The EVM runtime actor is the Filecoin native actor that _hosts_ and _executes_
 EVM bytecode. It contains:
@@ -151,7 +150,7 @@ both of which map cleanly to Filecoin's message model.
 filecoin. This environment has no dependence to, or understanding of, Ether as a
 currency.
 
-#### Deployment
+### Deployment
 
 **Built-in actor.** The Filecoin EVM runtime is deployed on-chain a built-in
 actor. Its Wasm bytecode is installed into the network by adding it to the
@@ -162,7 +161,7 @@ actor). At the time of writing, this makes the EVM runtime actor comparable to
 the Miner, Payment Channel, and Multisig builtin-actors, and unlike the Storage
 Power, Storage Market, Cron, and other singleton actors.
 
-#### State
+### State
 
 The state of the EVM runtime actor is as follows:
 
@@ -192,13 +191,13 @@ syscalls specified in FIP-0030.
 
 TODO: specify these optimizations, or the KAMT.
 
-#### Actor interface (methods)
+### Actor interface (methods)
 
 The EVM runtime actor handles messages sent with the following method numbers.
 The canonical implementation can be found in the executable actors spec
 ([`filecoin-project/builtin-actors`]).
 
-##### Method number `0` (`Constructor`)
+#### Method number `0` (`Constructor`)
 
 Initializes a new EVM smart contract, whose bytecode is supplied as an input
 parameter. Invocable only by the Ethereum Address Manager via the Init actor
@@ -226,7 +225,7 @@ _Errors_
 
 // TODO
 
-##### Method number `2` (`InvokeContract`)
+#### Method number `2` (`InvokeContract`)
 
 Invokes an EVM smart contract. Loads the bytecode from state and dispatches the
 input data to it. Universally callable.
@@ -243,7 +242,7 @@ _Errors_
 
 // TODO
 
-##### Method number `3` (`GetBytecode`)
+#### Method number `3` (`GetBytecode`)
 
 Returns the CID of the contract's EVM bytecode, adding it to the caller's
 reachable set (this is not necessary at the moment with the current FVM version,
@@ -261,7 +260,7 @@ _Errors_
 
 // TODO
 
-##### Method number `4` (`GetStorageAt`)
+#### Method number `4` (`GetStorageAt`)
 
 Returns the value stored at the specified EVM storage slot. This method exists
 purely for state encapsulation purposes and is only used for external
@@ -289,7 +288,7 @@ _Errors_
 - Exit code `USR_FORBIDDEN` (18) when not called by address f00.
 - Exit code `USR_ASSERTION_FAILED` (24) on internal errors.
 
-##### Method number `5` (`InvokeContractDelegate`)
+#### Method number `5` (`InvokeContractDelegate`)
 
 Recursive invocation entrypoint backing calls made through the `DELEGATECALL`
 opcode. Only callable by self.
@@ -315,7 +314,7 @@ _Errors_
 - Exit code `USR_FORBIDDEN` (18) when caller is not self.
 // TODO
 
-##### Method numbers >= 1024**
+#### Method numbers >= 1024**
 
 Invocation entrypoint for Filecoin native messages carrying a method number
 above or equal to 1024 (a superset of the public range of the [FRC42 calling
@@ -339,7 +338,7 @@ _Return value_
 
 Raw bytes, encoded as a DAG-CBOR byte string.
 
-#### Smart contract deployment
+### Smart contract deployment
 
 **Process.** New EVM smart contracts are deployed to the Filecoin chain by
 _instantiating_ the EVM runtime actor through its
@@ -352,7 +351,7 @@ _EVM runtime actor_ with a new set of f0, f2, and f410 addresses, backed by the
 CodeCID of the _EVM runtime actor_, holding the above-specified state, and
 exposing the aforementioned interface.
 
-#### Smart contract execution
+### Smart contract execution
 
 A smart contract can be invoked through one of two entrypoints. Which one is
 used depends on the message submission mechanism employed at origin.
@@ -394,11 +393,11 @@ These messages are handled through the `handle_filecoin_message` method above,
 so long as the method number falls in the superset of the FRC42 starting at 2^10
 instead of 2^24.
 
-#### Cross-contract calls
+### Cross-contract calls
 
 TODO.
 
-#### Ethereum addressing
+### Ethereum addressing
 
 EVM smart contracts implicitly assume they are running in an Ethereum
 environment. Ethereum uses 160-bit (20-byte) addresses with no distinction of
@@ -440,13 +439,13 @@ It is worthy to note that Ethereum and Filecoin precompiles sit at the
 **Ethereum address** range. They receive special treatment inside the EVM
 runtime actor, and are never converted to f410 addresses.
 
-#### Opcode support
+### Opcode support
 
 All opcodes from the [Ethereum Paris hard fork] are supported. This section
 enumerates all supported opcodes, noting functional departures from their
 Ethereum counterparts. Opcodes are referred to by their mnemonic name.
 
-##### Opcodes without remarks
+#### Opcodes without remarks
 
 These opcodes are local to the EVM interpreter and have no departures from the
 standard behaviour.
@@ -460,7 +459,7 @@ standard behaviour.
   RETURNDATACOPY.
 - Stack manipulation: POP, PUSH{1..32}, DUP{1..32}, SWAP{1..16}.
 
-##### Opcodes with remarks
+#### Opcodes with remarks
 
 **Memory: MLOAD, MSTORE, MSTORE8, MSIZE.** EVM memory is modelled as an object
 inside the interpreter, ultimately backed by Wasm memory. Usage of of these
@@ -532,7 +531,7 @@ preimage and the Keccak-256 multihash.
 
 **External code: EXTCODEHASH.**
 
-#### Precompiles
+### Precompiles
 
 **Ethereum precompiles.** The EVM runtime actor supports all Ethereum
 precompiles available in the Ethereum Paris fork, sitting at their original
@@ -611,7 +610,7 @@ _Return_
 
 _Errors_
 
-#### Gas
+### Gas
 
 Gas metering and execution halt are performed according to the Filecoin gas
 model. EVM smart contracts accrue:
@@ -643,11 +642,11 @@ costs with existing contracts upgrading automatically to the new EVM runtime.
 This may alter gas costs for the same transactions. For this reason, users are
 advised against hardcoding assumptions about gas in their contracts.
 
-#### Errors
+### Errors
 
 TODO.
 
-### Ethereum Address Manager (EAM)
+## Specification: Ethereum Address Manager (EAM)
 
 We introduce the **Ethereum Address Manager (EAM) actor** as a singleton
 built-in actor sitting at ID address `10`. This actor fulfills two purposes:
@@ -666,7 +665,7 @@ differ in their address generation rules:
 - `CREATE2` takes an explicit user-provided salt to compute a deterministic
   address. It is suitable for counterfactual deployments.
 
-#### Deployment
+### Deployment
 
 The EAM is deployed as a singleton actor under ID address `10`. The deployment
 happens during the state migration where this FIP goes live.
@@ -674,7 +673,7 @@ happens during the state migration where this FIP goes live.
 The EAM is allow-listed in the Init Actor as a caller of its `Exec4` method,
 specified in FIP-0048.
 
-#### Procedure
+### Procedure
 
 The procedure to deploy EVM smart contracts to the Filecoin chain is as follows:
 
@@ -689,13 +688,13 @@ The procedure to deploy EVM smart contracts to the Filecoin chain is as follows:
    parameters (EVM init code and original creator address), and the assigned
    f410 address.
 
-#### State
+### State
 
 None.
 
-#### Actor interface (methods)
+### Actor interface (methods)
 
-##### Method number `1` (`Create`)
+#### Method number `1` (`Create`)
 
 Deploys a smart contract taking EVM init bytecode and accepting a nonce from the
 user. Refer to [Procedure](#procedure) for a description of the deployment
@@ -747,7 +746,7 @@ _Errors_
 
 TODO.
 
-##### Method number `2` (`Create2`)
+#### Method number `2` (`Create2`)
 
 Deploys a smart contract taking EVM init bytecode and accepting a user-provided
 salt to generate a deterministic Ethereum address (translatable to an f410
@@ -772,17 +771,17 @@ _Return value_
 
 Same as [`Create`](#method-number-1-create).
 
-### Ethereum Externally Owned Account (EEOA)
+## Specification: Ethereum Externally Owned Account (EEOA)
 
 TODO (@aayush).
 
-### Ethereum JSON-RPC API
+## Specification: Ethereum JSON-RPC API
 
 TODO (@raulk).
 
-### Filecoin Virtual Machine changes
+## Specification: Filecoin Virtual Machine changes
 
-#### Added syscalls
+### Added syscalls
 
 **`network::context`**
 
@@ -1001,7 +1000,7 @@ pub struct MessageContext {
 pub fn message_context() -> Result<MessageContext>;
 ```
 
-#### Removed syscalls
+### Removed syscalls
 
 - `vm::abort`: replaced by the more general syscall `vm::exit`, which can accept
   a zero exit code, as well as return data on error.
@@ -1009,25 +1008,25 @@ pub fn message_context() -> Result<MessageContext>;
 - `network::base_fee`: integrated into `network::context`.
 - `actor::new_actor_address`: replaced by `actor::next_actor_address`.
 
-#### Changed syscalls
+### Changed syscalls
 
 - TODO Send takes gas limit and flags.
 
-#### New externs
+### New externs
 
 TODO.
 
-#### Memory limits
+### Memory limits
 
 TODO, maybe in a separate FIP.
 
 ### Client changes
 
-#### Tipset CID
+### Tipset CID
 
 TODO.
 
-#### Actor events
+### Actor events
 
 See [FIP-0049 (Actor events)].
 
