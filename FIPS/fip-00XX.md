@@ -65,7 +65,7 @@ Introduce a multiplier based on sector duration
 | **SectorDurationMultiplier (SDM)** | **Multiplier for power for storage based on promised sector duration** |
 
 **This SectorDurationMultiplier function proposed is linear with slope 1**. See below for the function proposed. 
-![SDM_Function](../resources/fip-00XX/SDM_Function.png)
+![SDM_Function](../resources/fip-00XX/SDM_Function.jpg)
 
 The rationale to select this linear slope 1 function is based on a principle that the selected parameters should maximize the effectiveness of the duration incentive, subject to SP’s collateral availability constraints, while taking into account micro and macroeconomic consequences with minimal added implementation complexity. 
 
