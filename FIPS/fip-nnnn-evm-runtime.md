@@ -1,0 +1,856 @@
+---
+fip: <to be assigned>
+title: Filecoin EVM runtime (FEVM)
+author: Raúl Kripalani (@raulk), Steven Allen (@stebalien)
+discussions-to: <URL>
+status: Draft
+type: Technical Core
+category: Core
+created: 2022-12-02
+spec-sections:
+requires: N/A
+replaces: N/A
+---
+
+# Filecoin EVM compatibility (FEVM)
+
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
+
+- [Simple Summary](#simple-summary)
+- [Abstract](#abstract)
+- [Change Motivation](#change-motivation)
+- [Specification](#specification)
+  - [Installation](#installation)
+  - [Instantiatable actor](#instantiatable-actor)
+  - [State](#state)
+    - [KAMT specification](#kamt-specification)
+  - [Actor interface (methods)](#actor-interface-methods)
+    - [Method number `0` (`Constructor`)](#method-number-0-constructor)
+    - [Method number `2` (`InvokeContract`)](#method-number-2-invokecontract)
+    - [Method number `3` (`GetBytecode`)](#method-number-3-getbytecode)
+    - [Method number `4` (`GetStorageAt`)](#method-number-4-getstorageat)
+    - [Method number `5` (`InvokeContractDelegate`)](#method-number-5-invokecontractdelegate)
+    - [Method numbers >= 1024 (`HandleFilecoinMethod`)**](#method-numbers--1024-handlefilecoinmethod)
+  - [Addressing](#addressing)
+    - [Ethereum zero address](#ethereum-zero-address)
+  - [Opcode support](#opcode-support)
+    - [Opcodes without remarks](#opcodes-without-remarks)
+    - [Opcodes with remarks](#opcodes-with-remarks)
+  - [Precompiles](#precompiles)
+    - [Ethereum precompiles](#ethereum-precompiles)
+    - [Filecoin precompiles](#filecoin-precompiles)
+  - [Migration](#migration)
+  - [Other considerations](#other-considerations)
+    - [Historical support](#historical-support)
+    - [Transaction types](#transaction-types)
+    - [Native currency](#native-currency)
+  - [Errors](#errors)
+  - [Filecoin Virtual Machine changes](#filecoin-virtual-machine-changes)
+    - [Added syscalls](#added-syscalls)
+    - [Removed syscalls](#removed-syscalls)
+    - [Changed syscalls](#changed-syscalls)
+    - [New externs](#new-externs)
+    - [Client changes](#client-changes)
+    - [Tipset CID](#tipset-cid)
+    - [Actor events](#actor-events)
+- [Design Rationale](#design-rationale)
+- [Backwards Compatibility](#backwards-compatibility)
+- [Test Cases](#test-cases)
+- [Security Considerations](#security-considerations)
+- [Incentive Considerations](#incentive-considerations)
+- [Product Considerations](#product-considerations)
+  - [Gas](#gas)
+- [Notable differences between FEVM and EVM for smart contract developers](#notable-differences-between-fevm-and-evm-for-smart-contract-developers)
+- [Chain explorer guidance](#chain-explorer-guidance)
+- [Impact of in-place upgrades](#impact-of-in-place-upgrades)
+- [Implementation](#implementation)
+- [Appendix A:](#appendix-a)
+- [Appendix B: Upgrades](#appendix-b-upgrades)
+- [Copyright](#copyright)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Simple Summary
+
+Introduces the Filecoin EVM (FEVM) runtime actor.
+This is a non-singleton built-in actor.
+It hosts and executes EVM bytecode, serving as a central piece of Filecoin's EVM compatibility.
+We also introduce various changes to the Filecoin Virtual Machine and to client implementations, necessary to support the operation of the FEVM runtime actor.
+
+## Abstract
+
+The Filecoin EVM (FEVM) runtime actor runs EVM smart contracts compatible with the Ethereum Paris fork, supporting all relevant opcodes and Ethereum precompiles.
+It does so by embedding an EVM interpreter, implementing the integration logic with the Filecoin environment, and translating all state I/O to the underlying IPLD model.
+This FIP is dependent on FIP-0048 (f4 address class), FIP-0049 (actor events), and FIP-TODO.
+
+## Change Motivation
+
+A basic requirement to achieve EVM compatibility is to be able to run EVM smart contracts.
+Given the inability to deploy user-defined Wasm actors (arriving at a later stage of the FVM roadmap), we introduce this capability by adding a new built-in actor to the network, defined herein.
+
+## Specification
+
+The FEVM runtime actor is the Filecoin built-in actor that _hosts_ and _executes_ EVM bytecode. It contains:
+
+1. An embedded EVM interpreter, which processes EVM bytecode handling every instruction according to EVM expectations, with functional departures described herein.
+2. The integration logic connecting the EVM interpreter with the Filecoin environment, chain, and virtual machine (FVM).
+3. A collection of Ethereum and Filecoin-specific precompiles, specified later.
+
+### Installation
+
+The FEVM runtime actor is deployed on-chain via a network upgrade.
+Its bytecode is loaded onto the node's blockstore.
+Its CodeCID is linked to the System actor's state during the migration where this FIP goes live.
+
+### Instantiatable actor
+
+The Filecoin EVM runtime is an instantiatable actor (and not a singleton actor).
+A new instance is created for each EVM smart contract deployed on the network. 
+At the time of writing, this makes the EVM runtime actor comparable to the Miner, Payment Channel, and Multisig builtin-actors, and unlike the Storage Power, Storage Market, Cron, and other singleton actors.
+
+### State
+
+The state of the EVM runtime actor is as follows:
+
+```rust
+pub struct State {
+    /// The EVM contract bytecode resulting from calling the
+    /// initialization code (init code) by the constructor.
+    pub bytecode: Cid,
+
+    /// The EVM contract state dictionary.
+    /// All EVM contract state is a map of U256 -> U256 values.
+    ///
+    /// Root of KAMT<U256, U256>
+    pub contract_state: Cid,
+
+    /// The EVM nonce used to track how many times CREATE or
+    /// CREATE2 have been called.
+    pub nonce: u64,
+
+    /// TODO
+    pub selfdestructed: bool,
+}
+```
+
+### Contract storage
+
+EVM storage (u256 => u256 map) is backed by a specialized data structure based on the Filecoin HAMT: the KAMT.
+This data structure is more mechanically sympathetic to EVM storage read and write patterns.
+`SLOAD` and `SSTORE` EVM opcodes map to reads and writes onto this HAMT, respectively, and ultimately to `ipld` syscalls specified in FIP-0030.
+
+Contrary to traditional EVM storage, the KAMT is an enumerable data structure. 
+However, no operations are provided for smart contracts to enumerate keys, at least not at this stage.
+This property merely facilitates external observability and debuggability.
+
+#### KAMT specification
+
+TODO.
+
+### Actor interface (methods)
+
+The Filecoin EVM runtime actor handles messages sent with the following method numbers.
+
+#### Method number `0` (`Constructor`)
+
+Initializes a new EVM smart contract with some init bytecode supplied as a constructor parameter.
+
+It is only be invocable by the Ethereum Address Manager (link TODO), indirectly via the Init actor.
+This precondition is validated by checking that an f410 address has been assigned before calling the Constructor.
+
+The Constructor runs the init bytecode and populates the actor's state accordingly:
+
+- Execution bytecode is stored as a raw IPLD block and linked from the `bytecode` field. 
+- Storage keys resulting from `SSTORE` operations during construction are stored in the storage KAMT, whose root is linked from the `contract_state` field.
+- The `nonce` field is set to 0, unless any calls to CREATE or CREATE2 happen during initialization.
+
+_Input parameters_
+
+```rust
+// DAG-CBOR tuple encoded.
+pub struct ConstructorParams {
+    /// The actor's "creator" (specified by the EAM).
+    pub creator: EthAddress,
+    /// The EVM initcode that will construct the new EVM actor.
+    pub initcode: RawBytes,
+}
+```
+
+_Return value_
+
+None.
+
+_Errors_
+
+// TODO
+
+#### Method number `2` (`InvokeContract`)
+
+Invokes an EVM smart contract.
+Loads the execution bytecode from state, and dispatches input data to it.
+
+The input data is expected to be framed as a DAG-CBOR byte string.
+This method unframes it before handing it over to the contract (subsequently retrievable through CALLDATA* opcodes).
+This method is universally callable.
+
+_Input parameters_
+
+Raw bytes, encoded as a DAG-CBOR byte string.
+
+_Return value_
+
+Raw bytes, encoded as a DAG-CBOR byte string.
+
+_Errors_
+
+// TODO
+
+#### Method number `3` (`GetBytecode`)
+
+Returns the CID of the contract's EVM bytecode block, adding it to the caller's reachable set.
+This method is used internally to resolve `EXTCODE*` opcodes.
+
+_Input parameters_
+
+None.
+
+_Return value_
+
+CID of the contract's bytecode as stored in state.
+
+_Errors_
+
+// TODO
+
+#### Method number `4` (`GetStorageAt`)
+
+Returns the value stored at the specified EVM storage slot.
+This method exists purely for encapsulation purposes; concretely, to enable tools to inspect EVM storage without having to parse the state object, or understand the KAMT.
+Calling is restricted to `f00` (system actor), and therefore cannot be invoked via messages or internal sends.
+It can be used by the Ethereum JSON-RPC `eth_getStorageAt` operation to resolve requests by constructing a local call and processing it with the FVM.
+
+_Input parameters_
+
+```rust
+// DAG-CBOR tuple encoded.
+pub struct GetStorageAtParams {
+    pub storage_key: U256, // encoded as a DAG-CBOR byte string
+}
+```
+
+_Return value_
+
+Storage value (U256), encoded as a DAG-CBOR byte string.
+If the storage key doesn't exist, it returns a 0-filled 32-byte array.
+
+_Errors_
+
+- Exit code `USR_FORBIDDEN` (18) when not called by address f00.
+- Exit code `USR_ASSERTION_FAILED` (24) on internal errors.
+
+#### Method number `5` (`InvokeContractDelegate`)
+
+Recursive invocation entrypoint backing calls made through the `DELEGATECALL` opcode.
+Only callable by self.
+
+_Input parameters_
+
+```rust
+// DAG-CBOR tuple encoded.
+pub struct DelegateCallParams {
+    /// CID of the EVM bytecode to invoke under self's context.
+    pub code: Cid,
+    /// The contract invocation parameters
+    pub input: Vec<u8>, // encoded as a DAG-CBOR byte string
+}
+```
+
+_Return value_
+
+Same as `invoke_contract`.
+
+_Errors_
+
+- Exit code `USR_FORBIDDEN` (18) when caller is not self.
+- // TODO
+
+#### Method numbers >= 1024 (`HandleFilecoinMethod`)**
+
+Filecoin native messages carrying a method number above or equal to 1024 (a superset of the public range of the [FRC42 calling convention]) are processed by this entrypoint.
+This entrypoint creates synthetic EVM input data satisfying the Solidity call convention for this method signature:
+
+```solidity
+// Function selector: 0x868e10c4
+// Args: method number, params codec, raw params
+// Returning: bytes
+handle_filecoin_method(uint64,uint64,bytes)
+```
+
+TODO: add normative specification.
+
+This path enables processing transactions sent from non-Ethereum sending sites, e.g. built-in actors, Filecoin wallets, and future Wasm actors.
+
+_Input parameters_
+
+Raw bytes, assumed to be DAG-CBOR byte string.
+
+_Return value_
+
+Raw bytes, encoded as a DAG-CBOR byte string.
+
+### f410 address
+
+### Addressing
+
+EVM smart contracts deployed on Filecoin can use two types of addresses in opcodes.
+Both these addresses conform to EVM addressing expectations (160-bit width):
+
+1. Masked Filecoin ID addresses.
+2. Ethereum addresses.
+
+**Masked Filecoin ID addresses** encode Filecoin ID addresses.
+They are distinguished through a byte mask.
+The high byte is `0xff` (discriminator), followed by thirteen 0 bytes of padding, then the uint64 ID of the actor.
+
+```
+|- disc -|    |----- padding ------|    |----- actor id -----|
+0xff       || 0000000000000000000000 || <uint64 ID big endian>
+```
+
+All addresses that do not match this masked form are interpreted as **Ethereum addresses**, and converted to their equivalent f410 address before performing an FVM syscall.
+This includes the **Ethereum zero address**.
+
+Ethereum addresses referring to a precompile are exceptional.
+They are matched and routed to the precompile handler before f410 conversion happens.
+
+#### Ethereum zero address
+
+The **Ethereum zero address** (`0x0000000000000000000000000000000000000000`) is created in the state tree in the migration where this FIP goes live.
+It is assigned:
+
+- a zero balance
+- a CodeCID matching the Externally Owned Account
+- delegate address `t410faaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaonc6iji`
+
+### Opcode support
+
+All opcodes from the [Ethereum Paris hard fork] are supported.
+This section enumerates all supported opcodes, noting functional departures from their Ethereum counterparts.
+Opcodes are referred to by their mnemonic name.
+
+#### Opcodes without remarks
+
+These opcodes are handled locally within the EVM interpreter and have no departures from their original behaviour in Ethereum.
+
+- Arithmetic family: ADD, MUL, SUB, DIV, SDIV, MOD, SMOD, ADDMOD, MULMOD, EXP, SIGNEXTEND.
+- Boolean operators: LT, GT, SLT, SGT, EQ, ISZERO, AND, OR, XOR, NOT.
+- Bitwise operations: BYTE, SHL, SHR, SAR.
+- Control flow: STOP, JUMPDEST, JUMP, JUMPI, PC, STOP, RETURN, INVALID.
+- Parameters: CALLDATALOAD, CALLDATASIZE, CALLDATACOPY, RETURNDATASIZE, RETURNDATACOPY.
+- Stack manipulation: POP, PUSH{1..32}, DUP{1..32}, SWAP{1..16}.
+
+#### Opcodes with remarks
+
+**Memory: MLOAD, MSTORE, MSTORE8, MSIZE.** EVM memory is modelled as an object
+inside the interpreter, ultimately backed by Wasm memory. Usage of of these
+instructions incurs in Wasm memory expansion costs as per FIP-TODO.
+
+**Accessors: ADDRESS.** Returns the masked Filecoin ID address of the executing
+contract.
+
+**Accessors: BALANCE.** Returns the filecoin balance of the contract, in attoFIL
+(same precision as Ethereum).
+
+**Accessors: ORIGIN.** Returns the masked Filecoin ID address of the account
+where the chain message originated.
+
+**Accessors: CALLER.** Returns the masked Filecoin ID address of the immediate
+caller of the contract.
+
+**Accessors: CALLVALUE.** Returns the filecoin value sent in the message, in
+attoFIL (same precision as Ethereum).
+
+**Accessors: GASPRICE.** TODO.
+
+**Accessors: BLOCKHASH.** TODO.
+
+**Accessors: COINBASE.** TODO.
+
+**Accessors: TIMESTAMP.** TODO.
+
+**Accessors: NUMBER.** TODO.
+
+**Accessors: DIFFICULTY.** TODO.
+
+**Accessors: GASLIMIT.** TODO.
+
+**Accessors: CHAINID.** TODO.
+
+**Accessors: BASEFEE.** TODO.
+
+**Accessors: SELFBALANCE.** TODO.
+
+**Accessors: GAS.** TODO.
+
+**Control flow: REVERT.** TODO.
+
+**Hashing: KECCAK256.** Makes a syscall to `crypto::hash` with the supplied
+preimage and the Keccak-256 multihash.
+
+**Logging: LOG{0..4}.** TODO.
+
+**Storage: SLOAD, SSTORE.** TODO.
+
+**Lifecycle: CREATE.** TODO.
+
+**Lifecycle: CREATE2.** TODO.
+
+**Lifecycle: SELFDESTRUCT.** TODO.
+
+**Calls: CALL.** TODO.
+
+**Calls: CALLCODE.** TODO.
+
+**Calls: DELEGATECALL.** TODO. InvokeContractDelegate.
+
+**Calls: STATICCALL.**  TODO. Read-only mode.
+
+**External code: EXTCODESIZE.**
+
+**External code: EXTCODECOPY.**
+
+**External code: EXTCODEHASH.**
+
+### Precompiles
+
+There are two kinds of precompiles available to EVM smart contracts running within the FEVM runtime actor:
+
+- Ethereum precompiles
+- Filecoin precompiles
+
+#### Ethereum precompiles
+
+The FEVM runtime actor supports all Ethereum precompiles available in the Ethereum Paris fork.
+These precompiles sit at their original Ethereum addresses.
+There are no functional departures with respect to their original behavior.
+Refer to Ethereum documentation for more information.
+
+| Ethereum Address | Precompile   |
+| ---------------- | ------------ |
+| `0x01`           | `ecRecover`  |
+| `0x02`           | `SHA2-256`   |
+| `0x03`           | `RIPEMD-160` |
+| `0x04`           | `identity`   |
+| `0x05`           | `modexp`     |
+| `0x06`           | `ecAdd`      |
+| `0x07`           | `ecMul`      |
+| `0x08`           | `ecPairing`  |
+| `0x09`           | `blake2f`    |
+
+#### Filecoin precompiles
+
+The following Filecoin-specific precompiles are exposed to EVM smart contracts at the designated addresses:
+
+| Ethereum Address | Precompile           |
+| ---------------- | -------------------- |
+| `0x0a`           | `resolve_address`    |
+| `0x0b`           | `lookup_address`     |
+| `0x0c`           | `get_actor_code_cid` |
+| `0x0d`           | `get_randomness`     |
+| `0x0e`           | `call_actor`         |
+
+**Precompile `0x0a`: `resolve_address`**
+
+// TODO
+
+_Input parameters_
+
+_Return_
+
+_Errors_
+
+**Precompile `0x0b`: `lookup_address`**
+
+// TODO
+
+_Input parameters_
+
+_Return_
+
+_Errors_
+
+**Precompile `0x0c`: `get_actor_code_cid`**
+
+// TODO
+
+_Input parameters_
+
+_Return_
+
+_Errors_
+
+**Precompile `0x0d`: `get_randomness`**
+
+// TODO
+
+_Input parameters_
+
+_Return_
+
+_Errors_
+
+**Precompile `0x0e`: `call_actor`**
+
+// TODO
+
+_Input parameters_
+
+_Return_
+
+_Errors_
+
+### Migration
+
+### Other considerations
+
+#### Historical support
+
+EVM opcode and precompile support is restricted to the Ethereum Paris fork.
+Historical Ethereum behaviors are not supported.
+
+#### Transaction types
+
+The only supported Ethereum transaction type is the EIP-1559 transaction (type 2 in the RLP-encoded transaction format).
+Such transactions carry a gas fee cap and a gas premium, both of which map cleanly to Filecoin's message model.
+
+#### Native currency
+
+The native currency of the Filecoin EVM runtime is filecoin.
+This environment has no dependence to, or understanding of, Ether as a currency.
+
+### Errors
+
+TODO.
+
+### Filecoin Virtual Machine changes
+
+#### Added syscalls
+
+**`network::context`**
+
+```rust
+#[repr(packed, C)]
+pub struct NetworkContext {
+   /// The current epoch.
+   pub epoch: ChainEpoch,
+   /// The current time (seconds since the unix epoch).
+   pub timestamp: u64,
+   /// The current base-fee.
+   pub base_fee: TokenAmount,
+   /// The network version.
+   pub network_version: u32,
+}
+
+/// Returns the details about the network.
+///
+/// # Errors
+///
+/// None
+pub fn context() -> Result<NetworkContext>;
+```
+
+**`network::tipset_cid`**
+
+```rust
+/// Retrieves a tipset's CID within the last finality, if available
+///
+/// # Arguments
+///
+/// - `epoch` the epoch being queried.
+/// - `ret_off` and `ret_len` specify the location and length of the buffer into which the
+///   tipset CID will be written.
+///
+/// # Returns
+///
+/// Returns the length of the CID written to the output buffer.
+///
+/// # Errors
+///
+/// | Error               | Reason                                       |
+/// |---------------------|----------------------------------------------|
+/// | [`IllegalArgument`] | specified epoch is negative or in the future |
+/// | [`LimitExceeded`]   | specified epoch exceeds finality             |
+pub fn tipset_cid(
+   epoch: i64,
+   ret_off: *mut u8,
+   ret_len: u32,
+) -> Result<u32>;
+```
+
+**`actor::lookup_address`**
+
+```rust
+/// Looks up the "predictable" address of the target actor.
+///
+/// # Arguments
+///
+/// `addr_buf_off` and `addr_buf_len` specify the location and length of the output buffer in
+/// which to store the address.
+///
+/// # Returns
+///
+/// The length of the address written to the output buffer, or 0 if the target actor has no
+/// predictable address.
+///
+/// # Errors
+///
+/// | Error               | Reason                                                           |
+/// |---------------------|------------------------------------------------------------------|
+/// | [`NotFound`]        | if the target actor does not exist                               |
+/// | [`BufferTooSmall`]  | if the output buffer isn't large enough to fit the address       |
+/// | [`IllegalArgument`] | if the output buffer isn't valid, in memory, etc.                |
+pub fn lookup_address(
+   actor_id: u64,
+   addr_buf_off: *mut u8,
+   addr_buf_len: u32,
+) -> Result<u32>;
+```
+
+**`actor::balance_of`**
+
+```rust
+/// Returns the balance of the actor at the specified ID.
+///
+/// # Arguments
+///
+/// `actor_id` is the ID of the actor whose balance is to be returned.
+///
+/// # Returns
+///
+/// The balance of the specified actor, or 0 if the actor doesn't exist.
+///
+/// # Errors
+///
+/// TODO
+/// 
+pub fn balance_of(
+   actor_id: u64
+)  -> Result<super::TokenAmount>;
+```
+
+**`actor::next_actor_address`**
+
+```rust
+/// Generates a new actor address for an actor deployed by the calling actor.
+///
+/// **Privileged:** May only be called by the init actor.
+pub fn next_actor_address(obuf_off: *mut u8, obuf_len: u32) -> Result<u32>;
+```
+
+**`crypto::recover_secp_public_key`**
+
+```rust
+/// Recovers the signer public key from a signed message hash and its signature.
+///
+/// Returns the public key in uncompressed 65 bytes form.
+///
+/// # Arguments
+///
+/// - `hash_off` specify location of a 32-byte message hash.
+/// - `sig_off` specify location of a 65-byte signature.
+///
+/// # Errors
+///
+/// | Error               | Reason                                               |
+/// |---------------------|------------------------------------------------------|
+/// | [`IllegalArgument`] | signature or hash buffers are invalid                |
+pub fn recover_secp_public_key(
+   hash_off: *const u8,
+   sig_off: *const u8,
+) -> Result<[u8; SECP_PUB_LEN]>;
+```
+
+**`event::emit_event`**
+
+See [FIP-0049 (Actor events)].
+
+```rust
+/// Emits an actor event to be recorded in the receipt.
+///
+/// Expects a DAG-CBOR representation of the ActorEvent struct.
+///
+/// # Errors
+///
+/// | Error               | Reason                                                              |
+/// |---------------------|---------------------------------------------------------------------|
+/// | [`IllegalArgument`] | entries failed to validate due to improper encoding or invalid data |
+pub fn emit_event(
+   evt_off: *const u8,
+   evt_len: u32,
+) -> Result<()>;
+```
+
+**`gas::available`**
+
+```rust
+/// Returns the amount of gas remaining.
+pub fn available() -> Result<u64>;
+```
+
+**`vm::exit`**
+
+```rust
+/// Abort execution with the given code and optional message and data for the return value.
+/// The code and return value are recorded in the receipt, the message is for debugging only.
+///
+/// # Arguments
+///
+/// - `code` is the `ExitCode` to abort with.
+///   If this code is zero, then the exit indicates a successful non-local return from
+///   the current execution context.
+///   If this code is not zero and less than the minimum "user" exit code, it will be replaced with
+///   `SYS_ILLEGAL_EXIT_CODE`.
+/// - `blk_id` is the optional data block id; it should be 0 if there are no data attached to
+///   this exit.
+/// - `message_off` and `message_len` specify the offset and length (in wasm memory) of an
+///   optional debug message associated with this abort. These parameters may be null/0 and will
+///   be ignored if invalid.
+///
+/// # Errors
+///
+/// None. This function doesn't return.
+pub fn exit(code: u32, blk_id: u32, message_off: *const u8, message_len: u32) -> !;
+```
+
+**`vm::message_context`**
+
+```rust
+#[repr(packed, C)]
+pub struct MessageContext {
+   /// The current call's origin actor ID.
+   pub origin: ActorID,
+   /// The caller's actor ID.
+   pub caller: ActorID,
+   /// The receiver's actor ID (i.e. ourselves).
+   pub receiver: ActorID,
+   /// The method number from the message.
+   pub method_number: MethodNum,
+   /// The value that was received.
+   pub value_received: TokenAmount,
+   /// The current gas premium
+   pub gas_premium: TokenAmount,
+   /// The current gas limit
+   pub gas_limit: u64,
+   /// Flags pertaining to the currently executing actor's invocation context.
+   pub flags: ContextFlags,
+}
+
+/// Returns the details about the message causing this invocation.
+///
+/// # Errors
+///
+/// None
+pub fn message_context() -> Result<MessageContext>;
+```
+
+#### Removed syscalls
+
+`vm::abort` is replaced by the more general syscall `vm::exit`, which can accept a zero exit code, as well as return data on error.
+
+`vm::context` is renamed to `vm::mesage_context`.
+
+`network::base_fee` is superseded by `network::context`, which returns the base fee.
+
+`actor::new_actor_address` is replaced by `actor::next_actor_address`.
+
+#### Changed syscalls
+
+- TODO Send takes gas limit and flags.
+
+#### New externs
+
+TODO.
+
+#### Client changes
+
+#### Tipset CID
+
+TODO.
+
+#### Actor events
+
+See [FIP-0049 (Actor events)].
+
+## Design Rationale
+
+> TODO:
+> - Flat vs nested contract deployment model.
+> - ...
+
+## Backwards Compatibility
+
+TODO.
+
+## Test Cases
+
+## Security Considerations
+
+TODO.
+
+## Incentive Considerations
+
+TODO.
+
+## Product Considerations
+
+### Gas
+
+Gas metering and execution halt are performed according to the Filecoin gas model.
+EVM smart contracts accrue:
+
+- Execution costs: resulting from the handling of Wasm instructions executed during the interpretation of the EVM bytecode, _as well as_ the EVM runtime actor logic (e.g. method dispatch, payload handling, and more).
+- Syscall and extern costs: resulting from the syscalls made by the EVM opcode handlers, _and_ the EVM runtime actor logic itself.
+- Memory expansion costs: resulting from the allocation of Wasm memory pages.
+- Storage costs: resulting from IPLD state reads and accesses, directly by the smart contract as a result of `SSTORE` and `SLOAD` opcodes, or indirectly by the EVM runtime actor during dispatch or opcode handling.
+
+As specified above, gas-related opcodes such as `GAS` and `GASLIMIT` return Filecoin gas, coercing their natural u64 type to u256 (EVM type).
+The gas limit supplied to the `CALL`, `DELEGATECALL` and `STATICCALL` opcodes is also Filecoin gas.
+
+Consequently, contracts ported from Ethereum that use literal gas values (e.g. the well known 2300 gas price for bare value transfers) may require adaptation, as these gas values won't directly translate into the Filecoin gas model.
+
+## Notable differences between FEVM and EVM for smart contract developers
+
+## Chain explorer guidance
+
+## Impact of in-place upgrades
+
+The EVM runtime actor backing EVM smart contracts may be upgraded through future migrations.
+Upgrades will impact gas costs in hard-to-predict ways, with compute gas being the most sensitive component.
+We discourage smart contract developers to rely on specific gas values in their contract logic.
+This includes gas limits passed in `*CALL*` operations. While the system honors those limits, costs will change across upgrades.
+
+## Implementation
+
+TODO.
+
+## Appendix A: 
+
+TODO.
+
+## Appendix B: Upgrades
+
+TODO.
+
+## Copyright
+
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
+
+
+[`filecoin-project/builtin-actors`]: https://github.com/filecoin-project/builtin-actors
+[FRC42 calling convention]: https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0042.md
+[FIP-0048 (f4 Address Class)]: https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0048.md
+[Contract ABI spec]: https://docs.soliditylang.org/en/v0.5.3/abi-spec.html
+[Ethereum Paris hard fork]: https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/paris.md
+[FIP-0049 (Actor events)]: https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md
