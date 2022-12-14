@@ -67,7 +67,7 @@ Introduce a multiplier based on sector duration
 **This SectorDurationMultiplier function proposed is linear with slope 1**. See below for the function proposed. 
 ![SDM_Function](../resources/fip-00XX/SDM_Function.png)
 
-The rationale to select this linear slope 1 function is based on a principle that the selected parameters should maximize the effectiveness of the duration incentive, subject to SP’s collateral availability constraints, while taking into account micro and macroeconomic consequences with minimal added implementation complexity. Further analysis/simulation is shown in the analysis brief CEL prepared linked [here](https://pl-strflt.notion.site/Duration-FIP-revisions-7426f344685940409ac513a0ffcccc86) and above. 
+The rationale to select this linear slope 1 function is based on a principle that the selected parameters should maximize the effectiveness of the duration incentive, subject to SP’s collateral availability constraints, while taking into account micro and macroeconomic consequences with minimal added implementation complexity. 
 
 Therefore, the new suggested *Sector Quality Adjusted Power* is: 
 
