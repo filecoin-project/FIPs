@@ -125,8 +125,7 @@ By mitigating attack on Filecoin, the proposal improves the resilience of the sy
 
 ## Implementation
 <!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
-The prototype implementation lives in the following repo: 
-- [Upgraded version of Lotus with consistent broadcast](https://github.com/adlrocha/lotus/tree/adlrocha/consistent-bcast): Implementation of the synchronous consistent broadcast fix over Lotus. 
+[filecoin-project/lotus#9858](https://github.com/filecoin-project/lotus/pull/9858) brings consistent broadcast, as specified above, to lotus master
 
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
