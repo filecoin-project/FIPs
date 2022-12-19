@@ -98,11 +98,11 @@ The FEVM runtime actor is the Filecoin built-in actor that _hosts_ and _executes
 2. The integration logic connecting the EVM interpreter with the Filecoin environment, chain, and virtual machine (FVM).
 3. A collection of Ethereum and Filecoin-specific precompiles, specified later.
 
-### Installation
+### Installation and wiring
 
-The FEVM runtime actor is deployed on-chain via a network upgrade.
-Its bytecode is loaded onto the node's blockstore.
-Its CodeCID is linked to the System actor's state during the migration where this FIP goes live.
+The EVM runtime actor is deployed on-chain via a network upgrade.
+Its bytecode is loaded onto the node's blockstore, and referred to by its CodeCID.
+Its CodeCID is linked to the System actor's state during the migration where this FIP goes live, under the key `"evm"`.
 
 ### Instantiatable actor
 
