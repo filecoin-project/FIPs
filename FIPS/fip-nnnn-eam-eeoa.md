@@ -16,58 +16,56 @@ replaces: N/A
 
 ## Simple Summary
 
-We introduce two actors: **Ethereum Address Manager (EAM)** and **Ethereum Externally-Owned Account (EEOA)** actors.
+We introduce two actors: the **Ethereum Address Manager (EAM)** and the **Ethereum Account** actors.
 Both actors are necessary to attain compatibility with Ethereum tooling.
-We also introduce **Ethereum addresses** atop the f4 address class, and a new **Delegated signature type**.
+We also introduce **Ethereum addresses** over the f4 address class, as well as a new **Delegated signature type** to accept native Ethereum transactions.
 
 ## Abstract
 
-The **Ethereum Address Manager (EAM)** actor manages namespace `10` within the `f4` address class as defined in [FIP-0048].
-This namespace hosts **Ethereum addresses** in Filecoin.
+The Ethereum Address Manager (EAM) actor manages namespace `10` within the `f4` address class as defined in [FIP-0048].
+This namespace hosts Ethereum addresses in Filecoin.
+Only Ethereum Accounts and EVM smart contracts deployed through the EAM acquire an Ethereum address.
 These addresses begin with `f410` in textual form.
-EVM smart contracts deployed through the EAM acquire an `f410` address.
+We use this notation throughout this document.
 
-The **Ethereum Externally Owned Account (EEOA)** actor represents Ethereum identities backed by secp256k1 keys.
-It enables authenticating native Ethereum messages sent from Ethereum wallets, within the Filecoin protocol.
-These messages are converted to Filecoin messages carrying a **Delegated signature type**.
-While baked into the protocol at this stage, these mechanisms are conceived as an extension point to subsequently transition into future fully-fledged Account Abstraction (AA).
+The Ethereum Account actor represents an externally-owned Ethereum account, backed by a secp256k1 key.
+It enables authenticating native RLP-encoded [EIP-1559 Ethereum transaction] submitted from Ethereum wallets, within the Filecoin protocol.
+These messages are converted to Filecoin messages carrying a Delegated signature type.
+
+While baked into the protocol at this stage, the Ethereum Account and the Delegated signature type are extension points to eventually transition to future fully-fledged Account Abstraction (AA).
 
 ## Change Motivation
 
 Foreign runtimes, like the EVM runtime introduced in FIP-TODO, often make assumptions about addressing schemes.
 Programs deployed on those runtimes (e.g. EVM smart contracts) also inherit those assumptions.
 Such assumptions come in the form of:
+
 - data types expectations
 - cryptographic expectations (e.g. addresses derived from public keys)
 - address predictability expectations (e.g. upon contract deployment)
 
 Fulfilling these expectations involves making Filecoin aware of Ethereum addresses, in a way that does not bake that awareness in the core protocol.
-This is achieved by anchoring **Ethereum addresses** under the newly-introduced `f4` delegated address class.
+This is achieved by modelling Ethereum addresses over the newly-introduced `f4` delegated address class, under a dedicated namespace, managed by the EAM.
 
 Furthermore, supporting foreign runtimes in Filecoin is hardly useful if the tools and libraries built for those runtimes were unable to interact with Filecoin without changes.
-Such handicap would prevent reuse and retargeting.
+Such handicap would harm easy reuse.
 Supporting the submission and validation of transactions issued from wallets native to the original ecosystem is a must.
-This capability is delivered by the **Ethereum Externally Owned Account (EEOA)** and the **Delegated signature type**, as a stepping stone towards full Account Abstraction (AA).
+These capabilities are delivered by the Ethereum Account and the Delegated signature type, as a stepping stone towards full Account Abstraction (AA).
 
 ## Specification
 
-### Ethereum addressing (`f410` addresses)
+### Ethereum Address Manager (EAM)
 
-We allocate namespace `10` (decimal) under the `f4` address class defined in [FIP-0048] to represent Ethereum addresses.
+We introduce the Ethereum Address Manager (EAM) actor as a singleton built-in actor, sitting at ID address `f010`.
+
+This actor manages the Ethereum address space, anchored at the f4 address namespace equalling its actor ID (`10` in decimal).
 The address payload is the literal Ethereum address in binary form.
-
 ```
 # Ethereum address in Filecoin
 0x04 || 0x10 || <binary Ethereum address>
 ```
 
-### Ethereum Address Manager (EAM)
-
-We introduce the **Ethereum Address Manager (EAM) actor** as a singleton built-in actor, sitting at ID address `10`.
-This actor fulfills two purposes:
-
-1. It manages the f4 address class namespace under its ID address (i.e. f410), assigning Ethereum-compatible addresses under it.
-2. It acts like a factory for EVM smart contracts, respecting Ethereum rules and semantics for the `CREATE` and `CREATE2` mechanisms for address generation.
+The EAM also acts like a factory for EVM smart contracts, respecting Ethereum rules and semantics for the `CREATE` and `CREATE2` mechanisms for address generation.
 
 #### Installation and wiring
 
@@ -77,15 +75,15 @@ During migration:
 2. A single copy of the EAM is deployed as a singleton actor under ID address `f010`.
 
 The Init actor statically recognizes the EAM as an _authorized_ delegated address manager, and permits calls to its `InitActor#Exec4` method originating in it.
-Address managers like the EAM use the `InitActor#Exec4` method to deploy new actors with delegated addresses under the namespace matching their actor ID (`10` in this case).
+Address managers like the EAM use the `InitActor#Exec4` method to deploy new actors with delegated addresses under the namespace matching their actor ID (`10` in this case), with the address payload being provided as an argument.
 
 #### EVM smart contract deployment via the EAM
 
 The EAM offers two Filecoin methods `Create` and `Create2`, equivalent to their Ethereum counterparts.
 In Ethereum, `CREATE` and `CREATE2` differ in their address generation rules:
 
-- `CREATE` uses the protocol-provided nonce to derive the contract's address, and is thus non-deterministic.
-- `CREATE2` takes an explicit user-provided salt to compute a deterministic address. It is suitable for counterfactual deployments.
+- `CREATE` computes the address in this manner: `Keccak-256(rlp_list(sender, nonce))`. It is thus non-deterministic.
+- `CREATE2` computes the addres in this manner: `Keccak-256(rlp_list(0xff, sender, salt, bytecode))`. It is suitable for counterfactual deployments.
 
 EVM smart contracts are deployed to the Filecoin chain as follows:
 
@@ -193,60 +191,150 @@ Same as [`Create`](#method-number-1-create).
 ### Delegated signature type
 
 We introduce a new `Delegated` signature type for Filecoin messages with serialized value `3`.
-Delegated signatures are intended to be used in combination with abstract account senders, once Account Abstraction (AA) is fully realisd.
-Delegated signatures are opaque to the protocol, and will eventually be validated by the actor logic of the abstract account actor.
+Delegated signatures are used in combination with abstract account senders, once Account Abstraction (AA) is fully realized.
+Delegated signatures are opaque to the protocol, and are validated by actor logic.
+However, we establish a transitory period where Delegated signatures are special-cased.
 
-However, during this transitory period, Delegated signatures are assumed to be secp256k1 signatures over the RLP representation of the message.
+#### Transitory Delegated signature validation
 
-### Ethereum Externally-Owned Account (EEOA)
+We establish a transitory period whereby `Delegated` signatures are assumed to be secp256k1 signatures over the [RLP] representation of a native [EIP-1559 Ethereum transaction] sent from an Ethereum Acount actor.
+This effectively couples the `Delegated` signature type to its only possible use at this stage, but provides an extension point for the future.
 
-We introduce the **Ethereum Externally-Owned Account (EEOA) actor**, a non-singleton actor representing an external Ethereum identity backed by a secp256k1 key.
+Such transitory `Delegated` signatures must be verified by:
+
+1. Repacking the native RLP-encoded [EIP-1559 Ethereum transaction] from the Filecoin message (original signature payload).
+2. Recovering the secp256k1 public key from such payload and the ECDSA signature.
+3. Computing the Ethereum address from the secp256k1 public key by hashing the public key using Keccak-256, and retaining the last 20 bytes.
+4. Calculating the corresponding f410 address (see conversion rules [EAM rules](#ethereum-address-manager-eam)).
+5. Asserting that the sender's f410 address matches the expected f410 address.
+
+The client must perform this verification before chain inclusion, and before handing off the message to the FVM for execution.
+
+#### Message transliteration
+
+The RLP-encoded [EIP-1559 Ethereum transaction] is repacked in the following way from the Filecoin message.
+Note that the top-level object is an [RLP] list, with 0-based indices.
+
+| Index | Ethereum Field        | Source                                                                                                                              |
+| ----- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| 0     | Chain ID              | Static network-specific chain ID, BE-encoded, stripped of leading zero bytes                                                        |
+| 1     | Nonce                 | `FilecoinMessage#Nonce`, BE-encoded, stripped of leading zero bytes                                                                 |
+| 2     | Max priority fee gas  | `FilecoinMessage#GasPremium`, BE-encoded, stripped of leading zero bytes                                                            |
+| 3     | Max fee per gas       | `FilecoinMessage#GasFeeCap`, BE-encoded, stripped of leading zero bytes                                                             |
+| 4     | Gas limit             | `FilecoinMessage#GasLimit`, BE-encoded, stripped of leading zero bytes                                                              |
+| 5     | Recipient             | Ethereum address extracted from f410 address in `FilecoinMessage#To`, or nil if `f010` (EAM), as this denotes a contract deployment |
+| 6     | Value                 | `FilecoinMessage#Value`                                                                                                             |
+| 7     | Input data            | `FilecoinMessage#Params`                                                                                                            |
+| 8     | Access list           | TODO                                                                                                                                |
+
+### Ethereum Account
+
+We introduce the **Ethereum Account**, a non-singleton actor representing an external Ethereum identity backed by a secp256k1 key.
+The **Ethereum Account** is a recognised message sender of messages with `Delegated` signatures, as per the scheme above.
+Ethereum Accounts can only submit RLP-encoded EIP-1559 Ethereum transactions.
 
 #### Installation and wiring
 
-During migration, the Wasm bytecode of the EEOA (referred by its CodeCID) is linked under the System actor's registry under the key `"ethaccount"`.
+During the migration where this FIP goes live, the Wasm bytecode of the Ethereum Account (referred to by its CodeCID) is linked under the System actor's registry under the key `"ethaccount"`.
 
 #### Instantiation via promotion
 
-At this stage, the creation of instances of this actor is a privileged action.
-The FVM, and only the FVM, can instantiate the EEOA through a special pathway.
+This actor cannot be instantiated via the Init actor.
 
-The FVM instantiates this actor when an Embryo actor with an `f410` address sends its first Delegated-signature message.
-The CodeCID of the Embryo actor is set to that of the EEOA, and the EEOA acts like a regular sender insofar the FVM is concerned.
+The FVM, and only the FVM, can instantiate an Ethereum Account through a special pathway that promotes an existing Placeholder actor to an Ethereum Account.
+This happens on the first send (with nonce zero) from the Ethereum Account whose gas limit is sufficient to cover chain inclusion.
 
-TODO: message failure, OOG, nonce.
+Failure to meet chain inclusion gas will not cause Placeholder actor promotion to an Ethereum Account, even if the message is valid and bears nonce zero.
 
-#### Signature
+The promotion is committed to the state tree even if the message subsequently fails by generating an exit code other than 0.
 
-TODO.
+#### Actor interface (methods)
+
+None.
+
+#### State
+
+None.
 
 ## Design Rationale
 
-> TODO:
-> - Flat vs nested contract deployment model.
-> - Deployment ethaccount.
+### f410 address scope
+
+The current solution only assigns f410 addresses to Ethereum Accounts and EVM smart contracts.
+If an EVM smart contract wishes to interact with a Wasm actor, it must use a masked ID address.
+Contrary to `f410`, ID addresses are reorg-unstable.
+That is, the ID may change within the chain's finality window, i.e. 900 epochs.
+Note othat the theoretical window for ID reorgs is 900 epochs, the probability decays as the chain progresses.
+
+We deliberately discarded assigning f410 addresses to non-Ethereum related actors to keep the design simple at this stage.
+We expect the impact to be minimal because all user-deployed contracts at this stage _are_ EVM smart contracts, possessing `f410` addresses.
+So these interactions are able to leverage f410 addresses:
+1. Cross-contract calls and value transfers (EVM <> EVM).
+2. Ethereum account to contract calls and value transfers, and viceversa (Eth Account <> EVM).
+
+The two interactions affected by this limitation are:
+1. EVM smart contracts calls and transfers to Wasm actors.
+2. EVM smart contract transfers to non-Ethereum accounts (f1/f3) addresses.
+
+For (1), the only non-singleton actor callable by EVM smart contracts is the _Miner actor_.
+These can only be addressable by ID.
+Having said that, Miner actors are unlikely to be involved in transactions early in their lifetime, so the impact of this issue may be limited.
+However, Filecoin apps wishing to safeguard against ID reorgs can use external APIs to check if an ID used as an argument is within its reorg window, and can prevent such transactions.
+Unfortunately the protocol does not offer a built-in way of fetching the creation epoch of an actor.
+
+For (2), transferring value to an inexistent f1 and f3 address from a smart contract is not possible because no ID address exists yet.
+This is a hard limitation and cannot be worked around.
+
+Future revisions may enable assigning f410 addresses to any actor in the state tree.
+
+### Upgrade path towards Account Abstraction (AA)
+
+We prototyped Account Abstraction solutions extensively before submitting this FIP.
+This FIP preserves the key extension points that will facilitate a (hopefully) elegant transition to fully-fledged Account Abstraction (AA).
+
+We forecast these rough steps to conduct the transition:
+
+1. Remove Delegated signature validation logic from clients, treating the signature as an opaque blob at the client level.
+2. Perform AA-specific gas preflight checks in the client before accepting the message for inclusion, or propagating via the mpool.
+3. Move the Ethereum transaction signature verification logic inside the `ethaccount` actor, so that it runs on-chain.
+4. Generalise the Placeholder actor promotion path so that the relevant address manager gets to indicate the promotion target. Reconcile with (3).
+5. Trigger the signature validation logic within the FVM the sender is an Abstract Account.
 
 ## Backwards Compatibility
 
-TODO.
+Backwards compatibility is not affected, as this FIP introduces strictly additive features.
 
 ## Test Cases
 
+TODO.
+
 ## Security Considerations
 
-TODO.
+This FIP introduces a new signature type and a new transaction format to the protocol.
+That is, we introduce new pathways to initiate transactions in the system, and extend the kinds of payloads that are entitled to do so.
+
+It is worthy to note that Filecoin already supports secp256k1 ECDSA signatures under signature type 1.
+Clients are expected to reuse existing signature verification and key recovery logic.
+However, what differs is the authentication logic.
+The original signature payload must be reconstructed by repacking the RLP-encoded [EIP-1559 transaction].
+Any flaws in this logic is subject to security events.
 
 ## Incentive Considerations
 
-TODO.
+No incentive considerations apply.
 
 ## Product Considerations
 
-TODO.
+This FIP is essential to enable the product aspirations of FEVM (Filecoin EVM).
+We expect seamless compatibility with existing Ethereum wallets, libraries, and tools.
+However, we note the addressing limitations described in the [Design Rationale](#design-rationale) section may show up at the product level.
+That said, we expect the consequences to be limited.
 
 ## Implementation
 
-TODO.
+- The actor implementation lives in [`filecoin-project/builtin-actors`].
+- The reference FVM implementation lives in [`filecoin-project/ref-fvm`].
+- The reference client implementation lives in [`filecoin-project/lotus`].
 
 ## Copyright
 
@@ -254,8 +342,8 @@ Copyright and related rights waived via [CC0](https://creativecommons.org/public
 
 
 [`filecoin-project/builtin-actors`]: https://github.com/filecoin-project/builtin-actors
-[FRC42 calling convention]: https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0042.md
+[`filecoin-project/ref-fvm`]: https://github.com/filecoin-project/ref-fvm
+[`filecoin-project/lotus`]: https://github.com/filecoin-project/lotus
 [FIP-0048]: https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0048.md
-[Contract ABI spec]: https://docs.soliditylang.org/en/v0.5.3/abi-spec.html
-[Ethereum Paris hard fork]: https://github.com/ethereum/execution-specs/blob/master/network-upgrades/mainnet-upgrades/paris.md
-[FIP-0049 (Actor events)]: https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md
+[EIP-1559 Ethereum transaction]: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md
+[RLP]: https://ethereum.org/en/developers/docs/data-structures-and-encoding/rlp/
