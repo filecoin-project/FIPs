@@ -1,5 +1,5 @@
 ---
-fip: <to be assigned>
+fip: "0055"
 title: Supporting Ethereum accounts, addresses, and transactions
 author: Raúl Kripalani (@raulk), Steven Allen (@stebalien)
 discussions-to: <URL>
@@ -8,7 +8,8 @@ type: Technical Core
 category: Core
 created: 2022-12-02
 spec-sections:
-requires: N/A
+requires:
+  - 0054
 replaces: N/A
 ---
 
@@ -31,8 +32,8 @@ replaces: N/A
       - [Method number `2` (`Create`)](#method-number-2-create)
       - [Method number `3` (`Create2`)](#method-number-3-create2)
   - [Delegated signature type](#delegated-signature-type)
-    - [Transitory Delegated signature validation](#transitory-delegated-signature-validation)
-    - [Message transliteration](#message-transliteration)
+    - [Transitory validation](#transitory-validation)
+    - [Payload reconstitution](#payload-reconstitution)
   - [Ethereum Account](#ethereum-account)
     - [Installation and wiring](#installation-and-wiring-1)
     - [Instantiation via promotion](#instantiation-via-promotion)
@@ -73,7 +74,7 @@ While baked into the protocol at this stage, the Ethereum Account and the Delega
 
 ## Change Motivation
 
-Foreign runtimes, like the EVM runtime introduced in FIP-TODO, often make assumptions about addressing schemes.
+Foreign runtimes, like the EVM runtime introduced in FIP-0054, often make assumptions about addressing schemes.
 Programs deployed on those runtimes (e.g. EVM smart contracts) also inherit those assumptions.
 Such assumptions come in the form of:
 
@@ -161,15 +162,18 @@ _Errors_
 
 ##### Method number `2` (`Create`)
 
-Deploys a smart contract taking EVM init bytecode and accepting a nonce from the user.
-The Ethereum address (and therefore the f410 address) is calculated from these parameters.
+Deploys a smart contract taking EVM init bytecode and accepting a nonce from the user via `InitActor#Exec4`, assigning an f410 address to the contract.
+The contract's f410 address is calculated using Ethereum heuristics for `CREATE`.
+
+The caller's Ethereum address (necessary for the `CREATE` logic) is extracted from the their f410 address.
+If the caller lacks an f410 address, it defaults to the masked ID address form defined in FIP-0054.
 
 The `Create` method is to be used in two cases:
 
 1. When an EEOA deploys an EVM smart contract by submitting a native Ethereum message.
 2. When a smart contract (running within the EVM runtime actor) calls the `CREATE` opcode.
 
-Note that this differs from Ethereum in that we take a user-provided nonce as a parameter.
+Note that this method differs from Ethereum in that we take a user-provided nonce as a parameter.
 This is necessary for the EAM to learn the nonce of a contract, when the `CREATE` opcode is used.
 Technically, this allows an EEOA to deploy a contract with an arbitrary nonce, potentially using nonces in a non-contiguous manner.
 
@@ -201,12 +205,12 @@ pub struct Return {
 
 _Errors_
 
-TODO.
+- `USR_FORBIDDEN` (18) when the caller has an f4 address but it's not under namespace `10`.
 
 ##### Method number `3` (`Create2`)
 
 The deployment procedure is the same as `Create`, but this method takes a user-provided salt.
-A deterministic Ethereum address (and therefore the f410 address) is calculated from these parameters.
+A deterministic Ethereum address (and therefore the f410 address) is calculated from these parameters, using the original Ethereum `CREATE2` heuristics.
 
 `Create2` only used when a smart contract (running within the EVM runtime actor) calls the `CREATE2` opcode.
 
@@ -225,6 +229,10 @@ _Return value_
 
 Same as [`Create`](#method-number-1-create).
 
+_Errors_
+
+- `USR_FORBIDDEN` (18) when the caller has an f4 address but it's not under namespace `10`.
+
 ### Delegated signature type
 
 We introduce a new `Delegated` signature type for Filecoin messages with serialized value `3`.
@@ -232,43 +240,46 @@ Delegated signatures are used in combination with abstract account senders, once
 Delegated signatures are opaque to the protocol, and are validated by actor logic.
 However, we establish a transitory period where Delegated signatures are special-cased.
 
-#### Transitory Delegated signature validation
+#### Transitory validation
 
 We establish a transitory period whereby `Delegated` signatures are assumed to be secp256k1 signatures over the [RLP] representation of a native [EIP-1559 Ethereum transaction] sent from an Ethereum Acount actor.
+The RLP representation is reconstituted from the Filecoin message as specified below.
 This effectively couples the `Delegated` signature type to its only possible use at this stage, but provides an extension point for the future.
 
 Such transitory `Delegated` signatures must be verified by:
 
 1. Repacking the native RLP-encoded [EIP-1559 Ethereum transaction] from the Filecoin message (original signature payload).
-2. Recovering the secp256k1 public key from such payload and the ECDSA signature.
+2. Recovering the secp256k1 public key from such payload and the ECDSA signature included within the inner `Signature` struct of the chain message.
 3. Computing the Ethereum address from the secp256k1 public key by hashing the public key using Keccak-256, and retaining the last 20 bytes.
 4. Calculating the corresponding f410 address (see conversion rules [EAM rules](#ethereum-address-manager-eam)).
 5. Asserting that the sender's f410 address matches the expected f410 address.
 
 The client must perform this verification before chain inclusion, and before handing off the message to the FVM for execution.
 
-#### Message transliteration
+#### Payload reconstitution
 
-The RLP-encoded [EIP-1559 Ethereum transaction] is repacked in the following way from the Filecoin message.
-Note that the top-level object is an [RLP] list, with 0-based indices.
+To verify the Delegated signature, the unsigned RLP-encoded [EIP-1559 Ethereum transaction] is reconstituted in the following way from the Filecoin message.
+The top-level object is an [RLP] list, and integers are encoded in the RLP way (big endian with no leading zeroes)
 
-| Index | Ethereum Field        | Source                                                                                                                              |
-| ----- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| 0     | Chain ID              | Static network-specific chain ID, BE-encoded, stripped of leading zero bytes                                                        |
-| 1     | Nonce                 | `FilecoinMessage#Nonce`, BE-encoded, stripped of leading zero bytes                                                                 |
-| 2     | Max priority fee gas  | `FilecoinMessage#GasPremium`, BE-encoded, stripped of leading zero bytes                                                            |
-| 3     | Max fee per gas       | `FilecoinMessage#GasFeeCap`, BE-encoded, stripped of leading zero bytes                                                             |
-| 4     | Gas limit             | `FilecoinMessage#GasLimit`, BE-encoded, stripped of leading zero bytes                                                              |
-| 5     | Recipient             | Ethereum address extracted from f410 address in `FilecoinMessage#To`, or nil if `f010` (EAM), as this denotes a contract deployment |
-| 6     | Value                 | `FilecoinMessage#Value`                                                                                                             |
-| 7     | Input data            | `FilecoinMessage#Params`                                                                                                            |
-| 8     | Access list           | TODO                                                                                                                                |
+| Pos   | Ethereum Field        | Source                                                                                                                                                                 |
+| ----- | --------------------- | -----------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| 0     | Chain ID              | Static network-specific chain ID, re-encoded as an RLP integer                                                                                                            |
+| 1     | Nonce                 | `FilecoinMessage#Nonce`, re-encoded as an RLP integer                                                                                                                     |
+| 2     | Max priority fee gas  | `FilecoinMessage#GasPremium`, re-encoded as an RLP integer                                                                                                                |
+| 3     | Max fee per gas       | `FilecoinMessage#GasFeeCap`, re-encoded as an RLP integer                                                                                                                 |
+| 4     | Gas limit             | `FilecoinMessage#GasLimit`, re-encoded as an RLP integer                                                                                                                  |
+| 5     | Recipient             | Ethereum address extracted from the f410 address in `FilecoinMessage#To`, or nil if `f010` (EAM), as this denotes a contract deployment, re-encoded as an RLP byte string |
+| 6     | Value                 | `FilecoinMessage#Value`, re-encoded as an RLP integer                                                                                                                     |
+| 7     | Input data            | `FilecoinMessage#Params`, re-encoded as an RLP byte string                                                                                                                                               |
+| 8     | Access list           | Empty.                                                                                                                                                                   |
+
+Note that the original transformation from the RLP message to the Filecoin message will be specified in an FRC for the Ethereum JSON-RPC endpoint.
 
 ### Ethereum Account
 
 We introduce the **Ethereum Account**, a non-singleton actor representing an external Ethereum identity backed by a secp256k1 key.
 The **Ethereum Account** is a recognised message sender of messages with `Delegated` signatures, as per the scheme above.
-Ethereum Accounts can only submit RLP-encoded EIP-1559 Ethereum transactions.
+Ethereum Accounts can only submit RLP-encoded [EIP-1559 Ethereum transaction]s.
 
 #### Installation and wiring
 
@@ -306,10 +317,12 @@ Note othat the theoretical window for ID reorgs is 900 epochs, the probability d
 We deliberately discarded assigning f410 addresses to non-Ethereum related actors to keep the design simple at this stage.
 We expect the impact to be minimal because all user-deployed contracts at this stage _are_ EVM smart contracts, possessing `f410` addresses.
 So these interactions are able to leverage f410 addresses:
+
 1. Cross-contract calls and value transfers (EVM <> EVM).
 2. Ethereum account to contract calls and value transfers, and viceversa (Eth Account <> EVM).
 
 The two interactions affected by this limitation are:
+
 1. EVM smart contracts calls and transfers to Wasm actors.
 2. EVM smart contract transfers to non-Ethereum accounts (f1/f3) addresses.
 
@@ -343,7 +356,9 @@ Backwards compatibility is not affected, as this FIP introduces strictly additiv
 
 ## Test Cases
 
-TODO.
+The reference implementations will include tests.
+
+This FIP may be enhanced with test vectors covering Delegated signature verification scenarios.
 
 ## Security Considerations
 
@@ -353,7 +368,7 @@ That is, we introduce new pathways to initiate transactions in the system, and e
 It is worthy to note that Filecoin already supports secp256k1 ECDSA signatures under signature type 1.
 Clients are expected to reuse existing signature verification and key recovery logic.
 However, what differs is the authentication logic.
-The original signature payload must be reconstructed by repacking the RLP-encoded [EIP-1559 transaction].
+The original signature payload must be reconstructed by repacking the RLP-encoded [EIP-1559 Ethereum transaction].
 Any flaws in this logic is subject to security events.
 
 ## Incentive Considerations
@@ -378,9 +393,9 @@ That said, we expect the consequences to be limited.
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
 
 
-[`filecoin-project/builtin-actors`]: https://github.com/filecoin-project/builtin-actors
-[`filecoin-project/ref-fvm`]: https://github.com/filecoin-project/ref-fvm
-[`filecoin-project/lotus`]: https://github.com/filecoin-project/lotus
 [FIP-0048]: https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0048.md
 [EIP-1559 Ethereum transaction]: https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md
 [RLP]: https://ethereum.org/en/developers/docs/data-structures-and-encoding/rlp/
+[`filecoin-project/builtin-actors`]: https://github.com/filecoin-project/builtin-actors
+[`filecoin-project/ref-fvm`]: https://github.com/filecoin-project/ref-fvm
+[`filecoin-project/lotus`]: https://github.com/filecoin-project/lotus
