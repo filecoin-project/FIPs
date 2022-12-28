@@ -87,3 +87,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0046](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0046.md)   | Fungible token standard | FRC  |@anorth, @jsuresh, @alexytsu |Draft  |
 |[0047](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0047.md)   | Proof Expiration & PoRep Security Policy | FIP  |@Kubuxu, @irenegia, @anorth |Accepted  |
 |[0048](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0048.md)   | f4 Address Class | FIP  |@stebalien, @mriise, @raulk | Draft  |
+|[0051](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0051.md)   | Synchronous Consistent Block Broadcast for EC Security | FRC  |Guy Goren <guy.goren@protocol.ai>, Alfonso de la Rocha <alfonso@protocol.ai> | Draft  |
