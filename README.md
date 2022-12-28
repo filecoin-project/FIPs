@@ -89,5 +89,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0048](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0048.md)   | f4 Address Class | FIP  |@stebalien, @mriise, @raulk | Draft  |
 |[0049](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md)   | Actor Events | FIP  |@stebalien, @raulk | Draft  |
 |[0050](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0050.md)   | API Between User-Programmed Actors and Built-In Actors | FIP  |@anorth, @arajasek | Last Call  |
+|[0051](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0051.md)   | Synchronous Consistent Block Broadcast for EC Security | FRC  |Guy Goren <guy.goren@protocol.ai>, Alfonso de la Rocha <alfonso@protocol.ai> | Draft  |
 |[0052](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0052.md)   | Increase max sector commitment to 3.5 years | FIP  |@anorth | Draft  |
 |[0053](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0053.md)   | Non-Fungible Token Standard | FRC  |@alexytsu, @abright, @anorth | Draft  |
+
