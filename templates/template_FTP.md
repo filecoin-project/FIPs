@@ -1,5 +1,5 @@
 ---
-fip: <to be assigned>
+fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
 title: <FIP title>
 author: <a list of the author's or authors' name(s) and/or username(s), or name(s) and email(s), e.g. (use with the parentheses or triangular brackets): FirstName LastName (@GitHubUsername), FirstName LastName <foo@bar.com>, FirstName (@GitHubUsername) and GitHubUsername (@GitHubUsername)>
 discussions-to: <URL>
