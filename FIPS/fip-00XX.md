@@ -9,7 +9,7 @@ created: 2022-12-14
 ---
 
 ## Simple Summary
-- A Sector Duration Multiplier (SDM) is introduced for all sectors, including Committed Capacity (CC) sectors and sectors containing storage deals.
+- A Sector Duration Multiplier (SDM) is introduced for all newly-committed sectors, including Committed Capacity (CC) sectors and sectors containing storage deals.
 - A longer sector will have a higher Quality Adjusted Power than a shorter sector, all things equal.
 - The Duration Multiplier is multiplicative on the existing Quality Multiplier incentive (Filecoin Plus incentive). [Filecoin Plus](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0003.md) already offers up to a 10x multiplier for proving storage of data from verified clients. This FIP introduces an independent Duration Multiplier up to 5x. Thus, the maximum multiplier available to any sector will increase from 10x to 50x.
 - Sectors with higher Quality Adjusted Power as a result of the Sector Duration Multiplier and Quality Multiplier will require higher initial pledge collateral.
