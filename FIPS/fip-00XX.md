@@ -11,7 +11,7 @@ created: 2022-12-14
 ## Simple Summary
 - A Sector Duration Multiplier (SDM) is introduced for all sectors, including Committed Capacity (CC) sectors and sectors containing storage deals.
 - A longer sector will have a higher Quality Adjusted Power than a shorter sector, all things equal.
-- The Duration Multiplier is multiplicative on the existing Quality Multiplier incentive (Filecoin Plus incentive). [Filecoin Plus](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0003.md) already offers up to a 10x multiplier for proving storage of data from verified clients. This FIP introduces an independent Duration Multiplier up to 5x. Thus, the maximum multiplier available to any sector will increase from 10x to 50x.
+- The Duration Multiplier is multiplicative on the existing Quality Multiplier incentive (Filecoin Plus incentive). [Filecoin Plus](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0003.md) already offers up to a 10x multiplier for proving storage of data from verified clients. This FIP introduces an independent Duration Multiplier up to 4.5x. Thus, the maximum multiplier available to any sector will increase from 10x to 45x.
 - Sectors with higher Quality Adjusted Power as a result of the Sector Duration Multiplier and Quality Multiplier will require higher initial pledge collateral.
 - The minimum sector duration time will increase from 6 months to 1 year and the maximum sector duration will increase from 1.5 years to 5 years. The upper bound of [Deal Duration Bounds](https://github.com/filecoin-project/builtin-actors/blob/b5c101ab94f562ba43c1eca31bd1e73c6fc35794/actors/market/src/policy.rs#L33-L35) will increase to 5 years as well. 
 - CEL and the community will monitor the network and look to increase the maximum sector duration in a future FIP if network conditions merit, pending community-driven support for such measures.
@@ -20,7 +20,7 @@ created: 2022-12-14
 
 
 ## Problem Motivation
-Currently, Storage Providers do not receive any additional compensation or incentives for committing longer term sectors (whether that be CC or storage deals) to the network. The protocol places equal value on 180 to 540 day sectors in terms of storage mining rewards. However, in making an upfront commitment to longer term sectors, Storage Providers take on additional operational risks (more can go wrong in a longer time period), and lock rewards for longer. Furthermore, in committing longer term sectors/deals, Storage Providers demonstrate their long-term commitment to the mission and growth of the Filecoin Network, and are more aligned with client preference for persistent storage. Therefore, the added value of longer-term sector commitments, coupled with the compounded operational/liquidity risks Storage Providers incur for committing longer term sectors should be compensated for in the form of increased rewards.
+Currently, Storage Providers do not receive any additional compensation or incentives for committing longer term sectors (whether that be CC or storage deals) to the network. The protocol places equal value on 180 to 540 day sectors in terms of storage mining rewards. However, in making an upfront commitment to longer-term sectors, Storage Providers take on additional operational risks (more can go wrong in a longer time period), and lock rewards for longer. Furthermore, in committing longer term sectors/deals, Storage Providers demonstrate their long-term commitment to the mission and growth of the Filecoin Network, and are more aligned with client preference for persistent storage. Therefore, the added value of longer-term sector commitments, coupled with the compounded operational/liquidity risks Storage Providers incur for committing longer term sectors should be compensated for in the form of increased rewards.
 
 From a macroeconomic perspective, earlier community [discussions](https://github.com/filecoin-project/community/discussions/572) have highlighted many challenges and economic headwinds the Filecoin network faces. Some key issues include: 
 - A challenging investment environment given current global macroeconomic dynamics coupled with recent volatility in crypto markets
@@ -43,7 +43,7 @@ fn sdm(duration_commitment: f64) -> f64 {
     }
 }
 ```
-### SDM Upon Onboarding 
+### SDM Upon Sector Onboarding 
 Upon onboarding, the SDM applies from activaion epoch to expiration epoch: 
 
 ```
@@ -111,9 +111,9 @@ Introduce a multiplier based on sector duration
 | **SectorDurationMultiplier (SDM)** | **Multiplier for power for storage based on promised sector duration** |
 
 **This SectorDurationMultiplier function proposed is linear with slope 1**. See below for the function proposed. 
-![SDM_Function](../resources/fip-00XX/SDM_Function.jpg)
+![SDM_Function](../resources/fip-00XX/SDM_Function.png)
 
-The rationale to select this linear slope 1 function is based on a principle that the selected parameters should maximize the effectiveness of the duration incentive, subject to SP’s collateral availability constraints, while taking into account micro and macroeconomic consequences with minimal added implementation complexity. 
+The rationale to select this linear slope 1 function is based on a principle that the selected parameters should maximize the effectiveness of the duration incentive, subject to SP’s collateral availability constraints, while taking into account micro and macroeconomic consequences with minimal added implementation complexity. The SDM function is linear with slope 1 with initial sector commitments between 1 and 1.5 years receiving a 1x Quality multiplier so as to not disadvantage SP's who had already committed sectors for 1.5 years. 
 
 Therefore, the new suggested *Sector Quality Adjusted Power* is: 
 
@@ -126,7 +126,7 @@ We propose a minimum sector commitment of 1 year. This is a ~180-day increase fr
 We propose a maximum sector commitment of 5 years. This is an increase from the current maximum sector commitment of 540 days. Note, the protocol currently sets a maximum sector lifetime to 5 years (i.e sectors can be extended up to 5 years). This FIP would not adjust that.
 
 ### Change to PreCommitDeposit (PCD)
-With this FIP, sectors can get higher quality multipliers and receive higher expected rewards than currently possible. This has an impact on the value of the PreCommit Deposit (PCD). From the security point of view, PCD has to be large enough in order to consume the expected gain of a provider that is able to pass the PoRep phase with an invalid replica (i.e. gaining block rewards without storing). The recent FIP-0034 sets the PCD to 20 days of expected reward for a sector of quality 10 (max sector quality currently possible via FIL+ incentives). We now need to adjust this to 20 days of expected reward for a sector of quality 50 (the new max quality) to maintain the status quo about PoRep security.
+With this FIP, sectors can get higher quality multipliers and receive higher expected rewards than currently possible. This has an impact on the value of the PreCommit Deposit (PCD). From the security point of view, PCD has to be large enough in order to consume the expected gain of a provider that is able to pass the PoRep phase with an invalid replica (i.e. gaining block rewards without storing). The recent FIP-0034 sets the PCD to 20 days of expected reward for a sector of quality 10 (max sector quality currently possible via FIL+ incentives). We now need to adjust this to 20 days of expected reward for a sector of quality 45 (the new max quality) to maintain the status quo about PoRep security.
 
 ### Change to Termination Fees
 In the new policy the termination fee cap will scale with the duration multiplier. The rationale is to maintain the relative incentives regarding the ratio of termination fees to aggregate lifetime block rewards of a sector. 
@@ -171,25 +171,25 @@ In reality, the percentage of available supply locked has been decreasing since 
 This environment can be improved however. Longer sectors mean collateral is locked for longer. All else equal,  this means the total amount of locked collateral is consistently higher.
 
 ### Impact on Pre-Commit Deposit
-FIP-0034 sets the pre-commit deposit to a fixed value regardless of sector content. From a security point of view, PCD has to be large enough in order to cover the expected gain of a provider that is able to pass the PoRep phase with an invalid replica (i.e. gaining block rewards without storing). The recent FIP-0034 sets the PCD to 20 days of expected reward for a sector of quality 10 (max quality). We now need to increase this to 20 days of expected reward for a sector of quality 50 (the new max quality) to maintain the status quo about PoRep security.
+FIP-0034 sets the pre-commit deposit to a fixed value regardless of sector content. From a security point of view, PCD has to be large enough in order to cover the expected gain of a provider that is able to pass the PoRep phase with an invalid replica (i.e. gaining block rewards without storing). The recent FIP-0034 sets the PCD to 20 days of expected reward for a sector of quality 10 (max quality). We now need to increase this to 20 days of expected reward for a sector of quality 45 (the new max quality) to maintain the status quo about PoRep security.
 
 As of December 2022, the calculations are approximately:
 ```
 EpochReward := 97.1115 FIL
 NetworkPower := 18.985 * 2^60 Bytes
-CirculatingSuppply := 401.5 * 10^6 FIL
+CirculatingSuppply := 401.4699 * 10^6 FIL
 
 // Sector Quality = 1
-StoragePledge := 0.00878 FIL
-ConsensusPledge := 0.18907 FIL
-PreCommitDeposit := 50 * StoragePledge = 0.43904 FIL
-InitialPledge := StoragePledge + ConsensusPledge = 0.19785 FIL
+StoragePledge := 0.0088
+ConsensusPledge := 0.1891 FIL
+PreCommitDeposit := 45 * StoragePledge = 0.3951
+InitialPledge := StoragePledge + ConsensusPledge = 0.1978
 
-// Sector Quality = 50
-StoragePledge := 0.43904 FIL
-ConsensusPledge := 9.45331 FIL
-PreCommitDeposit := StoragePledge = 0.43904 FIL
-InitialPledge := StoragePledge + ConsensusPledge = 9.89235 FIL
+// Sector Quality = 45
+StoragePledge := 0.3951
+ConsensusPledge := 8.5080 FIL
+PreCommitDeposit := StoragePledge = 0.3951
+InitialPledge := StoragePledge + ConsensusPledge = 8.9031
 ```
 
 ## Backwards Compatability 
@@ -217,12 +217,12 @@ Then in a single day, the adversarial group is expected to gain around 0.32% of 
 
 ```
 1. advPower = advFILplusPct * FILplusMultiplier * durationMultiplier * powerOnboarding * FILplusPct
-2. advPower =  0.5 * 10 * 5 * 5 * 0.5 = 62.5
+2. advPower =  0.5 * 10 * 5 * 4.5 * 0.5 = 56.25
 ```
 where advFILplusPct is the fraction of FILplus deals available that are acquired by the adversary, FILplusMultiplier is the 10x FIL+ power multiplier, durationMultiplier is the maximum 5 year duration multiplier, powerOnboarding is the byte power onboarded, and FILplusPct is the fraction of the power that is FIL+.
 
 ```
-3. honestPower = 0.5 * 10 * 1 * 5 * 0.5 + 1 * 1 * 5 * 0.5 = 15
+3. honestPower = 0.5 * 10 * 1 * 4.5 * 0.5 + 1 * 1 * 4.5 * 0.5 = 13.5
 4. advPowerDailyPctGain = advPower/(19*1024 + honestPower)
 5. advPowerDailyPctGain = 0.3%
 ````
@@ -231,7 +231,8 @@ where advFILplusPct is the fraction of FILplus deals available that are acquired
 - A limitation is that the above calculation assumes the malicious party is starting from 0% of consensus power. If they already control 10%, time to 33% and 51% is reduced to approximately 70 and 150 days. And they have to gain 4.5 and 9.1 EiB.
 
 ### Rollout Shock
-This policy would only apply for newly onboarded sectors, mitigating potential network shocks as SP’s are limited by sealing throughput. 
+
+A risk is that the SDM slope is too steep, inadvertently restricting longer commitment. If this happens, optionality on the multiplier can be introduced in a future upgrade. CEL is committed to continually monitoring the economic health of the network, and adjusting parameter spaces as needed while including community input. We have also publicly released various analyses investigating the impact of potentially sudden changes in the network were this policy to be implemented [here](https://hackmd.io/uDXfe35UQuaLjED9u1fxyA)
 
 ## Product & Incentive Considerations
 As discussed in the problem motivation section, this FIP introduces incentives to further align the cryptoeconomic schema of the Filecoin Network with intended goals of the network to provide useful and reliable storage. We introduce the idea that longer term sectors represent a long-term investment and commitment to the Filecoin ecosystem, and therefore should be rewarded proportionally with greater block reward shares.
@@ -243,4 +244,4 @@ From a product perspective, we see strong support for a network more aligned wit
 For smaller SP’s, introducing this policy could help improve their competitiveness and ability to capture network block rewards, Under this proposal, returns on tokens put up as collateral scale linearly for all SP’s (regardless of size), whereas only larger ones are able to take advantage of economies of scale for hardware. This proposal could benefit smaller SP’s because they can still get rewards boost/multipliers without prohibitively expensive hardware costs, and termination risks associated with FIL+ data.
 
 ## Implementation 
-TBD
+See Specifiation Section
