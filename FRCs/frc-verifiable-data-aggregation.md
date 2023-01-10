@@ -1,7 +1,7 @@
 ---
 fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
 title: Verifiable Data Aggregation
-author: Jakub Sztandera (@Kubuxu)
+author: Jakub Sztandera (@Kubuxu), Nicola Greco (@nicola), Peter Rabbitson (@ribasushi)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/512
 status: Draft
 type: FRC
