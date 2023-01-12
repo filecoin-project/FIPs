@@ -49,7 +49,7 @@ Data Segments can then be placed within a deal according to alignment rules of c
 
 Data Segments have to aligned to the next power of two boundary with NUL trailer up to next power of the boundary.
 ```
-DataSegment size = ceil(original deal size * 128/127) // Fr32 padding
+DataSegment size = ceil(original sub-deal size * 128/127) // Fr32 padding
 DataSegment alignment = pow(2, ceil(log2(DataSegment size))
 DataSegment with trailer size = DataSegment alignment
 ```
