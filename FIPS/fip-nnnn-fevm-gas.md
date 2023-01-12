@@ -31,6 +31,8 @@ This FIP proposes a few adjustments to the gas charging schedule. Specifically:
 
 This FIP also introduces overall memory limits. However, these memory limits currently only include Wasm memories and table elements (not IPLD blocks, wasm _code_, and other metadata).
 
+Additionally, this FIP introduces a maximum block size limit of 1MiB for all newly created IPLD blocks.
+
 Finally, this FIP reduces the maximum recursive call depth limit from 1025 to 1024 to bring it in-line with the initial intentions of this limit and other blockchain VMs.
 
 ## Change Motivation
@@ -232,6 +234,13 @@ A call stack is entitled to allocate a maximum of 2GiB in cumulative Wasm memory
 
 - If an actor attempts to exceed either of these limits at runtime, the Wasm container will return `-1` to the actor (as per the Wasm spec). All current built-in actors will then abort immediately with the `SYS_ILLEGAL_INSTRUCTION` exit code.
 - If instantiating an actor would exceed either of these limits, the instantiating actor will immediately exit with the `SYS_ILLEGAL_INSTRUCTION` exit code.
+
+### Block Size Limits
+
+This FIP introduces a 1MiB limit on all newly created blocks (through the `ipld::block_create` syscall). This affects:
+
+1. Blocks in state.
+2. The size of internal (actor to actor) messages and return values.
 
 ## Design Rationale
 
