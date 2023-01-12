@@ -61,7 +61,17 @@ First and foremost, this FIP makes a few adjustments to FIP-0032.
 - Memory copy costs `p_memcpy_per_byte` have been reduced from 0.5gas/byte to 0.4gas/byte to more accurately match benchmarks. We're reasonably confident in this number as it exactly matches the expected speed of 3200 MT/s memory.
 - The explicit "extern" cost (`p_extern_gas`) of 21,000 gas has been rolled into the various syscall costs themselves to make it easier to reason about the costs of the individual syscalls. This change has no affect on the gas _charged_, it simply makes it easier to benchmark and discuss changes to gas charges.
 
-### System Calls
+### System Call Gas Adjustments
+
+This FIP adjusts the gas costs for most of the "core" syscalls:
+
+1. State-related operations
+2. Message sending
+3. Hashing
+4. Randomness
+5. Signature verification
+
+This FIP does _not_ adjust gas values for storage-proof related operations as those operations are not relevant to FEVM.
 
 #### IPLD Reads & Writes
 
@@ -71,10 +81,6 @@ This FIP updates the cost of all 4 IPLD operations according to the latest bench
 
 1. The flat fee has been increased from 135,617 to 187,440 account for an increased size in the state-tree since network launch.
 2. The per-byte fee has been reduced from `10.5 gas/byte` to a flat `10 gas/byte` (`p_memret_per_byte`). This reduction comes from the fact that the "memory retention" cost more than covers the actual per-byte compute cost from loading IPLD blocks.
-
-The new read costs were determined through [benchmarking][read-benchmark]. However, the per-byte costs were ignored as they were already covered by the existing memory retention cost.
-
-[read-benchmark]: https://bafybeifx23obtfhzdomhtlrv5h3lkb4zjnj32kye27q24gvjlkpjva7zre.ipfs.dweb.link/blockstore-read-gas.html
 
 ##### `ipld::block_create`
 
@@ -102,10 +108,6 @@ These fees supersede the current prices:
 2. A fixed 353,640 per-block fee.
 
 Overall, blocks under ~4KiB are actually cheeper under this model as the fixed cost is reduced from 353,640 to 302,000.
-
-As with reads, these costs were determined through [benchmarking](write-benchmark).
-
-[write-benchmark]: https://bafkreifhqfbc2scfq6s4roj625y2a4bm5cmo7bs6to56vjbu5cqswdxswe.ipfs.dweb.link/
 
 #### Send
 
@@ -246,7 +248,45 @@ This FIP introduces a 1MiB limit on all newly created blocks (through the `ipld:
 
 Execution fidelity, accuracy, and security are the overarching principles that motivates this FIP. Fees have been revised to deliver a more accurate gas model while preserving the security properties of the network, which revolve around the baseline cost of 10 gas/ns.
 
-The rationale backing each decision has been documented in the specification section.
+### Cumulative Memory Limits
+
+The 2GiB cumulative memory limit was calculated from:
+
+1. The default stack size of rust-based actors (1MiB).
+2. The default maximum call depth (1024).
+3. Multiplied by 2 for overhead.
+
+### Block Size Limits
+
+The block size limit was chosen to be 1MiB as that should be an order of magnitude larger than any IPLD blocks currently found on-chain (except for the builtin actor wasm bytecode).
+
+### Wasm Instruction Gas
+
+Except for bulk memory operations this FIP does not adjust the cost of individual Wasm instructions. The rational is two-fold:
+
+1. FEVM does not use some of the more expensive Wasm instructions (SIMD and floating point operations).
+2. There is enough overhead for each EVM instruction that it's impossible to repeatedly invoke a single expensive Wasm operation.
+
+We specifically verified this for random memory reads and random jumps in in https://github.com/filecoin-project/fvm-bench/pull/6. These MLOAD instructions ended up costing ~50x more gas than we would have charged for a single random memory access (assuming a memory latency of around 10-15ns).
+
+### Computational Costs
+
+The send, hashing, signature verification, allocation/memcpy, and randomness costs were all determined through benchmarking as well. These benchmarks can be run stand-alone via the [calibration test suite](calib-testing).
+
+_Notes:_
+
+- The sha256 benchmarks assume hardware support.
+- The randomness syscall was not directly benchmarked and the gas costs are computed purely based on the cost of hashing.
+- All of these calibration benchmarks run in isolation and don't include the true cost of reading/writing state. Those costs were benchmarked separately below.
+
+[calib-testing]: https://github.com/filecoin-project/ref-fvm/tree/master/testing/calibration
+
+### State Read/Write Costs
+
+The new [read costs][read-benchmark] and [write costs][write-benchmark] were determined through benchmarking against lotus starting from a snapshot and reflect the current cost of reading/writing to the datastore given the current state-tree size.
+
+1. The read-costs account for both the read latency and the cost of copying newly read data several times from the client into the FVM.
+2. The write-costs (computation only) account for the expected per-block overhead incurred in the final "flush" operation. The per-byte costs were ignored as the storage cost (1300 gas/byte) vastly exceeds the computational cost of storing these blocks.
 
 ## Backwards Compatibility
 
