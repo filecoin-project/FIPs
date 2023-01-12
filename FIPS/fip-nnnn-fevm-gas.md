@@ -2,7 +2,7 @@
 fip: "<to be assigned>"
 title: Update gas charging schedule and system limits for FEVM
 author: Steven Allen (@stebalien), Raúl Kripalani (@raulk), Akosh Farkash (@aakoshh)
-discussions-to: <URL>
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/588
 status: Draft
 type: Technical Core
 category (*only required for Standard Track): Core
