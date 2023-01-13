@@ -92,4 +92,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0051](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0051.md)   | Synchronous Consistent Block Broadcast for EC Security | FRC  |Guy Goren <guy.goren@protocol.ai>, Alfonso de la Rocha <alfonso@protocol.ai> | Draft  |
 |[0052](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0052.md)   | Increase max sector commitment to 3.5 years | FIP  |@anorth | Last Call  |
 |[0053](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0053.md)   | Non-Fungible Token Standard | FRC  |@alexytsu, @abright, @anorth | Draft  |
-
+|[0055](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0055.md)   | Supporting Ethereum Accounts, Addresses, and Transactions  | FIP  |@raulk, @stebalien | Draft  |
