@@ -31,15 +31,18 @@ The following aims to help better align the economic incentives of the network w
 
 ## Specification
 
+### Change to Miner Sector Info's
+- Add an `extension_epoch` field to miner_sector_infos. This field contains the epoch a sector is extended by a Storage Provider. 
+
 ### SDM Function
 The SDM should scale initial pledge and power via the SDM function specified below: 
 
 ```
-fn sdm(duration_commitment: f64) -> f64 {
-    if duration_commitment <= (365.0 * 1.5).round() {
+fn sdm(duration_commitment: i64) -> i64 {
+    if duration_commitment <= (3/2 * EPOCHS_IN_YEAR) {
         1.0
     } else {
-        (duration_commitment - 183.0) / 365.0
+        (duration_commitment - EPOCHS_IN_YEAR/2) / EPOCHS_IN_YEAR
     }
 }
 ```
@@ -59,7 +62,8 @@ let duration_commitment = EPOCHS_IN_DAY * (expiration_epoch - extension_epoch);
 The minimum sector extension time is 1 year. In the [policy actor](https://github.com/filecoin-project/builtin-actors/blob/45c56ed57190349f1856d3258af6c09a24ea1395/runtime/src/runtime/policy.rs#L358): 
 
 ```
-pub const MIN_SECTOR_EXPIRATION: i64 = 365 * EPOCHS_IN_DAY;
+pub const MIN_SECTOR_EXPIRATION: i64 = EPOCHS_IN_YEAR;
+pub const MAX_SECTOR_EXPIRATION_EXTENSION i64 = 5 * EPOCHS_IN_YEAR;
 ```
 Note that sector extension should not support pledge release. As such: 
 
@@ -72,7 +76,7 @@ new_pledge = max(old_pledge, new_pledge)
 The [monies actor](https://github.com/filecoin-project/builtin-actors/blob/b7ad2c55363c363f61275ca45ef255e28f305254/actors/miner/src/monies.rs) termination penalty should be changed to: 
 
 ```
-let penalized_reward = expected_reward * TERMINATION_REWARD_FACTOR_NUM * SDM(duration_commitment);
+let penalized_reward = expected_reward * TERMINATION_REWARD_FACTOR_NUM * 140 * SDM(duration_commitment);
 ```
 
 ### Sector Duration Multiplier 
