@@ -33,7 +33,7 @@ The following aims to help better align the economic incentives of the network w
 ## Specification
 
 ### Change to Miner Sector Info's
-- Add an `extension_epoch` field to miner_sector_infos. This field contains the epoch a sector is extended by a Storage Provider. 
+- Add an `last_extension_epoch` field to miner_sector_infos. This field contains the epoch a sector is extended by a Storage Provider. Upon Initial Sector Commitment, we can initialize this field such that `last_extension_epoch := activation_epoch`.
 
 ### SDM Function
 The SDM should scale initial pledge and power via the SDM function specified below: 
@@ -41,7 +41,7 @@ The SDM should scale initial pledge and power via the SDM function specified bel
 ```
 fn sdm(duration_commitment: i64) -> i64 {
     if duration_commitment <= (3/2 * EPOCHS_IN_YEAR) {
-        1.0
+        1
     } else {
         (duration_commitment - EPOCHS_IN_YEAR/2) / EPOCHS_IN_YEAR
     }
@@ -72,6 +72,45 @@ Note that sector extension should not support pledge release. As such:
 new_pledge = max(old_pledge, new_pledge)
 ```
 
+### SDM Recalculation Upon Replica Update 
+
+In the [miner actor](https://github.com/filecoin-project/builtin-actors/blob/master/actors/miner/src/lib.rs#L1304) implementation for resnapping, `duration` is already defined as such: 
+```
+let duration = new_sector_info.expiration - new_sector_info.activation
+```
+
+We adjust the calculations for 
+- `new_sector_info.expected_day_reward` 
+- `new_sector_info.expected_storage_pledge` 
+- `initial_pledge_at_upgrade` 
+
+in the [miner actor](https://github.com/filecoin-project/builtin-actors/blob/master/actors/miner/src/lib.rs#L1304) to include the SDM
+
+```
+new_sector_info.expected_day_reward = expected_reward_for_power(
+    &rew.this_epoch_reward_smoothed,
+    &pow.quality_adj_power_smoothed,
+    &qa_pow,
+    fil_actors_runtime::network::EPOCHS_IN_DAY,
+) * sdm(duration);
+```
+```
+new_sector_info.expected_storage_pledge = expected_reward_for_power(
+    &rew.this_epoch_reward_smoothed,
+    &pow.quality_adj_power_smoothed,
+    &qa_pow,
+    INITIAL_PLEDGE_PROJECTION_PERIOD,
+) * sdm(duration);
+```
+```
+let initial_pledge_at_upgrade = initial_pledge_for_power(
+    &qa_pow,
+    &rew.this_epoch_baseline_power,
+    &rew.this_epoch_reward_smoothed,
+    &pow.quality_adj_power_smoothed,
+    &rt.total_fil_circ_supply(),
+)* sdm(duration);
+```
 ### Termination Fee Cap
 
 The [monies actor](https://github.com/filecoin-project/builtin-actors/blob/b7ad2c55363c363f61275ca45ef255e28f305254/actors/miner/src/monies.rs) termination penalty should be changed to: 
