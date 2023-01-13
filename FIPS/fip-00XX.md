@@ -116,7 +116,7 @@ let initial_pledge_at_upgrade = initial_pledge_for_power(
 The [monies actor](https://github.com/filecoin-project/builtin-actors/blob/b7ad2c55363c363f61275ca45ef255e28f305254/actors/miner/src/monies.rs) termination penalty should be changed to: 
 
 ```
-let penalized_reward = expected_reward * TERMINATION_REWARD_FACTOR_NUM * 140 * SDM(duration_commitment);
+let penalized_reward =  max(SP(t), BR(StartEpoch, 20d) + BR(StartEpoch, 1d) * terminationRewardFactor * min(SectorAgeInDays, 140*sdm(duration_commitment)))
 ```
 
 ### Sector Duration Multiplier 
