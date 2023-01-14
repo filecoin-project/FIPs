@@ -6,7 +6,7 @@ type: Technical
 author: Axel C (@AxCortesCubero), Juan B (@jbenet), Maria S (@misilva73), Molly M (@momack2), Tom M (@tmellan), Vik K (@vkalghatgi), ZX @zixuanzh) 
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/554
 created: 2022-12-14
-replaces: [FIP-0052](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0052.md)
+replaces: (https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0052.md
 ---
 
 ## Simple Summary
@@ -226,7 +226,7 @@ InitialPledge := StoragePledge + ConsensusPledge = 8.9031
 ```
 
 ## Backwards Compatability 
-This policy would apply at Sector Extension and Replica Update for existing sectors. CEL has released public modeling and analysis [here](https://hackmd.io/uDXfe35UQuaLjED9u1fxyA) investgiating the decision to apply the policy either to just newly onboarded sectors, or to sectors upon extension. While simulations and modeling indicated that both versions of the SDM policy would be net positive for the network, the policy applying to all sectors would have stronger macroeconomic supply effects, whilst also decreasing barriers to sector commitment (pledges) supporting robust SP return on pledge profiles.
+This policy would apply at Sector Extension and Replica Update for existing sectors. CEL has released public modeling and analysis [here](https://hackmd.io/uDXfe35UQuaLjED9u1fxyA) investigating the decision to apply the policy either to just newly onboarded sectors, or to sectors upon extension. While simulations and modeling indicated that both versions of the SDM policy would be net positive for the network, the policy applying to all sectors would have stronger macroeconomic supply effects, whilst also decreasing barriers to sector commitment (pledges) supporting robust SP return on pledge profiles.
 
 ## Test Cases
 N/A
