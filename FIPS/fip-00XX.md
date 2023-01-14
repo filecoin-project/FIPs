@@ -16,9 +16,8 @@ replaces: FIP-0052
 - Sectors with higher Quality Adjusted Power as a result of the Sector Duration Multiplier and Quality Multiplier will require higher initial pledge collateral.
 - The minimum sector duration time will increase from 6 months to 1 year and the maximum sector duration will increase from 1.5 years to 5 years. The upper bound of [Deal Duration Bounds](https://github.com/filecoin-project/builtin-actors/blob/b5c101ab94f562ba43c1eca31bd1e73c6fc35794/actors/market/src/policy.rs#L33-L35) will increase to 5 years as well. 
 - CEL and the community will monitor the network and look to increase the maximum sector duration in a future FIP if network conditions merit, pending community-driven support for such measures.
-- The SDM policy will apply at sector commitment, replica update, and extension
+- The SDM policy will apply at sector commitment, extension, and replica update
 - The termination fee cap will scale with the duration multiplier. 
-
 
 ## Problem Motivation
 Currently, Storage Providers do not receive any additional compensation or incentives for committing longer term sectors (whether that be CC or storage deals) to the network. The protocol places equal value on 180 to 540 day sectors in terms of storage mining rewards. However, in making an upfront commitment to longer-term sectors, Storage Providers take on additional operational risks (more can go wrong in a longer time period), and lock rewards for longer. Furthermore, in committing longer term sectors/deals, Storage Providers demonstrate their long-term commitment to the mission and growth of the Filecoin Network, and are more aligned with client preference for persistent storage. Therefore, the added value of longer-term sector commitments, coupled with the compounded operational/liquidity risks Storage Providers incur for committing longer term sectors should be compensated for in the form of increased rewards.
@@ -82,7 +81,6 @@ let duration = new_sector_info.expiration - new_sector_info.activation
 We adjust the calculations for 
 - `new_sector_info.expected_day_reward` 
 - `new_sector_info.expected_storage_pledge` 
-- `initial_pledge_at_upgrade` 
 
 in the [miner actor](https://github.com/filecoin-project/builtin-actors/blob/master/actors/miner/src/lib.rs#L1304) to include the SDM
 
@@ -101,15 +99,6 @@ new_sector_info.expected_storage_pledge = expected_reward_for_power(
     &qa_pow,
     INITIAL_PLEDGE_PROJECTION_PERIOD,
 ) * sdm(duration);
-```
-```
-let initial_pledge_at_upgrade = initial_pledge_for_power(
-    &qa_pow,
-    &rew.this_epoch_baseline_power,
-    &rew.this_epoch_reward_smoothed,
-    &pow.quality_adj_power_smoothed,
-    &rt.total_fil_circ_supply(),
-)* sdm(duration);
 ```
 ### Termination Fee Cap
 
@@ -257,22 +246,33 @@ Assume:
 The network currently has 19 EiB of quality adjusted power.
 5 PiB/day onboarding, with 50% attributed to FIL+, and that this is sustained for several months.
 A malicious consortium starting from zero begins to acquire 50% of Fil+ deals and commit sectors for 5 years to gain the maximum duration multiplier, and all other storage power maintains the lowest possible duration sectors of 1 year.
-Then in a single day, the adversarial group is expected to gain around 0.32% of consensus power. This follows from:
+Then in a single day, the adversarial group is expected to gain around 0.29% of consensus power. This follows from:
 
 ```
 1. advPower = advFILplusPct * FILplusMultiplier * durationMultiplier * powerOnboarding * FILplusPct
-2. advPower =  0.5 * 10 * 5 * 4.5 * 0.5 = 56.25
+2. advPower =  0.5 * 10 * 4.5 * 5 * 0.5 = 56.25
 ```
 where advFILplusPct is the fraction of FILplus deals available that are acquired by the adversary, FILplusMultiplier is the 10x FIL+ power multiplier, durationMultiplier is the maximum 5 year duration multiplier, powerOnboarding is the byte power onboarded, and FILplusPct is the fraction of the power that is FIL+.
 
 ```
-3. honestPower = 0.5 * 10 * 1 * 4.5 * 0.5 + 1 * 1 * 4.5 * 0.5 = 13.5
+3. honestPower = 0.5 * 10 * 1 * 5 * 0.5 + 1 * 1 * 5 * 0.5 = 15
 4. advPowerDailyPctGain = advPower/(19*1024 + honestPower)
 5. advPowerDailyPctGain = 0.3%
 ````
-- If this scenario is maintained, the adversarial group is expected to exceed 33% of consensus power within 105 days, and 51% in 180 days. To do so needs 6.5 and 11 EiB respectively.
+- If this scenario is maintained, the adversarial group is expected to exceed 33% of consensus power within 126 days, and 51% in 205 days. To do so needs 6.9 and 11.3 EiB of storage power respectively.
 - On one hand it’s unlikely a single group could achieve 50% of FIL+ power consistently, and unlikely that the adversarial group exclusively takes up the longer duration sectors with enhanced power multipliers.
 - A limitation is that the above calculation assumes the malicious party is starting from 0% of consensus power. If they already control 10%, time to 33% and 51% is reduced to approximately 70 and 150 days. And they have to gain 4.5 and 9.1 EiB.
+
+The same scenario as above is shown below, except there is no duration multiplier available.  
+
+```
+1. advPower = advFILplusPct * FILplusMultiplier * powerOnboarding * FILplusPct
+2. advPower =  0.5 * 10 * 5 * 0.5 = 12.5
+3. honestPower = 0.5 * 10 * 1 * 5 * 0.5 + 1 * 1 * 5 * 0.5 = 15
+4. advPowerDailyPctGain = advPower/(19*1024 + honestPower)
+5. advPowerDailyPctGain = 0.06%
+```
+- If this scenario is maintained, the adversarial group is expected to exceed 33% of consensus power within 851 days, and 51% in 2046 days. To do so needs 10.4 and 25 EiB of storage power respectively.
 
 ### Rollout Shock
 
