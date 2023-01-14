@@ -6,7 +6,7 @@ type: Technical
 author: Axel C (@AxCortesCubero), Juan B (@jbenet), Maria S (@misilva73), Molly M (@momack2), Tom M (@tmellan), Vik K (@vkalghatgi), ZX @zixuanzh) 
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/554
 created: 2022-12-14
-replaces: FIP-0052
+replaces: https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0052.md
 ---
 
 ## Simple Summary
@@ -143,7 +143,7 @@ Introduce a multiplier based on sector duration
 | VerifiedDealWeightMultiplier (VDWM) | Multiplier for power for storage with verified deals. |
 | **SectorDurationMultiplier (SDM)** | **Multiplier for power for storage based on promised sector duration** |
 
-**This SectorDurationMultiplier function proposed is linear with slope 1**. See below for the function proposed. 
+**This SDM function proposed is linear with slope 1**. See below for the function proposed. 
 ![SDM_Function](../resources/fip-00XX/SDM_Function.png)
 
 The rationale to select this linear slope 1 function is based on a principle that the selected parameters should maximize the effectiveness of the duration incentive, subject to SP’s collateral availability constraints, while taking into account micro and macroeconomic consequences with minimal added implementation complexity. The SDM function is linear with slope 1 with initial sector commitments between 1 and 1.5 years receiving a 1x Quality multiplier so as to not disadvantage SP's who had already committed sectors for 1.5 years. 
@@ -226,7 +226,7 @@ InitialPledge := StoragePledge + ConsensusPledge = 8.9031
 ```
 
 ## Backwards Compatability 
-This policy would apply at Sector Extension and Replica Update for existing sectors. CEL has released public modeling and analysis [here](https://hackmd.io/uDXfe35UQuaLjED9u1fxyA) investgiating the decision to apply the policy either to just newly onboarded sectors, or to sectors upon extension. While siulations and modeling indicated that both versions of the SDM policy would be net positive for the network, the policy applying to all sectors would have stronger macroeconomic supply effects, whilst also decreasing barriers to sector commitment (pledges) supporting robust SP return on pledge profiles.
+This policy would apply at Sector Extension and Replica Update for existing sectors. CEL has released public modeling and analysis [here](https://hackmd.io/uDXfe35UQuaLjED9u1fxyA) investgiating the decision to apply the policy either to just newly onboarded sectors, or to sectors upon extension. While simulations and modeling indicated that both versions of the SDM policy would be net positive for the network, the policy applying to all sectors would have stronger macroeconomic supply effects, whilst also decreasing barriers to sector commitment (pledges) supporting robust SP return on pledge profiles.
 
 ## Test Cases
 N/A
