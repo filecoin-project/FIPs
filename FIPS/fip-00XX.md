@@ -6,7 +6,7 @@ type: Technical
 author: Axel C (@AxCortesCubero), Juan B (@jbenet), Maria S (@misilva73), Molly M (@momack2), Tom M (@tmellan), Vik K (@vkalghatgi), ZX @zixuanzh) 
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/554
 created: 2022-12-14
-replaces: https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0052.md
+replaces: [FIP-0052](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0052.md)
 ---
 
 ## Simple Summary
