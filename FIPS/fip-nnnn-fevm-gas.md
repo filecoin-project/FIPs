@@ -79,16 +79,22 @@ This FIP updates the cost of all 4 IPLD operations according to the latest bench
 
 ##### `ipld::block_open`
 
-1. The flat fee has been increased from 135,617 to 187,440 account for an increased size in the state-tree since network launch.
+1. The flat fee has been increased from 135,617 to 187,440 (`p_blockopen_base_gas`) account for an increased size in the state-tree since network launch.
 2. The per-byte fee has been reduced from `10.5 gas/byte` to a flat `10 gas/byte` (`p_memret_per_byte`). This reduction comes from the fact that the "memory retention" cost more than covers the actual per-byte compute cost from loading IPLD blocks.
+
+This syscall now charges `187,444 + 10 * block_size` (in addition to `p_syscall_gas`).
 
 ##### `ipld::block_create`
 
 The per-byte fee has been reduced from `10.5 gas/byte` to a flat `10 gas/byte` for the same reasons as `ipld::block_open`.
 
+This syscall now charges `10 * block_size`  (in addition to `p_syscall_gas`).
+
 ##### `ipld::block_read`
 
 The per-byte fee has been reduced from `0.5 gas/byte` to `0.4 gas/byte` due to the adjustment to `p_memcpy_per_byte`.
+
+This syscall now charges `0.4 * read_size`  (in addition to `p_syscall_gas`).
 
 ##### `ipld::block_link`
 
@@ -98,7 +104,7 @@ Specifically, this FIP proposes the following:
 
 1. A `2.4 gas/byte` fee for to allocate and copy the block into temporary storage.
 2. A per-byte hashing fee according to the price list defined in the hashing section below.
-3. A fixed per-block fee of 172,000 gas to account for the cost of "flushing" blocks at the end of an epoch.
+3. A fixed per-block fee of 172,000 (`p_blocklink_base_gas`) gas to account for the cost of "flushing" blocks at the end of an epoch.
 4. A fixed 130,000 per-block storage fee to account for metadata overhead.
 5. A per-byte storage fee of 1,300 gas/byte.
 
@@ -109,9 +115,11 @@ These fees supersede the current prices:
 
 Overall, blocks under ~4KiB are actually cheeper under this model as the fixed cost is reduced from 353,640 to 302,000.
 
+This syscall now charges `172,000 + 130,000 + (2.4 + per_byte_hash_fee + 1,300) * block_size`  (in addition to `p_syscall_gas`).
+
 #### Send
 
-This FIP changes `send` costs to:
+This FIP changes `send` costs to (both the top-level send and internal sends):
 
 1. Account for the cost of instantiating and invoking a Wasm actor.
 2. Not account for account  actor state loading and storing as those costs will now be accounted for separately.
@@ -127,49 +135,104 @@ These costs were designed to "make the numbers work out" in aggregate and took t
 
 This model has been simplified to:
 
-1. A fixed "transfer" fee of 6000 gas for all non-zero value transfers.
-2. A fixed "invocation" cost of 75000 for all sends except method 0, to charge for instantiating and calling into an actor.
+1. A fixed "transfer" fee of 6,000 (`p_transfer`) gas for all non-zero value transfers.
+2. A fixed "invocation" cost of 75,000 (`p_invocation`) for all sends except method 0, to charge for instantiating and calling into an actor.
+3. Actor state read/write fees as defined below.
 
-#### Actor State & Address Lookups
+#### Actor State Reads & Writes
 
-Previously, the FVM relied heavily on caching to reduce the costs of actor state loading and address resolution. Unfortunately, in the presence of user defined actors, it's now possible to trigger random address resolutions and actor state loads.
+Previously, the FVM relied heavily on caching to reduce the costs of actor state loading. Unfortunately, in the presence of user defined actors, it's now possible to trigger frequent and random state reads/writes.
 
 This FIP introduces:
 
-1. An actor-state lookup cost of 400,000 gas (`p_actor_lookup`. This covers an expected 2 IPLD block loads, decodes, etc.
-2. An address resolution cost of 1,000,000 gas (`p_address_lookup`). This covers the expected 5 IPLD block loads, decodes, etc.
+1. An actor-state lookup cost of 500,000 gas (`p_actor_lookup`).
+2. An actor-state update cost of 475,000 gas (`p_actor_update`).
 
 As these costs are significant, this FIP proposes two mechanisms to reduce these costs:
 
-1. First, this FIP takes caching into account and only charges for the _first_ time, during a single transaction, that an address is _successfully_ resolved or an actor's state is loaded.
-2. Second, this FIP will not charge to load builtin singleton actor states (actors 0-7, 10, and 99).
+1. First, this FIP takes caching into account and only charges for the _first_ time an actor is loaded/updated during a single transaction (taking reverts into account).
+2. Second, this FIP will not charge to load or update the builtin singleton actor states (actors 0-7, 10, and 99) as those actors will be amortized over the execution of the block.
+3. Third, this FIP will not charge to load the top-level message sender and recipient. The client is expected to preload them.
 
-#### Actor State Updates
+Specifically:
 
-Currently, the cost for actor-state updates is bundled into the cost of calling an actor. This FIP breaks these costs out to more accurately charge for state changes. As with actor state reads, these fees are only charged the first time an actor is updated during a transaction.
+1. The FVM will keep two sets:
+    1. `state_lookup_set`
+    2. `state_update_set`
+2. Additionally, the FVM will keep a state read cache and a state write cache.
+3. At the beginning of the epoch, the FVM will "warm" the state read cache by loading the singleton actors specified above.
+4. Before executing each message, the FVM will re-initialize `state_lookup_set` and `state_update_set` to the set of singleton actors specified above (as if they had already been updated).
+5. Before performing a state read, the FVM will check the `state_lookup_set` set. If the actor ID is not present, the FVM will charge `p_actor_lookup`.
+6. Before performing a state write, the FVM will check both `state_lookup_set` and `state_update_set`.
+If the actor ID is not present, the FVM will charge for a read and/or write, respectively or both.
+6. After performing a state read, the FVM will add the target actor ID `state_lookup_set` (whether or not the actor exists).
+7. After performing a state write, the FVM will add the target actor ID `state_lookup_set` and `state_update_set`.
+8. Finally, on revert, the FVM will "roll back" any changes to the `state_lookup_set`, `state_update_set`, and the read/write caches.
 
-When an actor's state is updated (e.g., when transferring funds or calling `sself::set_root`) for the first time during a transaction:
+The FVM will apply these charges during the following operations:
 
-1. If the actor state has not yet been loaded, `p_actor_lookup` is charged.
-2. If the actor state has not yet been updated, TODO (`p_actor_update`) is charged to cover not only the cost of updating the state-tree, but the cost of the expected state churn resulting from the update.
+1. The top-level send will charge to update the top-level message sender (due to the nonce update).
+2. On all sends:
+    1. The FVM will charge to load the receiver's state.
+    2. The FVM will charge to update the sender's state if value is transferred.
+    3. The FVM will charge to update the receiver's state if:
+        1. The receiver is automatically created.
+        2. Value is transferred.
+3. When creating a new actor, the FVM will charge for updating the new actor's state.
+4. On `self::self_destruct`, the FVM will charge to update both the current actor and the
+   beneficiary.
+5. Additionally, the FVM will charge for actor reads on the following syscalls:
+    1. `actor::get_actor_code_cid`
+    2. `actor::balance_of`
+    2. `actor::lookup_delegated_address`
+5. Additionally, the FVM will charge for actor updates on the following syscalls:
+    1. `self::set_root`
 
-TODO:
+#### Address Resolution
 
-- It's unclear what the update fee here should be.
+As with actor-state lookups, the FVM heavily relies on caching to amortize the cost of address resolution. This FIP proposes a similar mechanism to charge for them.
+
+This FIP introduces an address lookup cost of  `p_address_lookup` (1,050,000 gas) to be charged the first time an address is successfully resolved while executing a top-level message (taking reverts into account). However:
+
+- The addresses included in the top-level message are assumed to be pre-resolved.
+- No charge is applied for resolving `f0` addresses (ID addresses).
+
+Specifically:
+
+1. The FVM will keep the set `address_resolution_set`.
+2. Additionally, the FVM will keep an address resolution cache.
+3. Before executing each message, the FVM will re-initialize `address_resolution_set` to the top-level message's sender/receiver.
+5. Before resolving an address, the FVM will check `address_resolution_set`. If the address to be resolved is not present, the FVM will charge `p_address_lookup`.
+6. After _successfully_ resolving an address, the FVM will add the target actor ID `address_resolution_set`.
+8. Finally, on revert, the FVM will "roll back" any changes to `address_resolution_set`.
+
+The FVM will apply these charges during the following operations:
+
+1. On internal `send::send` calls when the recipient is not an `f0` address.
+2. On calls to `actor::resolve_address` (again, when the target address is not an `f0` address).
 
 #### Actor Creation
 
-The explicit "actor creation" compute cost of 1108454 is removed while the actor creation _storage_ cost of `(36+40) * 1300` remains.
+The generic "actor creation" compute cost of 1,108,454 is removed and the actor creation _storage_ cost is increased from 98,800 gas to 250,000 gas (`p_actor_create_storage`).
 
-Instead:
+Whenever a new actor is created via the init actor (i.e., via the `actor::create_actor` syscall), we charge for the new actor's state-tree update and storage:
 
-- Whenever a new actor is created, we charge `p_actor_update + p_actor_lookup` (in addition to the storage fee above).
-- When implicitly creating an actor (e.g., implicitly creating an account and/or a FIP-0048 placeholder), we also charge `p_address_lookup` to cover the cost of assigning an address.
+```
+  p_actor_update + p_actor_lookup
++ p_actor_create_storage
+-----------------------------------------
+= 1,225,000
+```
 
-TODO:
+When an actor is implicitly created due to a send, we charge an additional `p_address_assignment` (1,000,000) and `p_address_lookup` and because, in this case, the FVM assigns addresses directly, bypassing the init actor.
 
-- Ideally we'd just execute the init actor when implicitly creating an actor.
-- We should likely charge an explicit fee when assigning an address to an implicitly created actor, in addition to the address lookup fee.
+```
+  p_actor_update       + p_actor_lookup
+  p_address_assignment + p_address_lookup
++ p_actor_create_storage
+-----------------------------------------
+= 3,375,000
+```
 
 #### Hashing
 
@@ -287,6 +350,85 @@ The new [read costs][read-benchmark] and [write costs][write-benchmark] were det
 
 1. The read-costs account for both the read latency and the cost of copying newly read data several times from the client into the FVM.
 2. The write-costs (computation only) account for the expected per-block overhead incurred in the final "flush" operation. The per-byte costs were ignored as the storage cost (1300 gas/byte) vastly exceeds the computational cost of storing these blocks.
+
+[write-benchmark]: https://bafkreifhqfbc2scfq6s4roj625y2a4bm5cmo7bs6to56vjbu5cqswdxswe.ipfs.dweb.link/
+[read-benchmark]: https://bafybeifx23obtfhzdomhtlrv5h3lkb4zjnj32kye27q24gvjlkpjva7zre.ipfs.dweb.link/blockstore-read-gas.html
+
+### Actor State Read/Update
+
+Actor state costs were determined by benchmarking.
+
+1. Benchmarking the expected number of reads & writes per update/lookup amortized over a "normal" block execution. This led to an expectation of 2.3 blocks/operation.
+2. Benchmarking the expected amount of data read/written. This lead to ~6KB on average.
+
+From here, we calculated the lookup cost as:
+
+```
+   2.3  * p_blockopen_base_gas # Charge for the latency.
++  6000 * p_memret_per_byte    # Charge for caching the state-tree.
+------------------------------
+=  491,112
+=~ 500,000                     # Add some fuzz for decoding and security.
+```
+
+We can similarly calculate the write cost as follows:
+
+```
+   2.3  * p_blocklink_base_gas  # Per block.
+   6000 * 10                    # Charge for blake2b hashing.
+   6000 * 2                     # Charge for allocation (2/byte from benchmarks)
++  6000 * 0.8                   # Charge for an assumed 2 copies to flush.
+------------------------------
+=  460,400
+=~ 475,000                     # Round up to account for state churn.
+```
+
+### Actor Creation Gas
+
+Previously, Filecoin charged for `32+40 = 72` bytes when creating new actors. However, the actor-state object has changed since network launch (and this was always an undercharge anyways). We now calculate this charge as:
+
+```
+  36  # Actor State CID
+  36  # Actor Code CID
+  8   # Nonce (max)
+  16  # Balance (max)
++ 64  # Delegated address (max)
+-----
+= 160
+```
+
+We then round this up to 192 to account for structure and state-tree overhead, which yields `192 * 1300 = 249600 ~= 250,000` gas.
+
+### Address Resolution & Assignment
+
+Address resolution and assignment costs were derived from the state read costs with some rounding applied to account for computation, state churn, etc.
+
+The benchmarked values were:
+
+1. 5.3 (average) blocks read/written per address lookup/assignment.
+2. 5710 bytes read/written per address lookup/assignment.
+
+From there, we derived the lookup cost (`p_address_lookup`) as follows:
+
+```
+   5.3  * p_blockopen_base_gas  # Per block read.
++  5710 * 5.7                   # Charge derived from the per-byte block read costs.
+------------------------------
+=  1,025,979
+=~ 1,050,000
+```
+
+We derive the address assignment cost as follows (`p_address_assignment`):
+
+```
+   5.3  * p_blocklink_base_gas  # Per block.
+   5710 * 10                    # Charge for blake2b hashing.
+   5710 * 2                     # Charge for allocation (2/byte from benchmarks)
++  5710 * 0.8                   # Charge for an assumed 2 copies to flush.
+------------------------------
+=  984,688
+=~ 1,000,000                    # Round up to account for state churn, encoding, etc.
+```
 
 ## Backwards Compatibility
 
