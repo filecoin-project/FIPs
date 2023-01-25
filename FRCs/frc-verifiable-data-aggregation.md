@@ -128,23 +128,28 @@ To complete the verification of the proof, the client has to verify the two incl
 
 ## Design Rationale
 <!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
-TODO
+
+The design of this proposal is guided by three main goals: to ensure the provable inclusion of the client's data within the aggregator's on-chain data deal, to make it easy for the storage provider to find the user's data within the larger data segment, and to prevent malicious behavior of the aggregator or other users whose data was aggregated from causing irrecoverable problems with retrieval.
+
+To achieve the first goal, the proposal includes a mechanism for producing an inclusion proof. This proof allows the client or a third party to verify that their data is properly included within the on-chain deal.
+
+Additionally, the proposal includes a Data Segment Index which provides discoverability of data within the sector. This feature allows the storage provider to easily locate the client's data and prevents malicious behavior from influencing the retrieval of data. By including this mechanism, the proposal ensures that the client's data is retrievable, even if there is malicious behavior from the aggregator or other users.
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
-TODO
+Not applicable
 
 ## Test Cases
 <!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
-TODO
+Pending
 
 ## Security Considerations
 <!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
-TODO
+Does not impact core Filecoin security.
 
 ## Incentive Considerations
 <!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
-TODO
+Does not impact incentive systems.
 
 ## Product Considerations
 <!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
