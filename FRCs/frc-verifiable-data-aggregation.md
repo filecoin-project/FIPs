@@ -61,9 +61,9 @@ The index is constant sized depending on the size of the deal but not all entrie
 
 The number of entires in the index is defined as:
 ```
-number of entires = max(4, floor(size of deal / 2048 / 64 [byte/entry] ))
+number of entires = max(4, 2**floor(log2(padded size of deal / 2048 / 64 [byte/entry])))
 size of index = number of entries * 64 byte
-start of the index = (size of deal - size of index) & 0xffffffff_ffffffc0
+start of the index = (padded size of deal - size of index)
 ```
 
 This results in index capable of containing 256Ki entries and using 16MiB with 32GiB deal.
@@ -81,7 +81,7 @@ For the purpose of SHA-256 checksum, data is structured in the same format as Da
 
 Data Segment Index entry is defined as valid if it is positioned within the Data Segment Index area, from the `start of the index` to the end of the deal and contains a valid checksum.
 
-#### Retrieval handling 
+#### Storage Provider data processing 
 
 After receiving a deal data, a Storage Provider should process the index area to discover any valid Data Segment Index entries within that area.
 When a valid entry is discovered the SP should queue up a task of computing the commitment of referenced Data Segment.
@@ -97,7 +97,7 @@ offset: deal size / 2, size: deal size / 2
 
 The proof consists of two inclusion proofs:
 
-- An inclusion proof of a sub-tree corresponding to the tree of the client’s data, optionally this sub-tree can be miss-aligned with the proving tree.
+- An inclusion proof of a sub-tree corresponding to the tree of the client’s data within aggregtor's commitment.
 - An inclusion proof of the double leaf data segment descriptor within the data segment index.
 
 The client possesses the following information: Commitment to their data $\mathrm{CommDS}$ and size of their data $|{\mathrm{DS}}|$.
