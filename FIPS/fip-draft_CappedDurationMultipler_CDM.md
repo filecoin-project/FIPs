@@ -2,7 +2,7 @@
 fip: "to be assigned"
 title: "Capped Duration Multiplier (CDM)"
 author: Peter R (@ribasushi)☨  Patrick D (@f8-ptrk)  (via superset) Fip36/56 authors
-discussions-to: htps://github.com/filecoin-project/FIPs/discussions/xxx
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/636
 status: Draft
 type: Technical
 created: 2022-02-20
