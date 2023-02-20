@@ -110,7 +110,7 @@ Following that, the aggregator produces the data commitment and two inclusion pr
 - $|\mathrm{D}_ A|$ - size of the aggregator’s data, corresponding to deal/sector size
 - $\mathrm{pos}_ D$ - position of client’s data within the aggregator’s data
 - $\pi_ {st}$ - sub-tree proof, proving the inclusion of $\mathrm{DS}$ in $\mathrm{D}_ A$ at position $\mathrm{pos}_ D$
-- $\mathrm{pos}_ {ds}$ - position of the index entry within the the aggregator's data
+- $\mathrm{pos}_ {ds}$ - position of the index entry within the aggregator's data
 - $\pi_ {ds}$- leaf inclusion proof, proving the inclusion of $(\mathrm{CommD}_ A, \mathrm{pos}_ D, |\mathrm{D}_ C|, \mathrm{checksum})$ within $\mathrm{D}_ {A}$ at $\mathrm{pos}_ {ds}$.
 
 Auxiliary information provided by the aggregator to the client are: `DealID` of the deal which contains Client's data.
@@ -120,10 +120,10 @@ To complete the verification of the proof, the client has to verify the two incl
 - $\mathrm{CommD}_ A', |\mathrm{D}_ A'| = \mathrm{ComputeRoot}(\mathrm{CommDS}, |\mathrm{DS}|, \pi_{st}, \mathrm{pos}_ D)$
 - $\mathrm{CommD}_ A'', |\mathrm{D}_ A''| = \mathrm{ComputeRoot}(\mathrm{Comm}(\mathrm{CommDS}, \mathrm{pos}_ D, |\mathrm{D}_ C|, \mathrm{checksum}), 2, \pi_ {ds}, \mathrm{pos}_ {ds})$
 - Verify $\mathrm{CommD}_ A' \overset{?}{=} \mathrm{CommD}_ A''$
-- Verify $|\mathrm{CommD}_ A'| \overset{?}{=} |\mathrm{CommD}_ A''|$
+- Verify $|\mathrm{D}_ A'| \overset{?}{=} |\mathrm{D}_ A''|$
 - Verify that $\mathrm{pos}_ {ds}$ falls into data segment index based on $|\mathrm{D}_ A'|$.
 - Verify that `DealID` is active on chain
-- Verify that `DealID` has data commitmetn of $\mathrm{CommD}_ A'$ and size $|\mathrm{D}_ A'|$.
+- Verify that `DealID` has data commitment of $\mathrm{CommD}_ A'$ and size $|\mathrm{D}_ A'|$.
 
 
 
@@ -154,7 +154,7 @@ Does not impact incentive systems.
 
 ## Product Considerations
 <!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
-This FRC enables new deal capabilities in environment with aggregators. These new capabilities should allow for growth of contract driven data on-boarding by allowing contracts to utulise aggregator services.
+This FRC enables new deal capabilities in environment with aggregators. These new capabilities should allow for growth of contract driven data on-boarding by allowing contracts to utilise aggregator services.
 
 ## Implementation
 <!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
