@@ -57,11 +57,11 @@ DataSegment with trailer size = DataSegment alignment
 ### Data Segment Index
 
 Data Segment Index is an optional region at the end of a deal describing all the data segments contained within that deal.
-The index is constant sized depending on the size of the deal but not all entries in the Data Segment Index have to be utilised. Unused entires should be filled out with NUL bytes.
+The index is constant sized depending on the size of the deal but not all entries in the Data Segment Index have to be utilised. Unused entries should be filled out with NUL bytes.
 
-The number of entires in the index is defined as:
+The number of entries in the index is defined as:
 ```
-number of entires = max(4, 2**floor(log2(padded size of deal / 2048 / 64 [byte/entry])))
+number of entries = max(4, 2**floor(log2(padded size of deal / 2048 / 64 [byte/entry])))
 size of index = number of entries * 64 [byte/entry]
 start of the index = (padded size of deal - size of index)
 ```
