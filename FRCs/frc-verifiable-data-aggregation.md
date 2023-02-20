@@ -50,7 +50,7 @@ Data Segments can then be placed within a deal according to alignment rules of c
 Data Segments have to aligned to the next power of two boundary with NUL trailer up to next power of the boundary.
 ```
 DataSegment size = ceil(original sub-deal size * 128/127) // Fr32 padding
-DataSegment alignment = pow(2, ceil(log2(DataSegment size))
+DataSegment alignment = 2**ceil(log2(DataSegment size))
 DataSegment with trailer size = DataSegment alignment
 ```
 
@@ -62,7 +62,7 @@ The index is constant sized depending on the size of the deal but not all entrie
 The number of entires in the index is defined as:
 ```
 number of entires = max(4, 2**floor(log2(padded size of deal / 2048 / 64 [byte/entry])))
-size of index = number of entries * 64 byte
+size of index = number of entries * 64 [byte/entry]
 start of the index = (padded size of deal - size of index)
 ```
 
@@ -107,22 +107,23 @@ The aggregator inserts client’s data into the sector or deal, and also adds th
 Following that, the aggregator produces the data commitment and two inclusion proofs and provides them to the client:
 
 - $\mathrm{CommD}_ A$ - a commitment to the data created by the aggregator
-- $|\mathrm{D}_ A|$ - size of the aggregator’s data, corresponding to deal/sector size.
+- $|\mathrm{D}_ A|$ - size of the aggregator’s data, corresponding to deal/sector size
 - $\mathrm{pos}_ D$ - position of client’s data within the aggregator’s data
-- $\mathrm{idx}_ {ds}$ - index of data segment descriptor within the data segment index
 - $\pi_ {st}$ - sub-tree proof, proving the inclusion of $\mathrm{DS}$ in $\mathrm{D}_ A$ at position $\mathrm{pos}_ D$
-- $\pi_ {ds}$- leaf inclusion proof, proving the inclusion of $(\mathrm{CommD}_ A, \mathrm{pos}_ D, |\mathrm{D}_ C|, \mathrm{checksum})$ within $\mathrm{D}_ {A}$ at $f(\mathrm{idx}_ {ds}, |\mathrm{D}_ A|)$
-
-The $f(\mathrm{idx}, \mathrm{size})$ is a pre-agreed function mapping position within the data segment index to position within the container. 
+- $\mathrm{pos}_ {ds}$ - position of the index entry within the the aggregator's data
+- $\pi_ {ds}$- leaf inclusion proof, proving the inclusion of $(\mathrm{CommD}_ A, \mathrm{pos}_ D, |\mathrm{D}_ C|, \mathrm{checksum})$ within $\mathrm{D}_ {A}$ at $\mathrm{pos}_ {ds}$.
 
 Auxiliary information provided by the aggregator to the client are: `DealID` of the deal which contains Client's data.
 
 To complete the verification of the proof, the client has to verify the two inclusion proofs as well as check that a given sector was on-boarded and $\mathrm{CommD}_ A$ was size $|\mathrm{D}_ A|$:
 
-- $\mathrm{VerifyInclusion}(\mathrm{CommDS}, |\mathrm{DS}|, \mathrm{CommD}_ A, |\mathrm{D}_ A|, \pi_{st}, \mathrm{pos}_ D)$
-- $\mathrm{VerifyInclusion}(\mathrm{Comm}(\mathrm{CommDS}, \mathrm{pos}_ D, |\mathrm{D}_ C|, \mathrm{checksum}), 2, \mathrm{CommD}_ A, |\mathrm{D}_ A|, \pi_ {ds}, f(\mathrm{idx}_ {ds}, |\mathrm{D}_ A|))$
+- $\mathrm{CommD}_ A', |\mathrm{D}_ A'| = \mathrm{ComputeRoot}(\mathrm{CommDS}, |\mathrm{DS}|, \pi_{st}, \mathrm{pos}_ D)$
+- $\mathrm{CommD}_ A'', |\mathrm{D}_ A''| = \mathrm{ComputeRoot}(\mathrm{Comm}(\mathrm{CommDS}, \mathrm{pos}_ D, |\mathrm{D}_ C|, \mathrm{checksum}), 2, \pi_ {ds}, \mathrm{pos}_ {ds})$
+- Verify $\mathrm{CommD}_ A' \overset{?}{=} \mathrm{CommD}_ A''$
+- Verify $|\mathrm{CommD}_ A'| \overset{?}{=} |\mathrm{CommD}_ A''|$
+- Verify that $\mathrm{pos}_ {ds}$ falls into data segment index based on $|\mathrm{D}_ A'|$.
 - Verify that `DealID` is active on chain
-- Verify that `DealID` has data commitmetn of $\mathrm{CommD}_ A$ and size $|\mathrm{D}_A|$.
+- Verify that `DealID` has data commitmetn of $\mathrm{CommD}_ A'$ and size $|\mathrm{D}_ A'|$.
 
 
 
