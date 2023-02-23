@@ -506,7 +506,7 @@ However, there are a couple of important cases to note:
 
 1. The message inclusion cost increases by 475,000 gas to account for updating the sending actor.
 2. Any non-trivial message will incur an additional 475,000 gas fee to update the receiving actor.
-3. Due to these changes, the cost of a simple value transfer from an account increases by ~300% (~0.5M gas to 1.5M gas).
+3. Due to these changes, the cost of a simple value transfer from an account increases by ~2.2x.
 
 Furthermore, with respect to `PublishStorageDeals`:
 
