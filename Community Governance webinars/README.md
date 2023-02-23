@@ -1,4 +1,4 @@
-# Monthly Commuity Governance Webinar 
+# Monthly Community Governance Calls 
 
 **Introduction**
 This monthly meeting is an open forum for filecoin community members to come together and discuss important issues and initiatives related to the governance of the Filecoin Network. 
@@ -35,8 +35,8 @@ The agenda for each monthly meeting can be as follows (this is flexible and can 
 **Participants**
 All community members are welcome to attend the monthly community governance meeting. 
 
-**Zoom information for the webinar**
-The monthly community governance webinar is held virtually on the video conferencing platform, Zoom. webinar information captured below: 
+**Zoom information for the cal**
+The monthly community governance call is held virtually on the video conferencing platform, Zoom. Meeting  information captured below: 
 
 https://fil-org.zoom.us/j/87984289089?pwd=S0VaSzh3M2xPRzFXeTIxVERiZSsyQT09
 
@@ -44,11 +44,11 @@ Meeting ID: 879 8428 9089
 Passcode: 583179
 
 **Note taking and recording:** 
-Notes from each monthly community governance webinar will be taken and shared with community members via email within one week of the webinar. The minutes will include a summary of the discussion. Depending on group consensus the webinar could also be recorded. 
+Notes from each monthly community governance call will be taken and shared with community members via email within one week of the call. The minutes will include a summary of the discussion. Depending on group consensus the call could also be recorded. 
 
 **Access**
-Details about the webinar including all webinar resources, notes, agenda etc are openly recorded and maintained in the Gov Docs repo, and FIPs Repo. 
+Details about the call including all resources, notes, agenda etc are openly recorded and maintained in the Gov Docs repo, and FIPs Repo. 
 
 **Launch plan**
-The inaugural webinar will be shared on the Fil-FIPs channel on Slack and possibly the Fil-Lobby. The below standard message will be used for this purpose. 
+The announcement for the inaugural call will be shared on the Fil-FIPs channel on Slack and possibly the Fil-Lobby. The below standard message will be used for this purpose. 
 Filecoin Comms team will support in including a blurb in newsletters and possibly on social media. 
