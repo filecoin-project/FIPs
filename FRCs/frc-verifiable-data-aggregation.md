@@ -129,7 +129,13 @@ The design of this proposal is guided by three main goals: to ensure the provabl
 
 To achieve the first goal, the proposal includes a mechanism for producing an inclusion proof. This proof allows the client or a third party to verify that their data is properly included within the on-chain deal.
 
-Additionally, the proposal includes a Data Segment Index which provides discoverability of data within the sector. This feature allows the storage provider to easily locate the client's data and prevents malicious behavior from influencing the retrieval of data. By including this mechanism, the proposal ensures that the client's data is retrievable, even if there is malicious behavior from the aggregator or other users.
+Additionally, the proposal includes a Data Segment Index which provides discoverability of data within the sector. This feature allows the storage provider to easily locate the client's data and prevents malicious behavior from influencing the retrieval of data. By including this mechanism, the proposal ensures that the client's data is retrievable, even in presence of malicious behavior from the aggregator or other users.
+
+Due to the commitments to data which are avliable on-chain Merkle inclusion proofs are the only choice for proving inclusion of client's sub-trees.
+
+The existance of Data Segment Index within the deal in combindation with the power-of-two alighment constraint reduces the storage efficiency of subdeals if subdeals are large in relation to the deal.
+A deal containing Data Segment Index cannot include two deals with side half of that of data segment index. If the deal were to contain only two subdeals the maximum storage efficiency is 75%. The efficiency approaches 100% as the number of deals increases, reaching 99% with seven subdeals.
+
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
