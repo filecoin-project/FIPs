@@ -1,6 +1,5 @@
 ---
-
-fip: <to be assigned>
+fip: to be assigned
 title: Switching to new Drand mainnet network
 author: @yiannisbot, @CluEleSsUK, @AnomalRoil, @nikkolasg, @willscott
 discussions-to: [https://github.com/filecoin-project/FIPs/discussions/567](https://github.com/filecoin-project/FIPs/discussions/567)
@@ -9,7 +8,6 @@ type: Core, Networking
 created: 2023-02-24
 spec-sections:
 - [https://spec.filecoin.io/#section-libraries.drand](https://spec.filecoin.io/#section-libraries.drand)
-
 ---
 
 ## Simple Summary
