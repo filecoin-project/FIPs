@@ -1,0 +1,137 @@
+---
+
+fip: <to be assigned>
+title: Switching to new Drand mainnet network
+author: @yiannisbot, @CluEleSsUK, @AnomalRoil, @nikkolasg, @willscott
+discussions-to: [https://github.com/filecoin-project/FIPs/discussions/567](https://github.com/filecoin-project/FIPs/discussions/567)
+status: Draft
+type: Core, Networking
+created: 2023-02-24
+spec-sections:
+- [https://spec.filecoin.io/#section-libraries.drand](https://spec.filecoin.io/#section-libraries.drand)
+
+---
+
+## Simple Summary
+
+The randomness source for Filecoin, the League of Entropy’s drand network, is moving to a new network setup. This FIP gives a high-level overview of drand’s new features and discusses the required mechanisms that need to be in place in order for Filecoin to switch to the new League of Entropy network and why it should do so.
+
+## Abstract
+
+The current drand network operates in “chained mode”, i.e., each beacon produced is tied to the previous one. Currently, drand beacons are produced every 30 seconds. The protocol upgrades we have recently developed and will soon deploy as a new League of Entropy drand mainnet change these two network characteristics. Randomness beacons are *not chained* to previous beacons and can be *produced at a higher frequency of once every 3s* (that remains a divisor of Filecoin block time).
+
+These new features open up a number of new horizons for drand itself, but also for the applications that use drand. Applications operating on lower or higher frequencies can now use drand by picking the subset of rounds according to their needs for randomness input. For instance, Filecoin can pick one every 10 beacons (since the new network is running at a 3s frequency) to satisfy its need for randomness every 30s for its Leader election. This is supported by the fact that randomness is unchained and therefore not all beacons need to be kept by clients in order to verify every new beacon. In turn, this means a significantly lower memory requirement, as: i) client nodes do not need to keep the entirety of the beacon chain since the genesis beacon and, ii) the verification process is stateless and much simpler.
+
+For further details on these new features and their implementation we refer the reader to [this blogpost](https://drand.love/blog/2022/02/21/multi-frequency-support-and-timelock-encryption-capabilities/) and the complementary, comprehensive [FAQ doc](https://docs.google.com/document/d/16QJG3Z-Kr0mN6snQz8cm0NnMXpYBpelKyvCf2oo1Zgc/edit?usp=sharing).
+
+## Change Motivation
+
+- The existing drand network is expected to be deprecated in Q4 2023 or Q1 2024.
+- The Filecoin network should switch to the new drand mainnet networks before the existing network is deprecated.
+- The new drand network is going to be producing **smaller signatures**, which means that Filecoin headers will be more lightweight.
+- This new drand network also **allows to perform timelock encryption**, which will be a valuable feature for FVM.
+
+## Specification
+
+Currently drand verification is performed in two stages:
+
+1. by hashing the previous beacon’s signature and the current beacon round number using SHA256 and comparing the digest to the randomness in the payload, and
+2. verifying the signature over the hashed randomness is valid for the group public key (using BLS12-381).
+
+For signatures on the unchained scheme, the only change required is to omit the previous beacon’s signature when creating a SHA256 digest for comparison against the randomness. Note that the new network also have swaps the way it does BLS signatures, and uses G1 for signatures and G2 for public keys. This means shorter signatures, but it also means the signature verification algorithm needs to be updated in order to be instantiated over G1 instead of G2.
+
+For Go implementations, this can be achieved by using the latest drand client library, and is transparent and handled by specifying the right “scheme” upon instantiation. At present there are no other language implementations supporting this, however they can be provided on demand (or existing open source implementations can be easily modified to be compliant).
+
+The way beacons are retrieved will need to be adapted in order to fetch every 10th beacon to accommodate for Filecoin epochs: [https://github.com/filecoin-project/lotus/blob/ccf1ba2b8a4a324744beb93d10b2162959aaf409/chain/beacon/drand/drand.go#LL_132C25-L132C25](https://github.com/filecoin-project/lotus/blob/ccf1ba2b8a4a324744beb93d10b2162959aaf409/chain/beacon/drand/drand.go#LL132C25-L132C25)
+
+(Note that the drand team might provide an API at the library level for fetching rounds at a given different frequency, but this is not yet the case.)
+
+The following configurations will need to be adapted: 
+
+- [https://github.com/filecoin-project/lotus/blob/e2f4c70b70241cf0ee0af74d32c98bf48a6fb294/build/drand.go#L45](https://github.com/filecoin-project/lotus/blob/e2f4c70b70241cf0ee0af74d32c98bf48a6fb294/build/drand.go#L45)
+- [https://github.com/filecoin-project/lotus/blob/e2f4c70b70241cf0ee0af74d32c98bf48a6fb294/build/params_mainnet.go#L17](https://github.com/filecoin-project/lotus/blob/e2f4c70b70241cf0ee0af74d32c98bf48a6fb294/build/params_mainnet.go#L17)
+- [drand configuration](https://github.com/filecoin-project/lotus/blob/e2f4c70b70241cf0ee0af74d32c98bf48a6fb294/build/drand.go#L45) will need to be amended to include the new `public key` and`chain hash` as well as to add the notion of `scheme` that determines how verification and signatures are done
+
+## Design Rationale
+
+- **Why the G1/G2 swap**: It usually makes sense for BLS signatures to be instantiated with the public key over G1 and the signatures over G2, meaning shorter public keys but longer signatures. This is so because signature aggregation means we can have one aggregated signature to eventually verify against many public keys, it minimizes the overall size of the data required for verification. However, this does not apply to drand’s beacons since a new one with a single signature is generated at a given frequency. Therefore, it makes more sense for drand’s beacons to have shorter signatures and a longer group public key, since we cannot benefit from the aggregation capabilities of BLS signatures and the public key never changes and can be stored once unlike the signatures which need to be stored for each beacon. This allows to **reduce the size of anything storing drand beacons**, as well as to **increase performances and reduce gas cost** of any on-chain operations pertaining to drand beacons.
+- **Why the unchained mode**: While it might seem like having each beacon be chained to the previous one is increasing the security of the scheme, it is not the case as discussed below in the Security Consideration section. Instead, having unchained beacons means the **verification can be stateless** and we don’t need to keep previous beacons and access these to verify new beacons. Since the “previous signature” was required to verify a beacon, it means handling two signatures instead of just one per beacon, which is extraneous data since it doesn’t increase the security of the scheme. Therefore, moving away from the chained mode allows for **faster and simpler beacon verification**. Furthermore, unchained mode allows one to predict the message that will be signed in a future round (but nothing else), thus enabling “timelock encryption”, which is also an interesting feature in and of itself.
+
+## Backwards Compatibility
+
+Switching to a new unchained network will incur the following incompatibilities with older versions:
+
+- users of the existing drand client libraries will not be able to correctly verify beacons emitted from unchained networks (as they do not contain a `PreviousSignature` field and use a different group for signatures) without updating their clients
+- the chain info (chain hash, group public key, etc) embedded in the drand config of the relevant Filecoin implementation will need to be updated
+- URLs for accessing drand beacons from relays on the new network will require to include the chain hash (e.g. `[https://api.drand.sh/public/latest](http://api.drand.sh/public/latest)` may become something to the effect of `https://api.drand.sh/deadbeefcafebabe/public/latest`)
+- Filecoin implementations must consume every 10th round from drand rather than each consecutive round (to maintain a 30sec block time)
+- Beacons created with the scheme containing G1 and G2 swapped will also be unable to be verified by existing implementations.
+- Verification of beacons from existing schemes, including the G1 swap, are fully supported in the updated drand client.
+
+Therefore, switching to the new drand network needs to be done through a Filecoin network upgrade.
+
+## Test Cases
+
+In order to enable effective testing, we suggest creating a new, temporary testnets with a small number of clients from each widely supported Filecoin implementation. 
+
+`unchained-scheme-testnet` would be started from fresh with only unchained randomness, and the following scenarios would be tested:
+
+- foundation of a new Filecoin network
+- creation of new blocks with unchained randomness
+- onboarding new nodes from snapshots that contain unchained randomness
+
+Upon successful testing, the network would be taken down and a new network `mixed-scheme-testnet` would be created. This network would be started using the existing drand chained network, and after creation of some blocks, would be migrated to the drand unchained network.
+
+Scenarios that must be run on this `mixed-scheme-testnet`are:
+
+- onboarding new nodes from existing snapshots (with chained randomness in the headers)
+- onboarding new nodes from newly created snapshots (containing both chained and unchained randomness in the headers)
+- transition of existing nodes from chained to unchained randomness at a set epoch
+- creation of new blocks with the unchained scheme
+
+## Security Considerations
+
+From a **security** point of view, the guarantees of the League of Entropy (LoE) network remain the same:
+
+- a random beacon **cannot be predicted** unless a threshold number of LoE nodes collude together (current threshold is 13 out of 24, it might be 14 or 15 out of 27 nodes in January as the League of Entropy is onboarding new members).
+- a random beacon **cannot be biased** by anybody unless the attacker is able to change the public key of the group, which should be hard-coded and checked against more than a threshold number of members of the League of Entropy.
+
+The fact that the drand beacons are now unchained might give the false impression that they are less secure than the previous chained ones, however this is not the case:
+
+- an attacker controlling a threshold number of shares is able to predict any future round in the unchained setting, whereas they would need to compute all intermediary rounds in order to predict a given future round with the chained setting. However controlling a threshold amount of shares at any point in time allows computation of the shared secret of the group and nothing can prevent such an attack from computing future rounds offline using that shared secret much faster than the existing network would have, leading to the same result: a complete predictability of all future rounds.
+- all future beacons are entirely determined by two things: the initial Distributed Key Generation and their round number. This was already the case for the chained network and won’t change with the unchained network.
+
+From a **liveness** point of view, the way the drand nodes operate hasn’t changed and we can also take advantage of these changes to add a new partner relay to the list of available relays ([https://api.drand.secureweb3.com:6875/public/latest](https://api.drand.secureweb3.com:6875/public/latest)). Therefore liveness and availability shouldn’t be negatively impacted in any way.
+
+Risks:
+
+- Changing to the new drand network will require changing the way beacons are fetched and verified.
+- It will require a careful transition from the old method to the new one to avoid any issues.
+
+Mitigations:
+
+- We have inspected the implementation of Lotus with members of the Lotus team and the changes have a low surface area.
+- Since the old League of Entropy network and the new network will both be available at the same time months prior to these changes, we will have enough time to extensively test on testnet nodes and ensure the transition goes smoothly.
+
+## Incentive Considerations
+
+Unchained randomness allows for lighter drand nodes since they effectively become “stateless” and can delegate storing historical beacons to Filecoin, IPFS or some other storage system. The longer we keep a “chained beacon” running, the bigger the burden on the nodes running it becomes over time (requires more storage, costs more, etc.) and the more likely we are to see partners leaving the League of Entropy and causing an undesirable centralization of drand nodes.
+
+The new network is also producing smaller beacon signatures (half the size of the current ones), which means lighter Filecoin headers.
+
+## Product Considerations
+
+**Future Product Consideration - why is the new drand network an improved network?**
+
+- The Timelock Encryption feature is only available when using unchained randomness, since we need to be able to predict which message will be signed at what time. Switching would allow us to integrate Timelock Encryption natively on Filecoin, once FVM lands. Expect another FIP focused on Timelock and FVM soon.
+- Verification of the beacon becomes “stateless” and simpler: we don’t need to keep track of the previous beacon anymore and can verify a given round’s signature using just the group public key and the expected round number. This means a lower code complexity.
+- Changing block frequency becomes easier if relying on a higher frequency unchained beacon, because one could say “we only use every 5th beacon”, etc. and easily change frequency to any multiple of the base drand frequency without any change on the drand side.
+- Switching to a new chain is much easier in unchained randomness mode: it’s enough to just change the public key (bootstrapping the Filecoin chain becomes easier through use of the unchained beacon)
+
+## Implementation
+
+<!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
+
+## Copyright
+
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
