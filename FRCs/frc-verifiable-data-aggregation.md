@@ -87,11 +87,6 @@ After receiving a deal data, a Storage Provider should process the index area to
 When a valid entry is discovered the SP should queue up a task of computing the commitment of referenced Data Segment.
 If the commitment in the index matches the referenced Data Segment, the Storage Provider should make in possible to retrieve the Data Segment via its Data Segment commitment (equivalent to PieceCID).
 
-Apart from that Storage Provider should enable retrieval of PieceCIDs computed based on implicit data segments:
-```
-offset: 0, size: deal size / 2
-offset: deal size / 2, size: deal size / 2
-```
 
 ### Proof of Data Segment Inclusion
 
