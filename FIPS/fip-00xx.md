@@ -5,9 +5,10 @@ author: @yiannisbot, @CluEleSsUK, @AnomalRoil, @nikkolasg, @willscott
 discussions-to: [https://github.com/filecoin-project/FIPs/discussions/567](https://github.com/filecoin-project/FIPs/discussions/567)
 status: Draft
 type: Core, Networking
+category: Core
 created: 2023-02-24
 spec-sections:
-- [https://spec.filecoin.io/#section-libraries.drand](https://spec.filecoin.io/#section-libraries.drand)
+ - [https://spec.filecoin.io/#section-libraries.drand](https://spec.filecoin.io/#section-libraries.drand)
 ---
 
 ## Simple Summary
