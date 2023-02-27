@@ -19,16 +19,16 @@ Enable Clients using data aggregation services to verify the correct aggregation
 This proposal provides a description of a scheme enabling Aggregators to produce
 a Proof of Data Segment Inclusion certifying proper aggregation of Client's data.
 The produced proof assures:
-- an inclusion of Client's data within the on-chian deal
+- an inclusion of Client's data within the on-chain deal
 - the Client's data can be trivially discovered within the deal to enable retrieval
 - malicious behaviour of an Aggregator or another user, whose data was aggregated, does not interfere with retrievability of Client's data
 
 ## Change Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
-A large majority of users onboard data onto the Filecoin network via an Aggregator. Today the work done by aggregators is unverifiable and unprovable.
+A large majority of users onboard data onto the Filecoin network via an Aggregator, a third party combining small pieces of data into a singular large deal. Today the work done by aggregators is unverifiable and unprovable.
 The user relies on the Aggregator to perform the work correctly and at the same time, it is impossible to prove to a third party that a given piece of data was included in a deal which is a highly requested functionality for user-programmable data use cases.
 
-This is a critical link in enabling data within aggregated deals to be as useful as deals themselves. 
+This is a critical link in enabling and exposing small pieces of data to the FEVM ecosystem. In the majority of cases, small pieces of data undergo an aggregation process, combing them into a large deal for acceptance by a Storage Provider.
 Without the proposed proof, data within aggregated deals becomes a second class citizen in Filecoin ecosystem.
 A significant portion of the F(E)VM use-case is enabling the ability to process and reason about the data stored by Filecoin Storage Providers. 
 The Proof of Data Segment Inclusion allows to apply this new capability on segments of data which are too small to be on-boarded in their own deals due to economic constraints.
