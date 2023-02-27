@@ -12,12 +12,12 @@ created: 2022-12-11
 
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
-Enable Clients using data aggregation services to verify correct aggregation of their data and allow proving of this fact to third parties.
+Enable Clients using data aggregation services to verify the correct aggregation of their data and allow proving of this fact to third parties.
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
 This proposal provides a description of a scheme enabling Aggregators to produce
-a Proof of Data Segment inclusion certifying proper aggregation of Client's data.
+a Proof of Data Segment Inclusion certifying proper aggregation of Client's data.
 The produced proof assures:
 - an inclusion of Client's data within the on-chian deal
 - the Client's data can be trivially discovered within the deal to enable retrieval
@@ -26,11 +26,11 @@ The produced proof assures:
 ## Change Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
 A large majority of users onboard data onto the Filecoin network via an Aggregator. Today the work done by aggregators is unverifiable and unprovable.
-The user relies on the Aggregator to perform the work correctly and at the same time, it is impossible to prove to a third party that a given piece of data was included in a deal which is a highly requested functionality for FVM.
+The user relies on the Aggregator to perform the work correctly and at the same time, it is impossible to prove to a third party that a given piece of data was included in a deal which is a highly requested functionality for user-programmable data use cases.
 
 This is a critical link in enabling data within aggregated deals to be as useful as deals themselves. 
 Without the proposed proof, data within aggregated deals becomes a second class citizen in Filecoin ecosystem.
-Significant portion of the F(E)VM use-case is enabling the ability to process and reason about the data stored by Filcoin Storage Providers. 
+A significant portion of the F(E)VM use-case is enabling the ability to process and reason about the data stored by Filecoin Storage Providers. 
 The Proof of Data Segment Inclusion allows to apply this new capability on segments of data which are too small to be on-boarded in their own deals due to economic constraints.
 
 ## Specification
@@ -57,7 +57,7 @@ DataSegment with trailer size = DataSegment alignment
 ### Data Segment Index
 
 Data Segment Index is an optional region at the end of a deal describing all the data segments contained within that deal.
-The index is constant sized depending on the size of the deal but not all entries in the Data Segment Index have to be utilised. Unused entries should be filled out with NUL bytes.
+The index has a maximum size depending on the size of the deal, but not all entries in the Data Segment Index have to be utilised. Unused entries should be filled out with NUL bytes.
 
 The number of entries in the index is defined as:
 ```
@@ -66,7 +66,7 @@ size of index = number of entries * 64 [byte/entry]
 start of the index = (padded size of deal - size of index)
 ```
 
-This results in index capable of containing 256Ki entries and using 16MiB with 32GiB deal.
+This results in an index capable of containing 256Ki entries and using 16MiB with 32GiB deal and double that for 64GiB deal.
 
 Each entry within the Data Segment Index has size of 64 bytes after Fr32 bit padding resulting in usable space of 508 bits, two 254 bit nodes (two high bits of each 32byte node are set to 0s). Each entry is also aligned to 64 byte boundary after Fr32 bit padding.
 The format is designed to be accessible and readable in the Fr32 padded form.
@@ -85,19 +85,19 @@ Data Segment Index entry is defined as valid if it is positioned within the Data
 
 After receiving a deal data, a Storage Provider should process the index area to discover any valid Data Segment Index entries within that area.
 When a valid entry is discovered the SP should queue up a task of computing the commitment of referenced Data Segment.
-If the commitment in the index matches the referenced Data Segment, the Storage Provider should make in possible to retrieve the Data Segment via its Data Segment commitment (equivalent to PieceCID).
+If the commitment in the index matches the referenced Data Segment, the Storage Provider should make it possible to retrieve the Data Segment via its Data Segment commitment (equivalent to PieceCID).
 
 
 ### Proof of Data Segment Inclusion
 
 The proof consists of two inclusion proofs:
 
-- An inclusion proof of a sub-tree corresponding to the tree of the client’s data within aggregtor's commitment.
+- An inclusion proof of a sub-tree corresponding to the tree of the Client’s data within aggregator's commitment.
 - An inclusion proof of the double leaf data segment descriptor within the data segment index.
 
 The client possesses the following information: Commitment to their data $\mathrm{CommDS}$ and size of their data $|{\mathrm{DS}}|$.
 
-The aggregator inserts client’s data into the sector or deal, and also adds the data segment descriptor into data segment index.
+The aggregator inserts Client’s data into the deal, and also adds the data segment descriptor into the data segment index.
 
 Following that, the aggregator produces the data commitment and two inclusion proofs and provides them to the client:
 
@@ -108,9 +108,9 @@ Following that, the aggregator produces the data commitment and two inclusion pr
 - $\mathrm{pos}_ {ds}$ - position of the index entry within the aggregator's data
 - $\pi_ {ds}$- leaf inclusion proof, proving the inclusion of $(\mathrm{CommD}_ A, \mathrm{pos}_ D, |\mathrm{D}_ C|, \mathrm{checksum})$ within $\mathrm{D}_ {A}$ at $\mathrm{pos}_ {ds}$.
 
-Auxiliary information provided by the aggregator to the client are: `DealID` of the deal which contains Client's data.
+Auxiliary information provided by the aggregator to the Client are: `DealID` of the deal which contains Client's data.
 
-To complete the verification of the proof, the client has to verify the two inclusion proofs as well as check that a given sector was on-boarded and $\mathrm{CommD}_ A$ was size $|\mathrm{D}_ A|$:
+To complete the verification of the proof, the Client has to verify the two inclusion proofs as well as check that a given sector was on-boarded and $\mathrm{CommD}_ A$ was size $|\mathrm{D}_ A|$:
 
 - $\mathrm{CommD}_ A', |\mathrm{D}_ A'| = \mathrm{ComputeRoot}(\mathrm{CommDS}, |\mathrm{DS}|, \pi_{st}, \mathrm{pos}_ D)$
 - $\mathrm{CommD}_ A'', |\mathrm{D}_ A''| = \mathrm{ComputeRoot}(\mathrm{Comm}(\mathrm{CommDS}, \mathrm{pos}_ D, |\mathrm{D}_ C|, \mathrm{checksum}), 2, \pi_ {ds}, \mathrm{pos}_ {ds})$
@@ -125,16 +125,16 @@ To complete the verification of the proof, the client has to verify the two incl
 ## Design Rationale
 <!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
 
-The design of this proposal is guided by three main goals: to ensure the provable inclusion of the client's data within the aggregator's on-chain data deal, to make it easy for the storage provider to find the user's data within the larger data segment, and to prevent malicious behavior of the aggregator or other users whose data was aggregated from causing irrecoverable problems with retrieval.
+The design of this proposal is guided by three main goals: to ensure the provable inclusion of the Client's data within the aggregator's on-chain data deal, to make it easy for the storage provider to find the user's data within the larger data segment, and to prevent malicious behavior of the aggregator or other users whose data was aggregated from causing irrecoverable problems with retrieval.
 
 To achieve the first goal, the proposal includes a mechanism for producing an inclusion proof. This proof allows the client or a third party to verify that their data is properly included within the on-chain deal.
 
 Additionally, the proposal includes a Data Segment Index which provides discoverability of data within the sector. This feature allows the storage provider to easily locate the client's data and prevents malicious behavior from influencing the retrieval of data. By including this mechanism, the proposal ensures that the client's data is retrievable, even in presence of malicious behavior from the aggregator or other users.
 
-Due to the commitments to data which are avliable on-chain Merkle inclusion proofs are the only choice for proving inclusion of client's sub-trees.
+Due to the commitments to data which are available on-chain Merkle inclusion proofs are the only choice for proving inclusion of client's sub-trees.
 
-The existance of Data Segment Index within the deal in combindation with the power-of-two alighment constraint reduces the storage efficiency of subdeals if subdeals are large in relation to the deal.
-A deal containing Data Segment Index cannot include two deals with side half of that of data segment index. If the deal were to contain only two subdeals the maximum storage efficiency is 75%. The efficiency approaches 100% as the number of deals increases, reaching 99% with seven subdeals.
+The existence of Data Segment Index within the deal in combination with the power-of-two alignment constraint reduces the storage efficiency of subdeals if subdeals are large in relation to the deal.
+A deal containing Data Segment Index cannot include two subdeals with a size half of the deal. If the deal were to contain only two subdeals the maximum storage efficiency is 75%. The efficiency approaches 100% as the number of subdeals increases, reaching 99% with seven subdeals.
 
 
 ## Backwards Compatibility
