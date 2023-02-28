@@ -2,7 +2,7 @@
 
 **Introduction**
 
-The Filecoin Community monthly Call is an open forum for filecoin community members to come together and discuss important issues and initiatives related to the governance of the Filecoin Network. 
+The Filecoin community monthly call is an open forum for Filecoin community members to come together and discuss important issues and initiatives related to the governance of the Filecoin Network. 
 
 The meeting provides an opportunity for open communication and collaboration, as well as a space for community members to voice their concerns and ideas. The monthly meeting will also be a place to share governance best practices, hear from governance practitioners and experts. 
 
