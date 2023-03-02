@@ -68,12 +68,12 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0026](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0026.md)   | Extend sector fault cutoff period from 2 weeks to 6 weeks | FIP  |@IPFSUnion |Final  |
 |[0027](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0027.md)   | Change type of DealProposal Label field from a (Golang) String to a Union | FIP  |@laudiacay, @Stebalien, @arajasek |Final  |
 |[0028](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0028.md)   | Remove DataCap and verified client status from client address | FIP  |@jennijuju, @dkkapur |Final  |
-|[0029](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0029.md)   | Beneficiary address for storage providers | FIP  |@steven004 |Accepted  |
+|[0029](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0029.md)   | Beneficiary address for storage providers | FIP  |@steven004 |Final  |
 |[0030](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0030.md)   | Introducing the Filecoin Virtual Machine (FVM) | FIP  |@raulk, @stebalien |Final  |
 |[0031](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0031.md)   | Atomic switch to non-programmable FVM | FIP  |@raulk, @stebalien |Final  |
 |[0032](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0032.md)   | Gas model adjustment for non-programmable FVM | FIP  |@raulk, @stebalien |Final  |
 |[0033](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0033.md)   | Explicit premium for FIL+ verified deals | FIP  |@anorth |Deferred  |
-|[0034](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0034.md)   | Fix pre-commit deposit independent of sector content | FIP  |@anorth, @Kubuxu |FInal |
+|[0034](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0034.md)   | Fix pre-commit deposit independent of sector content | FIP  |@anorth, @Kubuxu |Final |
 |[0035](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0035.md)   | Support actors as built-in storage market clients | FIP  |@anorth |Withdrawn  |
 |[0036](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0036.md)   | Introducing a Sector Duration Multiple for Longer Term Sector Commitment | FIP  |@AxCortesCubero, @jbenet, @misilva73, @momack2, @tmellan, @vkalghatgi, @zixuanzh |Rejected  |
 |[0037](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0037.md)   | Gas model adjustment for user programmability | FIP  |@raulk, @stebalien |Draft  |
@@ -87,12 +87,13 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0046](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0046.md)   | Fungible token standard | FRC  |@anorth, @jsuresh, @alexytsu |Draft  |
 |[0047](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0047.md)   | Proof Expiration & PoRep Security Policy | FIP  |@Kubuxu, @irenegia, @anorth |Accepted  |
 |[0048](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0048.md)   | f4 Address Class | FIP  |@stebalien, @mriise, @raulk | Accepted  |
-|[0049](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md)   | Actor Events | FIP  |@stebalien, @raulk | Last Call  |
+|[0049](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md)   | Actor Events | FIP  |@stebalien, @raulk | Accepted  |
 |[0050](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0050.md)   | API Between User-Programmed Actors and Built-In Actors | FIP  |@anorth, @arajasek | Accepted  |
 |[0051](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0051.md)   | Synchronous Consistent Block Broadcast for EC Security | FRC  |Guy Goren <guy.goren@protocol.ai>, Alfonso de la Rocha <alfonso@protocol.ai> | Draft  |
 |[0052](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0052.md)   | Increase max sector commitment to 3.5 years | FIP  |@anorth | Accepted  |
 |[0053](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0053.md)   | Non-Fungible Token Standard | FRC  |@alexytsu, @abright, @anorth | Draft  |
-|[0054](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0054.md)   | Filecoin EVM Runtime (FEVM)  | FIP  |@raulk, @stebalien | Last Call  |
-|[0055](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0055.md)   | Supporting Ethereum Accounts, Addresses, and Transactions  | FIP  |@raulk, @stebalien | Last Call |
+|[0054](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0054.md)   | Filecoin EVM Runtime (FEVM)  | FIP  |@raulk, @stebalien | Accepted  |
+|[0055](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0055.md)   | Supporting Ethereum Accounts, Addresses, and Transactions  | FIP  |@raulk, @stebalien | Accepted |
 |[0056](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0056.md)   | Sector Duration Multiplier  | FIP  | @AxCortesCubero, @jbenet, @misilva73, @momack2, @tmellan, @vkalghatgi, @zixuanzh | Draft  |
-|[0057](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0057.md)   | Update Gas Charging Schedule and System Limits for FEVM  | FIP  |@raulk, @stebalien, @aakoshh, @kubuxu| Last Call  |
+|[0057](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0057.md)   | Update Gas Charging Schedule and System Limits for FEVM  | FIP  |@raulk, @stebalien, @aakoshh, @kubuxu| Accepted  |
+|[0058](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md)   | Verifiable Data Aggregation  | FRC  |Jakub Sztandera (@Kubuxu), Nicola Greco (@nicola), Peter Rabbitson (@ribasushi)| Draft  |
