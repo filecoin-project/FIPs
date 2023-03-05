@@ -1,0 +1,124 @@
+---
+fip: "<to be assigned>"
+title: Set market deal maintenance interval to 30 days
+author: Jakub Sztandera (@Kubuxu), @Zenground0, Alex North (@anorth)
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/638
+status: Draft
+type: Technical (Core)
+created: 2023-03-06
+---
+
+## Simple Summary
+Reduce the built-in storage market actor's deal maintenance interval from 1 day to 30 days (86400 epochs).
+
+## Abstract
+Filecoin tipset execution includes a facility for scheduled execution of actor code at the end of every epoch.
+This "cron" activity has a real validation cost, which we can account in gas units, 
+but is not paid for by any party (no tokens are burnt as a gas fee). 
+
+As network activity has grown, the amount of work done in cron has increased. 
+Recent analysis shows that cron execution is frequently consuming 80 billion gas units each epoch. 
+For context, the block gas limit is 5 billion, so a tipset with the expected five blocks is &lt;25 billion. 
+
+The built-in market actor is consuming 85% of cron execution (73B gas / epoch). 
+It performs deal maintenance (transferring incremental payments) on a regular interval of 2880 epochs for each deal.
+By increasing this maintenance interval we can quickly reduce the validation cost enough to 
+buy us time to develop a more permanent solution while deal growth continues.
+
+## Change Motivation
+A fast and predictable tipset validation time is important to the ability of validating nodes to
+sync the chain quickly (especially when catching up),
+and critical for block producers to be able to produce new blocks for timely inclusion.
+Cron is currently consuming a multiple of the target computational demands for all tipset validation.
+Although there is significant buffer in target validation times to account for network delays and the variability of expected consensus,
+cron execution is beginning to threaten chain quality and minimum hardware specs for validators.
+
+Cron is very convenient for some maintenance operations,
+but is essentially a subsidy from the network to whichever actors get the free execution (which is only ever built-in actors).
+Subsidised, automatic daily settlement of deals is far from the kind of critical network service for which cron was intended,
+and of zero value for the 98% of deals today that have zero fee.
+
+The number of deals brokered by the built-in market have increased greatly over the past year.
+As we expect this to grow much more, we must address this risk to chain quality.
+
+## Specification
+Set the interval at which the built-in market performs deal maintenance from 1 day to 30 days.
+
+```rust
+const DEAL_UPDATES_INTERVAL = 30 * EPOCHS_IN_DAY
+```
+
+Change the built-in market actor's computation of the subsequent maintenance epoch for a deal to 
+be independent of the last-scheduled epoch, and instead always equal to the next epoch that is
+greater than the current epoch and equal to the deal's ID modulo `DEAL_UPDATES_INTERVAL`.
+
+This change does not require a stop-the-world migration at the time of activation.
+Instead, the maintenance for each deal will be rescheduled according to the new interval when
+a deal is first processed during the 2880 epochs after this change is activated.
+
+## Design Rationale
+We expect this change to reduce the per-epoch gas consumption of built-in market deal maintenance
+by a factor of approximately 30 (from 73B to 2.4B), down to about 10% of target tipset validation time.
+
+According to https://dashboard.starboard.ventures/market-deals, as of 4 March 2023 there are 22.6 million active deals
+and the trailing 90-day growth rate is 94 thousand per day.
+If this growth rate continues, the deal count will double in approximately 240 days.
+Thus we might reasonably expect at least six months before built-in market deal maintenance
+rises to 5B gas, or 20% of target tipset validation time.
+During this time, we expect to develop changes to permanently remove per-deal maintenance operations from cron execution.
+
+### Timing
+As the cron workload is expected to increase as more deals come on board, a short-term mitigation is necessary.
+It is not possible to specify a fixed threshold after which this cron execution would tangibly affect network participants,
+but it is well beyond our comfort zone already.
+
+Developing and deploying a permanent resolution to this issue will take more time than we think
+is prudent to allow the situation to continue.
+
+### Simplicity and alternatives
+As a temporary resolution, this proposal aims for maximum simplicity. 
+Leaving the state schema and all essential operations intact makes this a tightly scoped change 
+that presents minimal risk.
+
+We considered an alternative of splitting the built-in market's deals into two groups:
+those that have non-zero payments to process (about 2% of deals today), and those that don’t.
+We rejected this option because it is significantly more complex that this proposal, 
+while still offering only a temporary solution to the problem.
+
+## Backwards Compatibility
+This proposal changes the behaviour of the built-in actors and thus requires a network upgrade.
+It does not change the state schema or interpretation, or require any migration.
+
+Off-chain parties that relied on daily settlement of deal payments may need to adapt to new assumptions.
+
+## Test Cases
+To be provided with implementation.
+
+## Security Considerations
+The scheduling of cost-free execution is subject to risk that some party could influence the schedule
+in order to overload some epochs with excessive work.
+This risk is already considered in scheduling of deal maintenance according to deal ID modulo some interval.
+This proposal does not change the security of this scheme.
+
+This change aims to improve blockchain availability by decreasing the expected computational work of
+tipset validation to approximately 40% of the current level.
+
+## Incentive Considerations
+None.
+
+## Product Considerations
+This proposal reduces the built-in market's service level to participants,
+increasing the interval between automatic settlements from 1 day to 30 days.
+For the small proportion of deals that have non-zero payments, this will delay the availability
+to storage providers of payments for active deals, and the return to clients of funds for aborted deals.
+
+If the maintenance period were to be extended much further, 
+it might be necessary to add externally-invoked methods for explicit settlement.
+We expect this to be a part of any subsequent permanent resolution to this issue. 
+We do not believe that any service level of automatic, subsidised settlement is sustainable or appropriate for the future.
+
+## Implementation
+https://github.com/filecoin-project/builtin-actors/pull/1226
+
+## Copyright
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
