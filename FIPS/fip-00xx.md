@@ -41,15 +41,9 @@ For signatures on the unchained scheme, the only change required is to omit the 
 
 For Go implementations, this can be achieved by using the latest drand client library, and is transparent and handled by specifying the right “scheme” upon instantiation. At present there are no other language implementations supporting this, however they can be provided on demand (or existing open source implementations can be easily modified to be compliant).
 
-The way beacons are retrieved will need to be adapted in order to fetch every 10th beacon to accommodate for Filecoin epochs: [chain/beacon/drand/drand.go](https://github.com/filecoin-project/lotus/blob/ccf1ba2b8a4a324744beb93d10b2162959aaf409/chain/beacon/drand/drand.go#LL132C25-L132C25)
-
-(Note that the drand team might provide an API at the library level for fetching rounds at a given different frequency, but this is not yet the case.)
-
-The following configurations will need to be adapted: 
-
-- [/build/drand.go#L45](https://github.com/filecoin-project/lotus/blob/e2f4c70b70241cf0ee0af74d32c98bf48a6fb294/build/drand.go#L45)
-- [/build/params_mainnet.go](https://github.com/filecoin-project/lotus/blob/e2f4c70b70241cf0ee0af74d32c98bf48a6fb294/build/params_mainnet.go#L17)
-- [drand configuration](https://github.com/filecoin-project/lotus/blob/e2f4c70b70241cf0ee0af74d32c98bf48a6fb294/build/drand.go#L45) will need to be amended to include the new `public key` and`chain hash` as well as to add the notion of `scheme` that determines how verification and signatures are done
+Additional minor changes will be needed in implementations:
+- the way beacons are retrieved will need to be adapted in order to fetch every 10th beacon to accommodate for Filecoin epochs
+- the new public key, chain hash and scheme will need updated to correctly verify beacon signatures
 
 ## Design Rationale
 
@@ -128,6 +122,14 @@ The new network is also producing smaller beacon signatures (half the size of th
 - Switching to a new chain is much easier in unchained randomness mode: it’s enough to just change the public key (bootstrapping the Filecoin chain becomes easier through use of the unchained beacon)
 
 ## Implementation
+
+The following Lotus implementation details have been highlighted:
+- the way beacons are retrieved will need to be adapted in order to fetch every 10th beacon to accommodate for Filecoin epochs: [chain/beacon/drand/drand.go](https://github.com/filecoin-project/lotus/blob/ccf1ba2b8a4a324744beb93d10b2162959aaf409/chain/beacon/drand/drand.go#LL132C25-L132C25); the drand team could provide an API at the library level for fetching rounds at a given different frequency, but this is not yet the case.
+
+The following configurations will need to be adapted: 
+- [/build/drand.go#L45](https://github.com/filecoin-project/lotus/blob/e2f4c70b70241cf0ee0af74d32c98bf48a6fb294/build/drand.go#L45)
+- [/build/params_mainnet.go](https://github.com/filecoin-project/lotus/blob/e2f4c70b70241cf0ee0af74d32c98bf48a6fb294/build/params_mainnet.go#L17)
+- [drand configuration](https://github.com/filecoin-project/lotus/blob/e2f4c70b70241cf0ee0af74d32c98bf48a6fb294/build/drand.go#L45) will need to be amended to include the new `public key` and`chain hash` as well as to add the notion of `scheme` that determines how verification and signatures are done
 
 <!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
 
