@@ -17,7 +17,7 @@ The randomness source for Filecoin, the League of Entropy’s drand network, is 
 
 ## Abstract
 
-The current drand network operates in “chained mode”, i.e., each beacon produced is tied to the previous one. Currently, drand beacons are produced every 30 seconds. The protocol upgrades we have recently developed and will soon deploy as a new League of Entropy drand mainnet change these two network characteristics. Randomness beacons are *not chained* to previous beacons and can be *produced at a higher frequency of once every 3s* (that remains a divisor of Filecoin block time).
+The current drand network operates in “chained mode”, i.e., each beacon produced is tied to the previous one. Currently, drand beacons are produced every 30 seconds. The protocol upgrades we have recently developed and deployed as the new League of Entropy drand `fastnet` network change these two network characteristics. Randomness beacons are *not chained* to previous beacons and are *produced at a higher frequency of once every 3s* (that remains a divisor of Filecoin block time).
 
 These new features open up a number of new horizons for drand itself, but also for the applications that use drand. Applications operating on lower or higher frequencies can now use drand by picking the subset of rounds according to their needs for randomness input. For instance, Filecoin can pick one every 10 beacons (since the new network is running at a 3s frequency) to satisfy its need for randomness every 30s for its Leader election. This is supported by the fact that randomness is unchained and therefore not all beacons need to be kept by clients in order to verify every new beacon. In turn, this means a significantly lower memory requirement, as: i) client nodes do not need to keep the entirety of the beacon chain since the genesis beacon and, ii) the verification process is stateless and much simpler.
 
@@ -44,6 +44,7 @@ For Go implementations, this can be achieved by using the latest drand client li
 Additional minor changes will be needed in implementations:
 - the way beacons are retrieved will need to be adapted in order to fetch every 10th beacon to accommodate for Filecoin epochs
 - the new public key, chain hash and scheme will need updated to correctly verify beacon signatures
+- the new catch-up time of 2s per beacon will need to be taken into account versus the current 15s catch-up period for the current frequency of 30s. When fetching only every 10th beacon, it means a slightly larger catch-up time of 20s.
 
 ## Design Rationale
 
@@ -100,11 +101,13 @@ Risks:
 
 - Changing to the new drand network will require changing the way beacons are fetched and verified.
 - It will require a careful transition from the old method to the new one to avoid any issues.
+- The catch-up period will be 20 seconds instead of 15 seconds, in the case the drand network is ever down for more than 10 rounds.
 
 Mitigations:
 
 - We have inspected the implementation of Lotus with members of the Lotus team and the changes have a low surface area.
 - Since the old League of Entropy network and the new network will both be available at the same time months prior to these changes, we will have enough time to extensively test on testnet nodes and ensure the transition goes smoothly.
+- The drand codebase is continuously being improved and refactored to increase its liveness and reduce any risks of downtime. It being a threshold network means that it requires more than threshold nodes down for the network to actually halt. The drand team plans to further mitigate this by implementing fuzzing of the drand codebase and by diversifying its drand daemon implementations in more languages than just Go, to further decrease the risk of ever having a threshold of nodes that are down at the same time.
 
 ## Incentive Considerations
 
