@@ -1,6 +1,6 @@
 | fip | title | author | discussion-to | status | type | category | created |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 00?? | WindowPoSt Grindability Fix | @cryptonemo @Nicola @porcuquine @Kubuxu  @DrPeterVanNostrand @vmx   | https://github.com/filecoin-project/FIPs/discussions/??? | draft | technical | core | 09 mar 2023 |
+| 00?? | WindowPoSt Grindability Fix | @cryptonemo @Nicola @porcuquine @Kubuxu  @DrPeterVanNostrand @vmx   | https://github.com/filecoin-project/FIPs/discussions/656 | draft | technical | core | 09 mar 2023 |
 
 ## Simple Summary
 
