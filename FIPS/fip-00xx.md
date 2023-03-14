@@ -8,7 +8,7 @@ This proposal fixes a potential security issue related to sector ordering during
 
 ## Abstract
 
-It's been recognised that Window PoSt challenge generation depends on the order of the provided sectors.  This is inherent to the specified challenge generation algorithm, which had been audited but can be viewed as a bug in the protocol. If exploited by a Storage Provider, it would reduce the security guarantees of WindowPoSt.
+It's been recognised that WindowPoSt challenge generation depends on the order of the provided sectors.  This is inherent to the specified challenge generation algorithm, which had been audited but can be viewed as a bug in the protocol. If exploited by a Storage Provider, it would reduce the security guarantees of WindowPoSt.
 
 This proposal eliminates this concern by making the generation of WindowPoSt challenges independent of the order of the provided sectors.
 
@@ -18,8 +18,6 @@ In short, challenge generation is the process by which node (i.e. sector data) c
 
 Given that there is a relationship between challenge generation and the sector order provided in WindowPoSt, it is feasible for malicious Storage Providers to gain influence over the challenges during WindowPoSt by re-ordering the provided sectors in a way that provides benefits beyond what is allowed in the protocol.
 
-While we believe the issue cannot be successfully exploited for gain due to limits in other parts of the Filecoin system, the security of each component is important to maintain a secure network.
-
 ## Specification
 
 This proposal aims to change WindowPoSt challenge generation so that challenges for each sector no longer depend on other sectors in the same partition.
@@ -27,6 +25,18 @@ This proposal aims to change WindowPoSt challenge generation so that challenges 
 This prevents all avenues of grinding WindowPoSt challenges as long as the sector stays within one deadline.
 
 ### New WindowPoSt proof type
+
+We propose adding the following types to the defined Registered Proofs types:
+
+```
+    StackedDrgWindow2KiBV1_1
+    StackedDrgWindow8MiBV1_1
+    StackedDrgWindow512MiBV1_1
+    StackedDrgWindow32GiBV1_1
+    StackedDrgWindow64GiBV1_1
+```
+
+These new types will signal to Proofs via the API to use the updated WindowPoSt behaviour.
 
 ### Changes to Challenge Generation
 
@@ -79,6 +89,8 @@ Test cases of proofs are included in the Proofs code.
 Test cases for Actors are TBD.
 
 ## Security Considerations
+
+While we believe this issue cannot be successfully exploited for gain due to limitations imposed by other parts of the Filecoin system, the security of individual system components (e.g. WindowPoSt) is important for maintaining a secure network.
 
 ## Incentive Considerations
 
