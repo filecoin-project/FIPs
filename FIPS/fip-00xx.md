@@ -20,11 +20,11 @@ Given that there is a relationship between challenge generation and the sector o
 
 ## Specification
 
-This proposal aims to change WindowPoSt challenge generation so that challenges for each sector no longer depend on other sectors in the same partition.
+This proposal aims to change WindowPoSt challenge generation so that the derivation of each sector's set of challenges is independent of the other sectors challenged during WindowPoSt.
 
 This prevents all avenues of grinding WindowPoSt challenges as long as the sector stays within one deadline.
 
-### New WindowPoSt proof type
+### New WindowPoSt Proof Type
 
 We propose adding the following types to the defined Registered Proofs types:
 
@@ -42,34 +42,40 @@ These new types will signal to Proofs via the API to use the updated WindowPoSt 
 
 Differences between the currently deployed WindowPoSt challenge generation and the proposed updated challenge generation are as follows:
 
-Current challenge_index algorithm:
+Current algorithm for generating a sector's WindowPoSt challenges:
+- Note that `sector_index` and `challenge_index` are across all partitions and sectors of a WindowPoSt.
+
+```rust
+
+let sector_index = partition_index * num_sectors_per_partition + sector_index_in_partition;
+let first_challenge_index = sector_index * challenge_count_per_sector + challenge_index_in_sector;
+let sector_challenge_indexes = first_challenge_index..first_challenge_index + challenge_count_per_sector;
+for challenge_index in sector_challenge_indexes {
+    let rand_int = u64::from_le_bytes(sha256(chain_randomness || sector_id || challenge_index)[..8]);
+    let challenge = rand_int % sector_nodes;
+}
 
 ```
 
- let sector_index = chunk_index * num_sectors_per_chunk + sector_index_in_chunk;
+Updated algorithm:
+- Note that `challenge_index` is now relative to a sector (as opposed across all WindowPoSt partitions and sectors).
 
- // Problem: Uses 'sector_index' in calculation
- let selected_challenge_index = sector_index * challenge_count_per_sector + challenge_index;
+```rust
 
-```
-
-Updated challenge_index algorithm:
-
-```
-
- let sector_index = chunk_index * num_sectors_per_chunk + sector_index_in_chunk;
-
- // Solution: Does not use 'sector_index' in calculation
- let selected_challenge_index = challenge_index;
+let sector_challenge_indexes = 0..challenge_count_per_sector;
+for challenge_index in sector_challenge_indexes {
+    let rand_int = u64::from_le_bytes(sha256(chain_randomness || sector_id || challenge_index)[..8]);
+    let challenge = rand_int % sector_nodes;
+}
 
 ```
 
-### Actor changes
+### Actor Changes
 
 The new WindowPoSt proof will be accepted beginning with network version 19.
 The old WindowPoSt proof will continue to be accepted until network version 20 to give Storage Providers ample time to update their storage maintenance systems.
 
-### Proof changes
+### Proof Changes
 
 The ability to prove and verify WindowPoSt with the new challenge generation algorithm will be exposed. Since this is a breaking change, a new `ApiVersion` flag is introduced to specify which challenge generation algorithm is used. A new WindowPost proof type will be defined at the proofs API layer, which will use the new challenge generation.
 
@@ -77,7 +83,7 @@ The ability to prove and verify WindowPoSt with the new challenge generation alg
 
 This is a subtractive change, removing information about where the sector is placed within the proof from challenge generation and thus removing a degree of freedom. This additional degree of freedom is what allows for possible grinding on challenges for a given sector.
 
-As it is a subtractive change, it is necessary to explore why `sector_index_in_chunk` was introduced. The initial design goal of `sector_index_in_chunk` most likely was to guarantee the uniqueness of challenges across all sectors within a given WindowPoSt partition. Other inputs into the challenge generation are chain randomness and SectorID. The SectorID is guaranteed unique within the scope of one storage provider and consequently within the scope of WindowPoSt. Thus we can rely on SectorID to guarantee the uniqueness of challenges.
+As it is a subtractive change, it is necessary to explore why `challenge_index` was originally taken to be across all WindowPoSt sectors. The initial design goal of challenge generation was to guarantee uniqueness of challenges; this design also left open the possibility of enforcing WindowPoSt sector ordering at the protocol-level. In addition to `challenge_index`, challenge generation depends on chain randomness and the challenged sector's SectorID. As SectorID is guaranteed to be unique within the scope of a Storage Provider (and consequently within the scope of a WindowPoSt), this FIP's proposed change preserves uniqueness of challenges via the maintained inclusion of SectorID in the challenge generation algorithm.
 
 ## Backwards Compatibility
 
