@@ -1,7 +1,7 @@
 ﻿---
 fip: "to be assigned"
 title: "Capped Duration Multiplier (CDM)"
-author: Peter R (@ribasushi)☨  Patrick D (@f8-ptrk)  (via superset) Fip36/56 authors
+author: Peter R (@ribasushi)☨  Patrick D (@f8-ptrk)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/636
 status: Draft
 type: Technical
@@ -25,7 +25,7 @@ replaces: "FIP-0056, FIP-0052, FIP-0036"
 
 ## Change Motivation
 
-The excitement around [Filecoin's foray into smart contracts, starting with direct EVM support on its L1 chain](https://www.coindesk.com/business/2023/02/17/filecoins-fil-token-jumps-more-than-30-sparking-interest-in-virtual-machine-launch/) can not be overstated. At the same time [the network continues losing RawBytePower](https://medium.com/cryptoeconlab/filecoin-network-crosses-baseline-from-above-585b696083af), driven by the confluence of multiple external and internal factors. [FIP56](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0056.md) and its older twin [FIP36](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0036.md) are proposals put forward by CryptoEcon Lab @ PL designed to enhance and stabilize the Filecoin economy. We propose a **superset** of the ideas developed during SDM research, resulting in the "Capped Duration Multiplier" (CDM). We believe CDM allows for a radically more balanced and fair Filecoin network, unlocking more use cases and as a result requiring fewer adjustments in the future.
+The excitement around [Filecoin's foray into smart contracts, starting with direct EVM support on its L1 chain](https://www.coindesk.com/business/2023/02/17/filecoins-fil-token-jumps-more-than-30-sparking-interest-in-virtual-machine-launch/) can not be overstated. At the same time [the network continues losing RawBytePower](https://medium.com/cryptoeconlab/filecoin-network-crosses-baseline-from-above-585b696083af), driven by the confluence of multiple external and internal factors. [FIP56](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0056.md) and its older twin [FIP36](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0036.md) are proposals put forward by CryptoEcon Lab @ PL designed to enhance and stabilize the Filecoin economy. We propose an **ammendment** to the ideas developed during SDM research, resulting in the "Capped Duration Multiplier" (CDM). We believe CDM allows for a radically more balanced and fair Filecoin network, unlocking more use cases and as a result requiring fewer adjustments in the future.
 
 Unlike virtually any other major L1, the Filecoin "proof of probability"-driven consensus derives from a SNARK-based, energy-efficient account of posession of physical goods: storage space. The primary authors of this FIP hold a strong belief that this unique feature of the Filecoin consensus is extremely valuable. This proposal provides a solution to allowing for two coexisting business models:
   1. Storage Providers can continue to specialize in the evolution of decentralized data services, thus maximizing their Fil+ exposure.
