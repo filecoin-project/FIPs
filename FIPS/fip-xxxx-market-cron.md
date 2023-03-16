@@ -18,7 +18,7 @@ but is not paid for by any party (no tokens are burnt as a gas fee).
 
 As network activity has grown, the amount of work done in cron has increased. 
 Recent analysis shows that cron execution is frequently consuming 80 billion gas units each epoch. 
-For context, the block gas limit is 5 billion, so a tipset with the expected five blocks is &lt;25 billion. 
+For context, the block gas target is 5 billion, so a tipset with the expected five blocks is &lt;25 billion. 
 
 The built-in market actor is consuming 85% of cron execution (73B gas / epoch). 
 It performs deal maintenance (transferring incremental payments) on a regular interval of 2880 epochs for each deal.
