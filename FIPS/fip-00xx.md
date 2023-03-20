@@ -83,6 +83,7 @@ for challenge_index in sector_challenge_indexes {
 
 The new WindowPoSt proof will be accepted beginning with network version 19.
 The old WindowPoSt proof will continue to be accepted until network version 20 to give Storage Providers ample time to update their storage maintenance systems.
+The creation of new miner actors with the old proof type will be disallowed beginning with network version 19.
 
 ### Proof Changes
 
@@ -90,7 +91,7 @@ The ability to prove and verify WindowPoSt with the new challenge generation alg
 
 ## Design Rationale
 
-This is a subtractive change, removing information about where the sector is placed within the proof from challenge generation and thus removing a degree of freedom. This additional degree of freedom is what allows for possible grinding on challenges for a given sector.
+This is a subtractive change, removing information about where the sector is placed within the proof from challenge generation, and thus removing a degree of freedom. This additional degree of freedom is what allows for possible grinding on challenges for a given sector.
 
 As it is a subtractive change, it is necessary to explore why `challenge_index` was originally taken to be across all WindowPoSt sectors. The initial design goal of challenge generation was to guarantee uniqueness of challenges; this design also left open the possibility of enforcing WindowPoSt sector ordering at the protocol-level. In addition to `challenge_index`, challenge generation depends on chain randomness and the challenged sector's SectorID. As SectorID is guaranteed to be unique within the scope of a Storage Provider (and consequently within the scope of a WindowPoSt), this FIP's proposed change preserves uniqueness of challenges via the maintained inclusion of SectorID in the challenge generation algorithm.
 
