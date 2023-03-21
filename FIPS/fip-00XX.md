@@ -1,5 +1,5 @@
 ---
-fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
+fip: "0062"
 title: Fallback Method Handler for Multisig and Payment Channel Actors
 author: Dimitris Vyzovitis (@vyzo), Raúl Kripalani (@raulk)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/401
@@ -29,10 +29,13 @@ Such calls are now no longer rejected, and instead return successfully.
 
 This change is needed to normalise interactions from EVM smart contracts, Eth accounts, and placeholders with multisigs.
 These actors set `MethodNum = FRC-42("InvokeEVM")` by default when performing outbound calls, including simple value transfers.
-Prior to this FIP, built-in multisig and payment channel actors would reject such calls, causing the reversal of a value transfer.
+Refer to [FIP-0054] and [FIP-0055] for background.
+
+Prior to this FIP, built-in multisig and payment channel actors would reject such calls, causing the immediate reversal of a value transfer.
 
 This limitation was first encountered in the wild when deploying a Wrapped FIL (WFIL) token.
-While a multisig can hold WFIL tokens, unwrapping them into the native FIL coin causes a value transfer carrying the above method number to the multisig, which would be rejected.
+While a multisig can hold WFIL tokens, unwrapping them into the native FIL coin causes a value transfer to the multisig, carrying the above method number.
+This would be rejected unconditionally.
 
 This change also brings multisigs and payment channels in line with the equivalent no-op behaviour implemented for account actors in [FIP-0050].
 
@@ -82,3 +85,8 @@ https://github.com/filecoin-project/builtin-actors/pull/1252
 ## Copyright
 
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
+
+[FIP-0050]: https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0050.md
+[FIP-0054]: https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0054.md
+[FIP-0055]: https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0055.md
+[FRC-0042]: https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0042.md
