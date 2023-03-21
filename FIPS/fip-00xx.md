@@ -119,7 +119,7 @@ The new network is also producing smaller beacon signatures (half the size of th
 
 **Future Product Consideration - why is the new drand network an improved network?**
 
-- The Timelock Encryption feature is only available when using unchained randomness, since we need to be able to predict which message will be signed at what time. Switching would allow us to integrate Timelock Encryption natively on Filecoin, once FVM lands. Expect another FIP focused on Timelock and FVM soon.
+- The Timelock Encryption feature is only available when using unchained randomness, since we need to be able to predict which message will be signed at what time. Switching would allow us to integrate Timelock Encryption natively on Filecoin. Expect another FIP focused on Timelock and FVM soon.
 - Verification of the beacon becomes “stateless” and simpler: we don’t need to keep track of the previous beacon anymore and can verify a given round’s signature using just the group public key and the expected round number. This means a lower code complexity.
 - Changing block frequency becomes easier if relying on a higher frequency unchained beacon, because one could say “we only use every 5th beacon”, etc. and easily change frequency to any multiple of the base drand frequency without any change on the drand side.
 - Switching to a new chain is much easier in unchained randomness mode: it’s enough to just change the public key (bootstrapping the Filecoin chain becomes easier through use of the unchained beacon)
