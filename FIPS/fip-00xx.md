@@ -1,5 +1,5 @@
 ---
-fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
+fip: "0061"
 title: WindowPoSt Grindability Fix
 author: @cryptonemo @Kubuxu  @DrPeterVanNostrand @Nicola @porcuquine @vmx
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/656
