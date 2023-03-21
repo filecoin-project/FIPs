@@ -28,7 +28,7 @@ For further details on these new features and their implementation we refer the 
 - The existing drand network is expected to be deprecated in Q4 2023 or Q1 2024.
 - The Filecoin network should switch to the new drand mainnet networks before the existing network is deprecated.
 - The new drand network is going to be producing **smaller signatures**, which means that Filecoin headers will be more lightweight.
-- This new drand network also **allows to perform timelock encryption**, which will be a valuable feature for FVM.
+- This new drand network also **allows to perform timelock encryption**, which will be a valuable feature for user-deployed actors.
 
 ## Specification
 
