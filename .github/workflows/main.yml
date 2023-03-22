@@ -23,6 +23,6 @@ jobs:
           pip install datetime
 
       - name: execute py script # run githublabeler.py
-       env:
-          GITHUB_SECRET: ${{ secrets.GITHUB_SECRET }}
+        env:
+          TOKEN_SECRET: ${{ secrets.TOKEN_SECRET }}
         run: python githublabeler.py
