@@ -4,7 +4,7 @@ from os import os
 
 # Authentication token for your GitHub account
 try:
-    GITHUB_TOKEN = os.environ["GITHUB_SECRET"]
+    GITHUB_TOKEN = os.environ["TOKEN_SECRET"]
 except KeyError:
     GITHUB_TOKEN = "Token not available!"
     #logger.info("Token not available!")
