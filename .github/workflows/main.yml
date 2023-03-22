@@ -23,4 +23,4 @@ jobs:
       - name: execute py script # run githublabeler.py
         env:
           TOKEN_SECRET: ${{ secrets.TOKEN_SECRET }}
-        run: python githublabeler.py
+        run: python ./.github/workflows/githublabeler.py
