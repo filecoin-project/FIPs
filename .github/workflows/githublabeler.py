@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 from github import Github
-from os import os
+import os
 
 # Authentication token for your GitHub account
 try:
