@@ -9,7 +9,7 @@ except KeyError:
     GITHUB_TOKEN = "Token not available!"
     #logger.info("Token not available!")
     #raise
-print(GITHUB_TOKEN)
+
 # The repository to check discussion posts for
 REPO_NAME = "FIPs"
 
