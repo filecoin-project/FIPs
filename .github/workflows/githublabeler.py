@@ -23,7 +23,7 @@ NEW_DELTA = timedelta(days=30)
 ACTIVE_DELTA = timedelta(days=60)
 
 # Initialize the PyGithub object with the authentication token
-g = Github(GITHUB_TOKEN)
+g = Github(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)
 
 # Get the repository object for the specified repository name
 repo = g.get_repo(REPO_NAME)
