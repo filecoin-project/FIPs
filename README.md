@@ -94,7 +94,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0053](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0053.md)   | Non-Fungible Token Standard | FRC  |@alexytsu, @abright, @anorth | Draft  |
 |[0054](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0054.md)   | Filecoin EVM Runtime (FEVM)  | FIP  |@raulk, @stebalien | Final  |
 |[0055](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0055.md)   | Supporting Ethereum Accounts, Addresses, and Transactions  | FIP  |@raulk, @stebalien | Final |
-|[0056](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0056.md)   | Sector Duration Multiplier  | FIP  | @AxCortesCubero, @jbenet, @misilva73, @momack2, @tmellan, @vkalghatgi, @zixuanzh | Last Call  |
+|[0056](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0056.md)   | Sector Duration Multiplier  | FIP  | @AxCortesCubero, @jbenet, @misilva73, @momack2, @tmellan, @vkalghatgi, @zixuanzh | Rejected  |
 |[0057](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0057.md)   | Update Gas Charging Schedule and System Limits for FEVM  | FIP  |@raulk, @stebalien, @aakoshh, @kubuxu| Final  |
 |[0058](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md)   | Verifiable Data Aggregation  | FRC  |Jakub Sztandera (@Kubuxu), Nicola Greco (@nicola), Peter Rabbitson (@ribasushi)| Draft  |
 |[0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)   | Synthetic PoRep  | FIP  |@Kubuxu @Luca @Rosario Gennaro @Nicola @Irene| Draft  |
