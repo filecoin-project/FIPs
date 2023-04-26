@@ -271,7 +271,7 @@ The fields of `DealDefinition*` structs are the following:
 
 ## Deal Flow I (Implementing `WildcardDealProposer`)
 
-![Wildcard2.png](%5BWIP%5D%20FRC%20Deal%20Client%20%5BDraft%204%5D%202f0fb97518994f97aa9ee397bbae33d3/Wildcard2.png)
+<img width="795" alt="Wildcard2" src="https://user-images.githubusercontent.com/782153/234464721-9da43c2d-5191-4265-a1ba-1ce46438bb9a.png">
 
 The flow for this interface would be as follows, between client contract `A` and Boost SP `B`. It requires the implementation of `WildcardDealProposer` , which itself inherits from `BaseDealProposer`.
 
@@ -290,7 +290,7 @@ The flow for this interface would be as follows, between client contract `A` and
 
 ## Deal Flow II (Implementing `OneToOneDealProposer`)
 
-![OneToOne.png](%5BWIP%5D%20FRC%20Deal%20Client%20%5BDraft%204%5D%202f0fb97518994f97aa9ee397bbae33d3/OneToOne.png)
+<img width="749" alt="OneToOne" src="https://user-images.githubusercontent.com/782153/234464787-9a7ab0e0-bf18-4a50-b441-d79ae6dc8658.png">
 
 The flow for this interface would be as follows, between client contract `A` and a Boost SP `B`. It requires the implementation of `OneToOneDealProposer` , which itself inherits from `BaseDealProposer`. 
 
