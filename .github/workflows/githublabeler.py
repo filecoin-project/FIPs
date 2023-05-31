@@ -156,9 +156,9 @@ def updateDiscussions(discussionPosts):
   currentDateTime = datetime.now(timezone.utc)
   print(currentDateTime.tzinfo)
   client = Client(transport=transport, fetch_schema_from_transport=True)
-  QUIET_LABEL = 'LA_kwDOCq44tc7jNGmM'
-  ACTIVE_LABEL = 'LA_kwDOCq44tc7jNGan'
-  NEW_LABEL = 'LA_kwDOCq44tc7jNGRJ'
+  QUIET_LABEL = "LA_kwDOCq44tc7jNGmM"
+  ACTIVE_LABEL = "LA_kwDOCq44tc7jNGan"
+  NEW_LABEL = "LA_kwDOCq44tc7jNGRJ"
   updates = []
   for d in discussionPosts:
     createdAtTime = datetime.fromisoformat(d['createdAt'])
@@ -174,14 +174,16 @@ def updateDiscussions(discussionPosts):
     else:
       labelsToRemove += ACTIVE_LABEL
       labelsToAdd += QUIET_LABEL
-    updates += {'id': d['id'], 'add': labelsToAdd, 'remove': labelsToRemove}
+    updates.append({'id': d['id'], 'add': labelsToAdd, 'remove': labelsToRemove})
+    #updates += {'id': d['id'], 'add': labelsToAdd, 'remove': labelsToRemove}
     
-    
+
+  print(updates)
   for u in updates: 
     mutate = gql(
       """
       mutation changeLabels($id: ID!, $add: [ID!]!, $remove: [ID!]!){
-        addLabelsToLabelable(input:{labelIds: $add, labelableId: $id}){
+        addLabelsToLabelable(input:{labelIds:$add, labelableId:$id}){
           labelable{
             labels{
               nodes{
@@ -190,7 +192,7 @@ def updateDiscussions(discussionPosts):
             }
           }
         }
-        removeLabelsFromLabelable(input:{labelIds: $remove, labelableId: $id}){
+        removeLabelsFromLabelable(input:{labelIds:$remove, labelableId:$id}){
           labelable{
             labels{
               nodes{
@@ -208,3 +210,7 @@ def updateDiscussions(discussionPosts):
   
 discussions = getAllDiscussions()
 updateDiscussions(discussions)
+
+
+
+
