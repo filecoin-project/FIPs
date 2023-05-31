@@ -1,9 +1,9 @@
 #Suggestions from Ian - Change timedelta from 30 days to a few minutes
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from gql import gql, Client
 from gql.transport.aiohttp import AIOHTTPTransport
 import os
-import json
+
 
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 #Select github's api transport
@@ -15,7 +15,7 @@ transport = AIOHTTPTransport(
 #getAllDiscussions instantiates a client connected to github's api transport and sends a query for all discussion objects in a given date range
 #startDateTime: datetime object for the start of the range
 #endDateTime: datetime object for the end of the range
-#return: a list of ids
+#return: a list of dictionaries each containing separate return values from graphql queries
 
 
 
@@ -136,22 +136,39 @@ def getAllDiscussions():
 
 #TODO: Add logic checking comments: updatedAt  replies: updatedAt & 
 def isActive(discussionPost):
-  return True
+  lastEditTime = datetime.fromisoformat(discussionPost['lastEditedAt'])
+  currentDateTime = datetime.now(timezone.utc)
+  comments = discussionPost['comments']['nodes']
+  if lastEditTime < currentDateTime - timedelta(days = 60):
+    return True
+  for comment in comments:
+    replies = comment['replies']['nodes']
+    if datetime.fromisoformat(comment['updatedAt']) > currentDateTime - timedelta(days = 60):
+      return True
+    for reply in replies:
+      if datetime.fromisoformat(reply['updatedAt']) > currentDateTime - timedelta(days= 60):
+        return True
+  return False
 
-def updateDiscussions(discussionPosts, currentDateTime):
+  
+
+def updateDiscussions(discussionPosts):
+  currentDateTime = datetime.now(timezone.utc)
+  print(currentDateTime.tzinfo)
   client = Client(transport=transport, fetch_schema_from_transport=True)
   QUIET_LABEL = 'LA_kwDOCq44tc7jNGmM'
   ACTIVE_LABEL = 'LA_kwDOCq44tc7jNGan'
   NEW_LABEL = 'LA_kwDOCq44tc7jNGRJ'
   updates = []
   for d in discussionPosts:
+    createdAtTime = datetime.fromisoformat(d['createdAt'])
     labelsToAdd = []
     labelsToRemove = []
-    if datetime.datetime.fromisoformat(d['createdAt']) < currentDateTime - timedelta(days = 30):
+    if createdAtTime < currentDateTime - timedelta(days = 30):
       labelsToRemove += NEW_LABEL
     else:
       labelsToAdd += NEW_LABEL
-    if isActive():
+    if isActive(d):
       labelsToAdd += ACTIVE_LABEL
       labelsToRemove += QUIET_LABEL
     else:
@@ -172,4 +189,6 @@ def updateDiscussions(discussionPosts, currentDateTime):
   result = client.execute(mutate, variable_values=u)
   print(result)
   return
-print(getAllDiscussions())
+  
+discussions = getAllDiscussions()
+updateDiscussions(discussions)
