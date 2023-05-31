@@ -130,17 +130,17 @@ def getAllDiscussions():
       continue
     else:
       break
-
   print(len(discussionPosts))
+  print(discussionPosts)
   return discussionPosts
 
 #TODO: Add logic checking comments: updatedAt  replies: updatedAt & 
 def isActive(discussionPost):
-  lastEditTime = datetime.fromisoformat(discussionPost['lastEditedAt'])
   currentDateTime = datetime.now(timezone.utc)
   comments = discussionPost['comments']['nodes']
-  if lastEditTime < currentDateTime - timedelta(days = 60):
-    return True
+  if discussionPost['lastEditedAt'] != None:
+    if datetime.fromisoformat(discussionPost['lastEditedAt']) < currentDateTime - timedelta(days = 60):
+      return True
   for comment in comments:
     replies = comment['replies']['nodes']
     if datetime.fromisoformat(comment['updatedAt']) > currentDateTime - timedelta(days = 60):
@@ -180,9 +180,25 @@ def updateDiscussions(discussionPosts):
   for u in updates: 
     mutate = gql(
       """
-      mutation addLabel($id: ID!, $add: [ID!]!, $remove: [ID!]!){
-        addLabelsToLabelable(input: {labelIds: $add, labelableId: $id})
-        removeLabelsFromLabelable(input: {labelIds: $remove, labelableId: $id})
+      mutation changeLabels($id: ID!, $add: [ID!]!, $remove: [ID!]!){
+        addLabelsToLabelable(input:{labelIds: $add, labelableId: $id}){
+          labelable{
+            labels{
+              nodes{
+                name
+              }
+            }
+          }
+        }
+        removeLabelsFromLabelable(input:{labelIds: $remove, labelableId: $id}){
+          labelable{
+            labels{
+              nodes{
+                name
+              }
+            }
+          }
+        }
       }
       """
     )
