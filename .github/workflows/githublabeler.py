@@ -18,7 +18,7 @@ transport = AIOHTTPTransport(
 #return: a list of dictionaries each containing separate return values from graphql queries
 
 
-
+#TODO: solve edge cases for >100 replies or comments
 def getAllDiscussions():
   ids = []
   discussionPosts = []
@@ -43,14 +43,14 @@ def getAllDiscussions():
             id
             lastEditedAt
             createdAt
-            comments(first: 1){
+            comments(first: 100){
               nodes{
               #Type: Comment
                 id
                 createdAt
                 updatedAt
                 publishedAt
-                replies(first: 1){
+                replies(first: 50){
                   nodes{
                     id
                     createdAt
@@ -91,14 +91,14 @@ def getAllDiscussions():
             id
             lastEditedAt
             createdAt
-            comments(first: 1){
+            comments(first: 50){
               nodes{
               #Type: Comment
                 id
                 createdAt
                 updatedAt
                 publishedAt
-                replies(first: 1){
+                replies(first: 50){
                   nodes{
                     id
                     createdAt
@@ -147,17 +147,20 @@ def isActive(discussionPost):
     replies = comment['replies']['nodes']
     if datetime.fromisoformat(comment['updatedAt']) > currentDateTime - timedelta(days = 60):
       return True
+    if datetime.fromisoformat(comment['createdAt']) > currentDateTime - timedelta(days = 60):
+      return True
     for reply in replies:
-      if datetime.fromisoformat(reply['updatedAt']) > currentDateTime - timedelta(days= 60):
+      if datetime.fromisoformat(reply['updatedAt']) > currentDateTime - timedelta(days = 60):
+        return True
+      if datetime.fromisoformat(reply['createdAt']) > currentDateTime - timedelta(days = 60):
         return True
   return False
 
-  
 
-def updateDiscussions(discussionPosts):
+
+def getUpdates(discussionPosts):
   currentDateTime = datetime.now(timezone.utc)
   print(currentDateTime.tzinfo)
-  client = Client(transport=transport, fetch_schema_from_transport=True)
   #These labels are for FILECOIN-PROJECT/FIPs
   #QUIET_LABEL = "LA_kwDOCq44tc7jNGmM"
   #ACTIVE_LABEL = "LA_kwDOCq44tc7jNGan"
@@ -183,11 +186,13 @@ def updateDiscussions(discussionPosts):
       labelsToRemove.append(ACTIVE_LABEL)
       labelsToAdd.append(QUIET_LABEL)
     updates.append({'id': d['id'], 'add': labelsToAdd, 'remove': labelsToRemove})
+  return updates
 
     
-
-  print(updates)
-  for u in updates: 
+def updateLabels(updatesList):
+  client = Client(transport=transport, fetch_schema_from_transport=True)
+  print(updatesList)
+  for u in updatesList: 
     mutate = gql(
       """
       mutation changeLabels($id: ID!, $add: [ID!]!, $remove: [ID!]!){
@@ -215,10 +220,18 @@ def updateDiscussions(discussionPosts):
     result = client.execute(mutate, variable_values=u)
     print(result)
   return
-  
+
+
+
 discussions = getAllDiscussions()
-updateDiscussions(discussions)
+updates = getUpdates(discussions)
+updateLabels(updates)
 
-
+#TODO: use provided framework to test isActive function
+def isActiveTest():
+  discussionPostsCreatedAtTest = {'createdAt': '2023-06-01T22:42:26Z', 'lastEditedAt' : '2023-06-01T22:42:26Z',
+                                  'comments': {'nodes': [{'createdAt' : '2023-06-01T22:42:26Z', 
+                                   'updatedAt': '2023-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2023-06-01T22:42:26Z'
+                                  ,'updatedAt':'2023-06-01T22:42:26Z' }]}}]}}
 
 
