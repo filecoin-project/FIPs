@@ -134,12 +134,14 @@ def getAllDiscussions():
   print(discussionPosts)
   return discussionPosts
 
-#TODO: Add logic checking comments: updatedAt  replies: updatedAt & 
+
 def isActive(discussionPost):
   currentDateTime = datetime.now(timezone.utc)
   comments = discussionPost['comments']['nodes']
+  if datetime.fromisoformat(discussionPost['createdAt']) > currentDateTime - timedelta(days = 60):
+    return True
   if discussionPost['lastEditedAt'] != None:
-    if datetime.fromisoformat(discussionPost['lastEditedAt']) < currentDateTime - timedelta(days = 60):
+    if datetime.fromisoformat(discussionPost['lastEditedAt']) > currentDateTime - timedelta(days = 60):
       return True
   for comment in comments:
     replies = comment['replies']['nodes']
@@ -156,26 +158,32 @@ def updateDiscussions(discussionPosts):
   currentDateTime = datetime.now(timezone.utc)
   print(currentDateTime.tzinfo)
   client = Client(transport=transport, fetch_schema_from_transport=True)
-  QUIET_LABEL = "LA_kwDOCq44tc7jNGmM"
-  ACTIVE_LABEL = "LA_kwDOCq44tc7jNGan"
-  NEW_LABEL = "LA_kwDOCq44tc7jNGRJ"
+  #These labels are for FILECOIN-PROJECT/FIPs
+  #QUIET_LABEL = "LA_kwDOCq44tc7jNGmM"
+  #ACTIVE_LABEL = "LA_kwDOCq44tc7jNGan"
+  #NEW_LABEL = "LA_kwDOCq44tc7jNGRJ"
+
+  #These labels are for NateWebb03/FIPs
+  QUIET_LABEL = 'LA_kwDOJKIKAM8AAAABTBrWYg'
+  ACTIVE_LABEL = 'LA_kwDOJKIKAM8AAAABTBrVow'
+  NEW_LABEL = 'LA_kwDOJKIKAM8AAAABTBrTjA'
   updates = []
   for d in discussionPosts:
     createdAtTime = datetime.fromisoformat(d['createdAt'])
     labelsToAdd = []
     labelsToRemove = []
     if createdAtTime < currentDateTime - timedelta(days = 30):
-      labelsToRemove += NEW_LABEL
+      labelsToRemove.append(NEW_LABEL)
     else:
-      labelsToAdd += NEW_LABEL
+      labelsToAdd.append(NEW_LABEL)
     if isActive(d):
-      labelsToAdd += ACTIVE_LABEL
-      labelsToRemove += QUIET_LABEL
+      labelsToAdd.append(ACTIVE_LABEL)
+      labelsToRemove.append(QUIET_LABEL)
     else:
-      labelsToRemove += ACTIVE_LABEL
-      labelsToAdd += QUIET_LABEL
+      labelsToRemove.append(ACTIVE_LABEL)
+      labelsToAdd.append(QUIET_LABEL)
     updates.append({'id': d['id'], 'add': labelsToAdd, 'remove': labelsToRemove})
-    #updates += {'id': d['id'], 'add': labelsToAdd, 'remove': labelsToRemove}
+
     
 
   print(updates)
@@ -185,7 +193,7 @@ def updateDiscussions(discussionPosts):
       mutation changeLabels($id: ID!, $add: [ID!]!, $remove: [ID!]!){
         addLabelsToLabelable(input:{labelIds:$add, labelableId:$id}){
           labelable{
-            labels{
+            labels(first: 10){
               nodes{
                 name
               }
@@ -194,7 +202,7 @@ def updateDiscussions(discussionPosts):
         }
         removeLabelsFromLabelable(input:{labelIds:$remove, labelableId:$id}){
           labelable{
-            labels{
+            labels(first: 10){
               nodes{
                 name
               }
@@ -204,8 +212,8 @@ def updateDiscussions(discussionPosts):
       }
       """
     )
-  result = client.execute(mutate, variable_values=u)
-  print(result)
+    result = client.execute(mutate, variable_values=u)
+    print(result)
   return
   
 discussions = getAllDiscussions()
