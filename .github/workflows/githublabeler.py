@@ -222,16 +222,76 @@ def updateLabels(updatesList):
   return
 
 
+#TODO: use provided framework to test isActive function
+def isActiveTest():
+  #A discussion post thats only active field is 'createdAt'
+  discussionPostCreatedAtTest = {'createdAt': '2023-06-01T22:42:26Z', 'lastEditedAt' : '2022-06-01T22:42:26Z',
+                                  'comments': {'nodes': [{'createdAt' : '2022-06-01T22:42:26Z', 
+                                  'updatedAt': '2022-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z'
+                                  ,'updatedAt':'2022-06-01T22:42:26Z' }]}}]}}
+  discussionPostLastEditedAtTest = {'createdAt': '2022-06-01T22:42:26Z', 'lastEditedAt' : '2023-06-01T22:42:26Z',
+                                  'comments': {'nodes': [{'createdAt' : '2022-06-01T22:42:26Z', 
+                                  'updatedAt': '2022-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z'
+                                  ,'updatedAt':'2022-06-01T22:42:26Z' }]}}]}}
+  discussionPostCommentUpdatedAtTest = {'createdAt': '2022-06-01T22:42:26Z', 'lastEditedAt' : '2022-06-01T22:42:26Z',
+                                  'comments': {'nodes': [{'createdAt' : '2022-06-01T22:42:26Z', 
+                                  'updatedAt': '2023-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z'
+                                  ,'updatedAt':'2022-06-01T22:42:26Z' }]}}]}}
+  discussionPostCommentCreatedAtTest = {'createdAt': '2022-06-01T22:42:26Z', 'lastEditedAt' : '2022-06-01T22:42:26Z',
+                                  'comments': {'nodes': [{'createdAt' : '2023-06-01T22:42:26Z', 
+                                  'updatedAt': '2022-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z'
+                                  ,'updatedAt':'2022-06-01T22:42:26Z' }]}}]}}
+  discussionPostCommentReplyUpdatedAtTest = {'createdAt': '2022-06-01T22:42:26Z', 'lastEditedAt' : '2022-06-01T22:42:26Z',
+                                  'comments': {'nodes': [{'createdAt' : '2022-06-01T22:42:26Z', 
+                                  'updatedAt': '2022-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z'
+                                  ,'updatedAt':'2023-06-01T22:42:26Z' }]}}]}}
+  discussionPostCommentReplyCreatedAtTest = {'createdAt': '2022-06-01T22:42:26Z', 'lastEditedAt' : '2022-06-01T22:42:26Z',
+                                  'comments': {'nodes': [{'createdAt' : '2022-06-01T22:42:26Z', 
+                                  'updatedAt': '2022-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2023-06-01T22:42:26Z'
+                                  ,'updatedAt':'2022-06-01T22:42:26Z' }]}}]}}
+  discussionPostQuiet = {'createdAt': '2022-06-01T22:42:26Z', 'lastEditedAt' : '2022-06-01T22:42:26Z',
+                                  'comments': {'nodes': [{'createdAt' : '2022-06-01T22:42:26Z', 
+                                  'updatedAt': '2022-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z'
+                                  ,'updatedAt':'2022-06-01T22:42:26Z' }]}}]}}
+  if isActive(discussionPostCreatedAtTest):
+    print("Discussion post created at test passed")
+  else:
+    print("Discussion post created at test failed")
+    return False
+  if isActive(discussionPostLastEditedAtTest):
+    print("Discussion post last edited at test passed")
+  else:
+    print("Discussion post last edited at test failed")
+    return False
+  if isActive(discussionPostCommentUpdatedAtTest):
+    print("Discussion post comment updated at test passed")
+  else:
+    print("Discussion post comment updated at test failed")
+    return False
+  if isActive(discussionPostCommentCreatedAtTest):
+    print("Discussion post comment created at test passed")
+  else:
+    print("Discussion post comment created at test failed")
+    return False
+  if isActive(discussionPostCommentReplyUpdatedAtTest):
+    print("Discussion post comment reply updated at test passed")
+  else:
+    print("Discussion post comment reply updated at test failed")
+    return False
+  if isActive(discussionPostCommentReplyCreatedAtTest):
+    print("Discussion post comment reply created at test passed")
+  else:
+    print("Discussion post comment reply created at test failed")
+    return False
+  if not isActive(discussionPostQuiet):
+    print("Discussion post quiet test passed")
+  else:
+    print("Discussion post quiet test failed")
+    return False
+  return True
+
 
 discussions = getAllDiscussions()
 updates = getUpdates(discussions)
-updateLabels(updates)
-
-#TODO: use provided framework to test isActive function
-def isActiveTest():
-  discussionPostsCreatedAtTest = {'createdAt': '2023-06-01T22:42:26Z', 'lastEditedAt' : '2023-06-01T22:42:26Z',
-                                  'comments': {'nodes': [{'createdAt' : '2023-06-01T22:42:26Z', 
-                                   'updatedAt': '2023-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2023-06-01T22:42:26Z'
-                                  ,'updatedAt':'2023-06-01T22:42:26Z' }]}}]}}
-
-
+if isActiveTest():
+  updateLabels(updates)
