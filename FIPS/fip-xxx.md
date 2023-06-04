@@ -1,0 +1,92 @@
+
+# FIP: Add Parameters to Base Fee Mechanism
+The first part of [this discussion](https://github.com/filecoin-project/FIPs/discussions/686)
+## Simple Summary
+For simplicity purposes we will describe the problem (and proposed improvements) in the simplified Ethereum model of a single chain of blocks. While Filecoin has multiple blocks in a single epoch, the same principles apply.
+
+The current formula for setting the base fee follows the original EIP1559:
+$$b[i+1]\triangleq  b[i] \cdot \left( 1+\frac{1}{8} \cdot \frac{s[i]-s^* }{s^* }\right)$$ where $i$ enumerates the epoch, $s^*$ is a prederemined block size (the "desired" size), $b[i]$ is the base fee at epoch $i$, and $s[i]$ is the block size at epoch $i$. This formula considers only the block size $s[i]$ from the last epoch. This mechanism might lead to incentives for users to bribe miners in order to reduce the base fee, or (in analogous manner) for miners to intiate a collusion with sophisticated users for the benefit of both. (See [next section](https://hackmd.io/pAgUi8mxRy-eQ7LNIIFnkQ#Background-and-Motivation).)
+
+We propose to consider the history of block sizes via a wheighted average with a geometric sequence as the weights. In particular, we suggest the following update rule:
+$$b[i+1]\triangleq  b[i] \cdot \left( 1+\frac{1}{8} \cdot \frac{s_{\textit{avg}}[i]-s^* }{s^* }\right)$$ where $s_{\textit{avg}}[i]$ is defined by
+$$s_{\textit{avg}}[i] \triangleq \frac{1-q}{q}\sum_{k=1}^{\infty} q^k\cdot s[i-k+1], \hspace{1cm}   q\in (0,1).$$ 
+
+## Background and Motivation
+Following the FVM launch, and as activity ramps up, we should prepare for increased competition for block space. This may lead to previously negligible incentive misalignments becoming more significant.
+
+For determining which messages enter a block, Filecoin uses a mechnism that was proposed in [EIP-1559](https://github.com/ethereum/EIPs/blob/master/EIPS/eip-1559.md). This mechanism introduced a base fee, which is a portion of the transaction fee that is burned and not awarded to miners, and which varies according to the fill rate of blocks. A target block size is defined, such that if a block is fuller than the target size, the base fee increases and if it is emptier, the base fee reduces.
+
+Research on the subject (focused on ethereum) have revealed issues with this transaction fee mechanism. It has been shown to be [unstable in cases](https://arxiv.org/pdf/2102.10567.pdf). Moreover, it has been shown that the dynamic nature of the base fee, which is influenced by the fill rate of blocks, opens the door for [manipulation by miners and users](https://drive.google.com/file/d/1o_47aiN1BWegOmG8utYh4a47TM0OOa12/view?usp=share_link). The desired behavior of the system under a stable high demand, is for it to reach an equalibrium where the base fee -- $b$ -- is the significant part of the gas fee, and the tip is relatively small -- denoted $\varepsilon$ (for reference, Ethereum often has $\frac{b}{\varepsilon}\approx 20$). According to [Roughgarden](https://timroughgarden.org/papers/eip1559.pdf) this is a rational equalibrium under the assumption that miners do not think ahead. However, we expect a miner to optimize its behavior by also considering its future payoffs. In essence, since neither the miner nor the user are getting the burnt fee, by colluding they can both tap into the burnt fee for a win-win situation for them both.
+
+A [theorethical work](https://drive.google.com/file/d/1o_47aiN1BWegOmG8utYh4a47TM0OOa12/view?usp=share_link) describes how both miners and users can initiate an attack. For example, we can imagine that users who wish to pay lower costs will coordinate the attack. Roughly, a user (or group of users) that has transactions with a total $g$ amount of gas bribes the miner of the current block (no matter the miner's power) to propose an empty block instead. The cost of such a bribe is only $\varepsilon \times {s^* }$ -- the tip times the target block size. Consequently, the base fee reduces in the next block. If we accept that EIP1559 reaches its goals, e.g., users would typicaly use a simple and honest bidding strategy of reporting their maximal willingness to pay plus adding a small tip ($\varepsilon$), then in the honest users' steady state, gas proposals leave the miners with an $\varepsilon$ tip. Given that other users are na\"ive (or slow to react), our bribing user will include its transactions with any tip larger than $\varepsilon$ -- making the attack profitable whenever $g \frac{b^* }{8} >s^* \varepsilon$.
+
+<!--While the demand for blockspace in Filecoin is currently not sufficient to cause such issues, the introduction of FVM may force us to deal with these problems. We therefore propose to improve the current base fee update rule by adding to it (i) an averaging over past block sizes and (ii) adaptive learning rate.-->
+
+
+
+## Change Motivation
+<!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
+Mainly, to reduce bribe motivation in case the demand for blockspace actually becomes high due to FVM. Additionaly, to reduce oscillations and have a more stable fee setting mechanism.
+
+## Specification
+<!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
+
+The following equation describes the main part of the change, that is, replacing $s[i]$ by $s_{\textit{avg}}[i]$. For $q\in (0,1)$,
+
+$$s_{\textit{avg}}[i] \triangleq \frac{1-q}{q}\sum_{k=1}^{\infty } q^k\cdot s[i-k+1]$$ 
+
+which simplifies to the recursive form
+$$s_{\textit{avg}}[i] = (1-q)\cdot s[i] + q\cdot s_{\textit{avg} }[i-1].$$
+
+This scheme is parametrized by $q$ which determins the concentration of the average. Roughly, smaller $q$ values result in $s_\textit{avg}$ resembling the very last block sizes, while larger $q$ values smoothen the average over a longer history.
+
+
+
+
+### Additional info
+EIP-1559 allows for a variable block size, but a valid block size must be in the range $s[i]\in[0,2s^*]$.
+
+Unlike in Ethereum, in Filecoin the value $s[i]$ is determined not by a single block's size but [by the average size of a block in the previous tipset](https://spec.filecoin.io/#section-systems.filecoin_vm.gas_fee). This affects the issue from both sides. On the positive side, the averaging reduces the profitability of bribing a single miner. On the negative side, given the possibility to choose different tipsets to build ontop, a rational miner might be incentivized to choose the "emptier" tipset in order to reduce the base fee for its current block, thus affecting also the present and not just the future. 
+
+## Design Rationale 
+<!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
+An intuitive option for the Transaction Fee Mechanism (TFM) that adjusts supply and demand economically is *First price auction*, which is well known and studied. Nevertheless, in Filecoin the choice was to use EIP-1559 for the TFM. In this proposal, our design goal is to improve the TFM (of EIP-1559) by mitigating known problems that it raises. It is important to note that these problems do not yet impact the Filecoin network. If Filecoin gains traction, however, they are expected to rise. We may want to prepare for this beforehand.
+
+The [full suggestion](https://github.com/filecoin-project/FIPs/discussions/686) is actually composed of two parts: (i) using an average over epochs of block sizes rather than only the latest, and (ii) using an adaptive learning rate. The first part is the basis of the proposal. The second is only an additional improvement (that depends on the first part being implemented). This FIP, therefore, discusses only the first part and leaves the second part for a later time.
+
+### $s_\textit{avg}[i]$ instead of $s[i]$
+The change is based on [this work](https://drive.google.com/file/d/1o_47aiN1BWegOmG8utYh4a47TM0OOa12/view?usp=share_link) that described a rational strategy in which bribes are profitabe. Choosing to average based on a geometric series weights results in two desired properties: (i) the computation and space complexity are both in O(1), and (ii) the average gradually phases out the impact of a single outlier block without causing significant fluctuations in the base fee.
+
+
+## Backwards Compatibility
+This change requires a hard fork since the base fee is enforced (for blocks to be considerd valid).
+
+## Test Cases
+Too early to say
+
+## Security Considerations
+<!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
+The more complicated a mechanism is, the more it is valnurable to unforseen security threats. The case of EIP1559 is just one example of it. We hope to mitigate those risks, however, discussions might show us differently.
+
+## Incentive Considerations
+<!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
+The proposal is designed to improve the incentive compatability of the TFM. A [game theoretic analysys](https://drive.google.com/file/d/1o_47aiN1BWegOmG8utYh4a47TM0OOa12/view?usp=share_link) shows that a TFM based on EIP-1559 encourages bribes. Roughly, because the base fee in the next block depends on the size of the the current block, a miner that creates an empty block reduces the base fee of the next block by a factor of $\frac{1}{8}$. The opportunity cost for mining an empty block instead of a normal block is only the tips it contains. Thus, the cost of bribing a miner is only compansating it for the lost tips. In case the base fee is significantly larger than the tips, the bribing user gains a siginificant reduction in the base fees of the next block, making the bribe profitable. 
+
+One of the main goals of EIP-1559 was to simplify the bidding for users. It was articulated [theoreticaly by Roughgarden](https://timroughgarden.org/papers/eip1559.pdf) as users bidding their honest valuations being an optimal strategy. In contrast, when using first price auctions for the TFM (as done by Bitcoin and previously in Ethereum), it is typically sub-optimal for a user to bid its honest valuation. In other words, a TFM that encourages users to not fully reveal their preferences is considerd less good. However, our opinion is that a TFM that encourages bribes is worse than a TFM that encourages not revealing one's full preferences.
+
+We belive that a first price auction is the best way to go regarding TFMs, however, Filecoin chooses to use EIP-1559 and burn transaction fees (perhaps for reasons other than game-theoretic ones). We therefore suggest to mitigate the current incentives for bribes using the above proposal.
+
+
+## Product Considerations
+<!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
+Beside mitigating the incentives for bribes, we see another potential benefit from a product perspective.
+- The new averaging mechanism would reduce spikes and extreme oscillations of the base fee.
+
+The above should lead to a better user experience. For example, with this proposal, it would be less likely for an SP to be surprised by an outrageous base fee exactly when it wants to post its proofs.
+
+## Implementation
+<!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
+None currently.
+
+## Copyright
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
