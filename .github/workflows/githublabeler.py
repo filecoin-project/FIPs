@@ -5,6 +5,10 @@ from gql.transport.aiohttp import AIOHTTPTransport
 import os
 
 
+#These labels are for NateWebb03/FIPs
+QUIET_LABEL = 'LA_kwDOJKIKAM8AAAABTBrWYg'
+ACTIVE_LABEL = 'LA_kwDOJKIKAM8AAAABTBrVow'
+NEW_LABEL = 'LA_kwDOJKIKAM8AAAABTBrTjA'
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 #Select github's api transport
 transport = AIOHTTPTransport(
@@ -166,10 +170,6 @@ def getUpdates(discussionPosts):
   #ACTIVE_LABEL = "LA_kwDOCq44tc7jNGan"
   #NEW_LABEL = "LA_kwDOCq44tc7jNGRJ"
 
-  #These labels are for NateWebb03/FIPs
-  QUIET_LABEL = 'LA_kwDOJKIKAM8AAAABTBrWYg'
-  ACTIVE_LABEL = 'LA_kwDOJKIKAM8AAAABTBrVow'
-  NEW_LABEL = 'LA_kwDOJKIKAM8AAAABTBrTjA'
   updates = []
   for d in discussionPosts:
     createdAtTime = datetime.fromisoformat(d['createdAt'])
@@ -188,7 +188,7 @@ def getUpdates(discussionPosts):
     updates.append({'id': d['id'], 'add': labelsToAdd, 'remove': labelsToRemove})
   return updates
 
-    
+   
 def updateLabels(updatesList):
   client = Client(transport=transport, fetch_schema_from_transport=True)
   print(updatesList)
@@ -222,76 +222,10 @@ def updateLabels(updatesList):
   return
 
 
-#TODO: use provided framework to test isActive function
-def isActiveTest():
-  #A discussion post thats only active field is 'createdAt'
-  discussionPostCreatedAtTest = {'createdAt': '2023-06-01T22:42:26Z', 'lastEditedAt' : '2022-06-01T22:42:26Z',
-                                  'comments': {'nodes': [{'createdAt' : '2022-06-01T22:42:26Z', 
-                                  'updatedAt': '2022-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z'
-                                  ,'updatedAt':'2022-06-01T22:42:26Z' }]}}]}}
-  discussionPostLastEditedAtTest = {'createdAt': '2022-06-01T22:42:26Z', 'lastEditedAt' : '2023-06-01T22:42:26Z',
-                                  'comments': {'nodes': [{'createdAt' : '2022-06-01T22:42:26Z', 
-                                  'updatedAt': '2022-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z'
-                                  ,'updatedAt':'2022-06-01T22:42:26Z' }]}}]}}
-  discussionPostCommentUpdatedAtTest = {'createdAt': '2022-06-01T22:42:26Z', 'lastEditedAt' : '2022-06-01T22:42:26Z',
-                                  'comments': {'nodes': [{'createdAt' : '2022-06-01T22:42:26Z', 
-                                  'updatedAt': '2023-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z'
-                                  ,'updatedAt':'2022-06-01T22:42:26Z' }]}}]}}
-  discussionPostCommentCreatedAtTest = {'createdAt': '2022-06-01T22:42:26Z', 'lastEditedAt' : '2022-06-01T22:42:26Z',
-                                  'comments': {'nodes': [{'createdAt' : '2023-06-01T22:42:26Z', 
-                                  'updatedAt': '2022-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z'
-                                  ,'updatedAt':'2022-06-01T22:42:26Z' }]}}]}}
-  discussionPostCommentReplyUpdatedAtTest = {'createdAt': '2022-06-01T22:42:26Z', 'lastEditedAt' : '2022-06-01T22:42:26Z',
-                                  'comments': {'nodes': [{'createdAt' : '2022-06-01T22:42:26Z', 
-                                  'updatedAt': '2022-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z'
-                                  ,'updatedAt':'2023-06-01T22:42:26Z' }]}}]}}
-  discussionPostCommentReplyCreatedAtTest = {'createdAt': '2022-06-01T22:42:26Z', 'lastEditedAt' : '2022-06-01T22:42:26Z',
-                                  'comments': {'nodes': [{'createdAt' : '2022-06-01T22:42:26Z', 
-                                  'updatedAt': '2022-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2023-06-01T22:42:26Z'
-                                  ,'updatedAt':'2022-06-01T22:42:26Z' }]}}]}}
-  discussionPostQuiet = {'createdAt': '2022-06-01T22:42:26Z', 'lastEditedAt' : '2022-06-01T22:42:26Z',
-                                  'comments': {'nodes': [{'createdAt' : '2022-06-01T22:42:26Z', 
-                                  'updatedAt': '2022-06-01T22:42:26Z', 'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z'
-                                  ,'updatedAt':'2022-06-01T22:42:26Z' }]}}]}}
-  if isActive(discussionPostCreatedAtTest):
-    print("Discussion post created at test passed")
-  else:
-    print("Discussion post created at test failed")
-    return False
-  if isActive(discussionPostLastEditedAtTest):
-    print("Discussion post last edited at test passed")
-  else:
-    print("Discussion post last edited at test failed")
-    return False
-  if isActive(discussionPostCommentUpdatedAtTest):
-    print("Discussion post comment updated at test passed")
-  else:
-    print("Discussion post comment updated at test failed")
-    return False
-  if isActive(discussionPostCommentCreatedAtTest):
-    print("Discussion post comment created at test passed")
-  else:
-    print("Discussion post comment created at test failed")
-    return False
-  if isActive(discussionPostCommentReplyUpdatedAtTest):
-    print("Discussion post comment reply updated at test passed")
-  else:
-    print("Discussion post comment reply updated at test failed")
-    return False
-  if isActive(discussionPostCommentReplyCreatedAtTest):
-    print("Discussion post comment reply created at test passed")
-  else:
-    print("Discussion post comment reply created at test failed")
-    return False
-  if not isActive(discussionPostQuiet):
-    print("Discussion post quiet test passed")
-  else:
-    print("Discussion post quiet test failed")
-    return False
-  return True
 
-
-discussions = getAllDiscussions()
-updates = getUpdates(discussions)
-if isActiveTest():
+def main():
+  discussions = getAllDiscussions()
+  updates = getUpdates(discussions)
   updateLabels(updates)
+if __name__ == "__main__":
+  main()
