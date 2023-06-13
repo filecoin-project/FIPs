@@ -4,10 +4,21 @@ from gql.transport.aiohttp import AIOHTTPTransport
 import os
 
 
+#### FIPs Governance Bot v1
+# This file is designed to automate the github labeling process for the `filecoin-project/FIPs` repo.
+# The current labeling process is documented at https://github.com/filecoin-project/FIPs/discussions/292.
+# Currently only the first three labels, Quiet, Active, and New, are automated.
+# This file is designed to be run on a cron job through the github workflows interface.
+
+
 # These labels are for FILECOIN-PROJECT/FIPs
 QUIET_LABEL = "LA_kwDOCq44tc7jNGmM"
 ACTIVE_LABEL = "LA_kwDOCq44tc7jNGan"
 NEW_LABEL = "LA_kwDOCq44tc7jNGRJ"
+
+ACTIVE_DAYS = 60
+NEW_DAYS = 30
+
 GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
 
 # TODO: solve edge cases for > 100 replies or comments
@@ -125,50 +136,47 @@ def getAllDiscussions(client):
             break
     return discussionPosts
 
-# isActive takes a discussion post and returns true if it has been active
-# in the last 60 days
 
+# Was this discussion created in the last 30 days?
+def isNew(discussionPost):
+    datetime.fromisoformat(d['createdAt']) < currentDateTime - timedelta(days=NEW_DAYS):
 
+# Has this discussion had any activity in the last 60 days?
+# Currently checks for new comments, replies, or edits to the post
 def isActive(discussionPost):
     currentDateTime = datetime.now(timezone.utc)
     comments = discussionPost['comments']['nodes']
-    if datetime.fromisoformat(
-            discussionPost['createdAt']) > currentDateTime - timedelta(days=60):
+    activeCutoff = currenteDateTime - timedelta(days=ACTIVE_DAYS)
+    if datetime.fromisoformat(discussionPost['createdAt']) > activeCutoff:
         return True
     if discussionPost['lastEditedAt'] is not None:
-        if datetime.fromisoformat(
-                discussionPost['lastEditedAt']) > currentDateTime - timedelta(days=60):
+        if datetime.fromisoformat(discussionPost['lastEditedAt']) > activeCutoff:
             return True
+
     for comment in comments:
+        if datetime.fromisoformat(comment['updatedAt']) > activeCutoff:
+            return True
+        if datetime.fromisoformat(comment['createdAt']) > activeCutoff:
+            return True
+
         replies = comment['replies']['nodes']
-        if datetime.fromisoformat(
-                comment['updatedAt']) > currentDateTime - timedelta(days=60):
-            return True
-        if datetime.fromisoformat(
-                comment['createdAt']) > currentDateTime - timedelta(days=60):
-            return True
         for reply in replies:
-            if datetime.fromisoformat(
-                    reply['updatedAt']) > currentDateTime - timedelta(days=60):
+            if datetime.fromisoformat(reply['updatedAt']) > activeCutoff:
                 return True
-            if datetime.fromisoformat(
-                    reply['createdAt']) > currentDateTime - timedelta(days=60):
+            if datetime.fromisofVormat(reply['createdAt']) > activeCutoff:
                 return True
     return False
 
 # getUpdates takes a list of discussion posts and returns a list of
 # updates to be made to the labels
-
-
 def getUpdates(discussionPosts):
     currentDateTime = datetime.now(timezone.utc)
 
     updates = []
     for d in discussionPosts:
-        createdAtTime = datetime.fromisoformat(d['createdAt'])
         labelsToAdd = []
         labelsToRemove = []
-        if createdAtTime < currentDateTime - timedelta(days=30):
+        if isNew(d):
             labelsToRemove.append(NEW_LABEL)
         else:
             labelsToAdd.append(NEW_LABEL)
@@ -178,14 +186,15 @@ def getUpdates(discussionPosts):
         else:
             labelsToRemove.append(ACTIVE_LABEL)
             labelsToAdd.append(QUIET_LABEL)
-        updates.append(
-            {'id': d['id'], 'add': labelsToAdd, 'remove': labelsToRemove})
+        updates.append({
+            'id': d['id'],
+            'add': labelsToAdd,
+            'remove': labelsToRemove
+        })
     return updates
 
 # updateLabels takes a list of updates and updates the labels on github
 # accordingly using the github api
-
-
 def updateLabels(updatesList, client):
     print(updatesList)
     for u in updatesList:
@@ -227,7 +236,6 @@ def main():
     discussions = getAllDiscussions(client)
     updates = getUpdates(discussions)
     updateLabels(updates, client)
-
 
 if __name__ == "__main__":
     main()
