@@ -138,15 +138,14 @@ def getAllDiscussions(client):
 
 
 # Was this discussion created in the last 30 days?
-def isNew(discussionPost):
-    datetime.fromisoformat(d['createdAt']) < currentDateTime - timedelta(days=NEW_DAYS):
+def isNew(discussionPost, now):
+    return datetime.fromisoformat(discussionPost['createdAt']) < now - timedelta(days=NEW_DAYS)
 
 # Has this discussion had any activity in the last 60 days?
 # Currently checks for new comments, replies, or edits to the post
-def isActive(discussionPost):
-    currentDateTime = datetime.now(timezone.utc)
+def isActive(discussionPost, now):
     comments = discussionPost['comments']['nodes']
-    activeCutoff = currenteDateTime - timedelta(days=ACTIVE_DAYS)
+    activeCutoff = now - timedelta(days=ACTIVE_DAYS)
     if datetime.fromisoformat(discussionPost['createdAt']) > activeCutoff:
         return True
     if discussionPost['lastEditedAt'] is not None:
@@ -163,24 +162,22 @@ def isActive(discussionPost):
         for reply in replies:
             if datetime.fromisoformat(reply['updatedAt']) > activeCutoff:
                 return True
-            if datetime.fromisofVormat(reply['createdAt']) > activeCutoff:
+            if datetime.fromisoformat(reply['createdAt']) > activeCutoff:
                 return True
     return False
 
 # getUpdates takes a list of discussion posts and returns a list of
 # updates to be made to the labels
-def getUpdates(discussionPosts):
-    currentDateTime = datetime.now(timezone.utc)
-
+def getUpdates(discussionPosts, now):
     updates = []
     for d in discussionPosts:
         labelsToAdd = []
         labelsToRemove = []
-        if isNew(d):
+        if isNew(d, now):
             labelsToRemove.append(NEW_LABEL)
         else:
             labelsToAdd.append(NEW_LABEL)
-        if isActive(d):
+        if isActive(d, now):
             labelsToAdd.append(ACTIVE_LABEL)
             labelsToRemove.append(QUIET_LABEL)
         else:
@@ -234,7 +231,8 @@ def main():
     )
     client = Client(transport=transport, fetch_schema_from_transport=True)
     discussions = getAllDiscussions(client)
-    updates = getUpdates(discussions)
+    now = datetime.now(timezone.utc)
+    updates = getUpdates(discussions, now)
     updateLabels(updates, client)
 
 if __name__ == "__main__":

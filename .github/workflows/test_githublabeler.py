@@ -1,5 +1,6 @@
 import githublabeler
 import pytest
+from datetime import datetime, timezone
 
 FAKE_ID = 'fakeID'
 
@@ -29,25 +30,27 @@ newDiscussionPosts = [{'id': FAKE_ID,
 
 
 def test_isActive():
+    now = datetime.now(timezone.utc)
     for d in activeDiscussionPosts:
-        assert githublabeler.isActive(d)
+        assert githublabeler.isActive(d, now)
 
     for d in quietDiscussionPosts:
-        assert githublabeler.isActive(d) == False
+        assert githublabeler.isActive(d, now) == False
 
 
 def test_getUpdates():
-    assert githublabeler.getUpdates(quietDiscussionPosts) == [{
+    now = datetime.now(timezone.utc)
+    assert githublabeler.getUpdates(quietDiscussionPosts, now) == [{
         'id': FAKE_ID,
         'add': [
             githublabeler.QUIET_LABEL], 'remove': [
             githublabeler.NEW_LABEL, githublabeler.ACTIVE_LABEL]}]
-    assert githublabeler.getUpdates(activeDiscussionPosts) == [{
+    assert githublabeler.getUpdates(activeDiscussionPosts, now) == [{
         'id': FAKE_ID,
         'add': [
             githublabeler.ACTIVE_LABEL], 'remove': [
             githublabeler.NEW_LABEL, githublabeler.QUIET_LABEL]}]
-    assert githublabeler.getUpdates(newDiscussionPosts) == [{
+    assert githublabeler.getUpdates(newDiscussionPosts, now) == [{
         'id': FAKE_ID,
         'add': [
             githublabeler.NEW_LABEL, githublabeler.ACTIVE_LABEL], 'remove': [
