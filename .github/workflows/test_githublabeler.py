@@ -6,11 +6,11 @@ FAKE_ID = 'fakeID'
 
 activeDiscussionPosts = [{'id': FAKE_ID,
                           'createdAt': '2022-06-01T22:42:26Z',
-                          'lastEditedAt': '3023-06-01T22:42:26Z',
-                          'comments': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z',
-                                                  'updatedAt': '2022-06-01T22:42:26Z',
-                                                  'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z',
-                                                                         'updatedAt': '2022-06-01T22:42:26Z'}]}}]}}]
+                          'lastEditedAt': '2023-06-01T22:42:26Z',
+                          'comments': {'nodes': [{'createdAt': '2023-06-01T22:42:26Z',
+                                                  'updatedAt': '2023-06-01T22:42:26Z',
+                                                  'replies': {'nodes': [{'createdAt': '2023-06-01T22:42:26Z',
+                                                                         'updatedAt': '2023-06-01T22:42:26Z'}]}}]}}]
 
 quietDiscussionPosts = [{'id': FAKE_ID,
                          'createdAt': '2022-06-01T22:42:26Z',
@@ -21,16 +21,16 @@ quietDiscussionPosts = [{'id': FAKE_ID,
                                                                         'updatedAt': '2022-06-01T22:42:26Z'}]}}]}}]
 
 newDiscussionPosts = [{'id': FAKE_ID,
-                       'createdAt': '3022-06-01T22:42:26Z',
-                       'lastEditedAt': '2022-06-01T22:42:26Z',
-                       'comments': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z',
-                                               'updatedAt': '2022-06-01T22:42:26Z',
-                                               'replies': {'nodes': [{'createdAt': '2022-06-01T22:42:26Z',
-                                                                      'updatedAt': '2022-06-01T22:42:26Z'}]}}]}}]
+                       'createdAt': '2023-06-01T22:42:26Z',
+                       'lastEditedAt': '2023-06-01T22:42:26Z',
+                       'comments': {'nodes': [{'createdAt': '2023-06-01T22:42:26Z',
+                                               'updatedAt': '2023-06-01T22:42:26Z',
+                                               'replies': {'nodes': [{'createdAt': '2023-06-01T22:42:26Z',
+                                                                      'updatedAt': '2023-06-01T22:42:26Z'}]}}]}}]
 
 
 def test_isActive():
-    now = datetime.now(timezone.utc)
+    now = datetime.fromisoformat("2023-06-14T17:39:37Z")
     for d in activeDiscussionPosts:
         assert githublabeler.isActive(d, now)
 
@@ -39,7 +39,7 @@ def test_isActive():
 
 
 def test_getUpdates():
-    now = datetime.now(timezone.utc)
+    now = datetime.fromisoformat("2023-06-14T17:39:37Z")
     assert githublabeler.getUpdates(quietDiscussionPosts, now) == [{
         'id': FAKE_ID,
         'add': [
