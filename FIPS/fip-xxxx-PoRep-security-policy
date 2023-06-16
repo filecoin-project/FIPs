@@ -1,0 +1,214 @@
+---
+fip: "<to be assigned>" 
+title: PoRep Security Policy & Replacment Sealing Enforcement
+author: Jakub Sztandera (@Kubuxu), Alex North (@anorth), Irene Giacomelli (@irenegia), Luca Nizzardo (@lucaniz)
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/727
+status: Draft
+type: Technical (Core)
+category Core
+created: 2023-06-16
+---
+
+
+## Simple Summary
+
+Describes a policy to be adopted in case a flaw is discovered in the theory or implementation of proof-of-replication.
+
+This proposal builds on and supersedes [FIP-0047](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0047.md).
+
+## Abstract
+
+We are not aware of any PoRep issues at this time, but it is crucial to have a plan to deal with any possibility.
+This proposal introduces a concrete mechanism for enforcing replacement sealing for sectors with a commitment longer than 1.5 years and describes (but does not implement) a policy that uses the mechanism.
+
+- The mechanism is to note the number of active sectors on-boarded using vulnerable PoRep (`InitialOldSectors`) for each Storage Provider when introducing the replacement sealing mechanism. Escalating penalties are applied to Storage Providers when the number of active old sectors exceeds the `PermittedOldSectors(InitialOldSectors, epoch)`.
+- The policy is that, in case of a PoRep flaw, the value of the `PermittedOldSectors` function decreases over time, reaching zero 1.5 years after introducing replacement sealing.
+In order to maintain power and continue producing blocks, a Storage Provider must seal a new replacement sector, thus deactivating an old sector. Alternatively, a Storage Provider can terminate old sectors such that the number of active old sectors is less or equal to the `PermittedOldSectors`.
+
+## Motivation
+
+The Filecoin network uses cryptographic techniques to provide assurance of the physical uniqueness
+of sectors of data (proof of replication, or PoRep) and their ongoing availability (proof of space-time, PoSt).
+These mechanisms provide the proof of resources underlying the blockchain’s security
+(in addition to the security offered by pledge collateral stake).
+Some of the cryptography involved has been developed relatively recently.
+It is possible that there are errors in either the theory or implementation,
+or that errors may be introduced one day, that undermine the desired assurances.
+The result of such an error would most likely be that storage providers could “cheat” the network
+to claim they were maintaining more committed storage than they in fact possessed.
+This would reduce network security as consensus power could be gained without
+the expected physical infrastructure commitment.
+It is also unfair to non-cheating providers, assuming knowledge of the flaw was limited.
+In the case of an error in PoRep, it is likely that there would be no possible protocol change
+that could detect the cheating sectors after commitment.
+
+This situation has already arisen once in the life of the Filecoin network.
+The v1.1 PoRep algorithm [patched a bug in the v1 PoRep implementation](https://github.com/filecoin-project/lotus/pull/4873#issuecomment-758099163)
+that weakened the security assurances of sectors.
+The bug was responsibly reported to the Filecoin team and it is unknown if it was ever exploited by a provider.
+We are not aware of any similar bugs at this time.
+Filecoin storage is secure as far as we can ascertain.
+
+### Current policy
+
+The network today has an implicit policy on what to do if another such bug is detected:
+
+- Implement a new, fixed PoRep algorithm
+- In a network upgrade, the old algorithm is disallowed and the new one mandated for new sectors
+- Old sectors are prohibited extension beyond the 1.5-year maximum commitment
+- The power attributed to old sectors decreases as they expire and is
+extinct after 18 months. As new sectors are sealed, the insecure *proportion* diminishes even faster.
+
+The policy might thus be summarised as:
+put up with the potentially-insecure power for a limited period of time,
+but retain existing commitments of providers to the network and vice-versa.
+The 1.5-year window was selected as a compromise:
+a longer maximum commitment would be beneficial for storage stability,
+but a shorter bound improves the response time in case of a bug.
+
+This policy depends on the 1.5y commitment expiration,
+and would lose effectiveness if the maximum commitment duration were raised.
+
+### Changing the maximum sector commitment duration
+
+The **sector commitment duration** (currently 1.5 years) is the period availability
+a provider commits to when first proving a sector.
+When a sector is close to expiration, a provider can extend the sector for up to the same duration again.
+This can be repeated until the **sector maximum lifetime** (currently 5 years),
+after which further extensions are prohibited.
+
+It would be desirable to allow storage providers to make longer commitments to sectors (e.g. as proposed in FIP-0036, FIP-0056).
+Longer commitments support stability of network’s committed storage, could immediately support longer deals,
+and generally reduce the overheads of cycling sectors into the future.
+A higher possible maximum commitment duration would be beneficial regardless of any incentives toward longer commitments.
+
+The authors assert that the implementation of a concrete mechanism, and rough consensus around policy, should be pre-requisite to increasing the maximum sector commitment duration.
+
+## Specification
+
+### Mechanism
+
+- New Miner state properties are introduced:
+    - `IntialOldSectors` - the number of sectors that must be deactivated. Sectors with expiration before the `DeactivationTarget` will not be counted towards `InitialOldSectors`.
+    - `DeactivatedOldSectors` - the number of old sectors with expiration beyond `DeactivationTarget` which have been deactivated.
+- New parameters are introduced:
+    - `GracePeriod` - duration in epochs during which the replacement sealing is active, but no enforcement actions are taken. Initial proposal 60 days.
+    - `DeactivationTarget` - duration in epochs after which all old sectors should have been deactivated. Initial proposal 1.5yr.
+    - `StartEpoch` - upgrade epoch when the replacement sealing is enabled, and the deactivation timeline starts.
+- New computable property `DeactivationProgress` of the Miner state is introduced:
+    - `DeactivationProgress(InitialOldSectors, DeactivatedOldSectors)` takes the value of the progress of a given Miner actor instance along the deactivation timeline. It values from 0 to `DeactivationTarget`.
+    - If `InitialOldSectors` is zero, `DeacivationProgress` takes the value of `DeactivationTarget`.
+    - No enforcement actions are taken against the Storage Provider if `DeactivationProgress(...) == DeactivationTarget`.
+    - No enforcement actions are taken against the Storage Provider if
+    `StartEpoch + DeactivationProgress(...) >= CurrentEpoch()`
+    - Definition of `DeactivationProgress` is as follows:
+    `DeactivationProgress(InitialOldSectors, DeactivatedOldSectors) := GracePeriod + (DeactivationTarget - GracePeriod) * DeactivatedOldSectors // InitialOldSectors`
+- When a sector with `Expiration > StartEpoch + DeactivationTarget` is deactivated, either through replacement sealing or explicit termination, the `DeactivatedOldSector` is incremented.
+- To facilitate sector replacement and deactivation policy, following enforcement actions are introduced:
+    - Block Production Eligibility - Miner actor is not eligible to produce new blocks if `StartEpoch + DeactivationProgress(...) < CurrentEpoch()`
+    This has a drawback of power table inflation which is resolved by the following enforcement policy.
+    - Deadline Faults - if during deadline validation `DeactivationProgerss` is detected to be more than 24h (*non-final*) behind schedule, the deadline is marked as faulty. The deadline can be recovered when the deactivation is back on track. As in `StartEpoch + DeactivationProgress(...) >= CurrentEpoch()`. Fault fees are charged until the deadline is recovered.
+    - Deadline Termination - if during deadline validation `DeactivationProgress` is detected to be more than 7d behind schedule (*non-final*), the deadline is terminated. The deadline cannot be recovered, and the Miner instance is charged termination fees.
+
+### Parameters
+
+Two new protocol parameters are defined:
+
+- `GracePeriod` - duration in epochs during which the replacement sealing is active, but no enforcement actions are taken. Initial proposal 60 days.
+- `DeactivationTarget` - duration in epochs after which all old sectors should have been deactivated. Initial proposal 1.5yr.
+
+Given this change, a new, larger value for `MaxSectorExpirationExtension` may be considered.
+
+If `MaxSectorExpirationExtension` is increased, then the built-in storage market's
+maximum deal duration is increased to match. This could permit deals up to 5 years in duration.
+
+### Policy
+
+If we were to discover a flaw in PoRep theory or implementation:
+
+- A new, fixed PoRep algorithm would be implemented;
+- In a network upgrade, the old algorithm is disallowed, and the new one is mandated for new sectors;
+- The vulnerable sector deactivation timeline is started;
+- Extending sector commitment for old sectors is forbidden;
+- A new method `ReplaceSector(OldSector, NewSector)` can be called by a provider to replace an old sector with a newly-sealed one.
+This requires a Storage Provider to run the sealing procedure with the new PoRep algorithm on the new sector
+(ie, successful call to `PreCommitSector` and `ProveCommitSector`). Note that:
+    - If the replacement sealing procedure is successful, the old sector is removed with no termination fee;
+
+This proposal does not require implementing the sector replacement mechanism until such time as it’s needed.
+Details of that mechanism may depend on the new PoRep algorithm.
+
+However, acceptance of this proposal should be considered as ratification of this policy in general,
+so that emergency-response implementers can immediately design towards it.
+
+### Migration
+
+No immediate migration is necessary. To decrease the complexity of the upgrade that implements the Replacement Sealing mechanism, the Miner state can begin tracking `InitialOldSectors` before the need for vulnerable sector deactivation arises.
+
+## Design Rationale
+
+This proposal is an evolution of [FIP-0047](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0047.md), a proposal for a similar policy with a different execution method. While examining possible ways of optimizing the proof expiration schedule, we discovered a false core assumption. This assumption was “We need an expiration schedule.”.
+
+This proposal removes the expiration schedule and replaces it with a forcing function mechanism by which Storage Providers must follow a sector replacement schedule. Otherwise, the network will impose incrementally severe penalties on them. This significantly simplifies the on-chain mechanism and doesn’t introduce gas-expensive operations in the critical period.
+
+This reevaluation happened after the implementation of FIP-0047 was completed. During the implementation, the complexity of the additional scheduling mechanism was discovered when combined with the existing sector expiration mechanism. The currently existing sector expiration scheduling mechanism was designed to support two kinds of exclusive expirations: on-time and faults, the addition of a third, orthogonal type turned out to break numerous core constraints of this mechanism and lead to an explosion of complexity.
+
+The forcing function mechanism presents much lesser implementation complexity due to not interacting with every sector but treating them as fungible. This reduced on-chain complexity has the drawback of requiring Storage Providers who choose not to seal replacement sectors to terminate them actively. This increases the operational complexity for these Storage Providers during the transitory period, but the dangers of that complexity can be reduced by SPs giving themselves headroom (i.e. SP can choose to stay three days ahead of schedule).
+
+In our view, this is a worthwhile tradeoff, as the proof expiration mechanism would be a permanent increase to the complexity of the whole network (increased complexity of the expiration queue, periodic extension for every sector). 
+
+This proposal also outlines the policy for a disaster-response upgrade in order to
+align the community on a carefully designed plan and establish a foundation for
+a smooth network upgrade in the  event of discovery of an insecure PoRep.
+The proposed Policy disallows extending the proof duration for any sectors sealed with vulnerable code
+in order to have the power attributed to insecure sectors decreases gradually as their proof validities expire.
+On the other side, sealing new secure sectors in order to maintain power is allowed by
+the replacement sealing and incentivized by applying a fee for sectors that are not replaced.
+
+We hope that broad policy agreement now can facilitate smooth governance in response to any future emergency.
+
+## Backwards Compatibility
+
+This upgrade can introduce necessary state changes in the Miner Actor instance, although these changes are not required for ratification of this FIP.
+
+Impact on tooling should be minimal beyond changes to sector management software.
+
+## Test Cases
+
+Will be included with the implementation to be presented.
+
+## Security Considerations
+
+Accepting the introduction of the enforcement mechanism for replacement sealing allows longer commitment durations without compromising the network’s ability to respond to flaws in PoRep.
+
+If a flaw is discovered, an increased commitment duration would create the need for replacement sealing, or penalties for non-replaced sectors.
+
+## Incentive Considerations
+
+This proposal does not adjust incentives for providers or clients,
+but it does make longer sector commitments possible.
+Other proposals may then introduce incentives for such commitments.
+
+In case of an emergency response,
+charging some termination fee when a sector proof is not refreshed creates an incentive
+to seal replacement sectors vs let old sectors expired un-replaced.
+Further analysis is warranted into the *ideal* termination penalty in this case.
+However, such analysis need not prevent us adopting this mechanism, for its other advantages,
+and policy, in order to provide greater clarity for storage provider business operations.
+
+## Product Considerations
+
+If the maximum sector commitment duration is increased, then a sector committed for longer than the `DeactivationTarget` period can be required to perform replacement sealing.
+This is a different operational position than a sector committed only for the `DeactivationTarget` period and then extended.
+In the latter case, because the sector was not committed to a longer period,
+no termination penalty if an enforcement mechanism is enabled.
+Committing a sector for longer than the `DeactivationTarget` period thereby introduces some
+operational risk to the provider.
+
+## Implementations
+
+The replacement sealing implementation is deferred until needed.
+
+## Copyright
+
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
