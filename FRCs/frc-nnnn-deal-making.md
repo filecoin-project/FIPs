@@ -6,22 +6,22 @@
 
 # Simple Summary
 
-Previous to FVM, Filecoin deal-making flows required manual off-chain interactions between a Filecoin Storage Provider and a deal client. This FRC enables a robust standard for an FEVM smart contract to act abstractly as a deal client, enabling deal making automation use cases.
+Filecoin deal-making flows previously required manual off-chain interactions between a Filecoin Storage Provider and a deal client. This FRC proposes a robust standard for an FEVM smart contract to act abstractly as a deal client, thus enabling use cases for automated deal-making. 
 
 # Abstract
 
-A set of solidity interface standards are introduced. These interfaces support both proposing programmatic deals to Filecoin Storage provider and verifying deals as a client. Instead of the client directly proposing deal parameters that are accepted by the storage provider and then verified by the client manually in an off-chain interaction, a contract can implement either the `WildcardDealProposer` or `OneToOneDealProposer` interface (which both inherit from `BaseDealProposer`). This results in the emission of a `*DealProposalCreate` event.
+A set of solidity interface standards are introduced. These interfaces support both proposing programmatic deals to a Filecoin storage provider and verifying deals as a client. Instead of the client proposing off-chain deal parameters that are accepted by the storage provider and must then be verified by the client, a contract can implement either the `WildcardDealProposer` or `OneToOneDealProposer` interface (which both inherit from `BaseDealProposer`). This results in the emission of a `*DealProposalCreate` event.
 
-These events are visible to storage providers who can then call `getDealProposal` on the event emitter, and get details to begin proving the deal. Instead of requiring the off-chain client signature as input to the `PostStorageDeal` flow, it will now utilize the `BaseDealProposer` interface and execute the `handle_filecoin_method` method to verify the client’s deal.
+These events are visible to storage providers, who can then call `getDealProposal` on the event emitter and get details to begin proving the deal. Instead of requiring the off-chain client signature as input to the `PostStorageDeal` flow, it will now utilize the `BaseDealProposer` interface and execute the `handle_filecoin_method` method to verify the client’s deal.
 
 # Motivation
 
 Providing a smart contract interface for deal clients in the Filecoin network brings several benefits to the FVM ecosystem:
 
 1. Enhanced automation: Smart contracts enable the automation of deal-making, dispute resolution, and payments. This could streamline the deal-making process for clients and storage providers, making it more efficient and cost-effective.
-2. Customizable agreements: Smart contracts allow for the creation of customizable agreements between clients and storage providers. This means that the terms and conditions of a deal could be tailored to the specific requirements of both parties, creating more flexible and adaptable solutions. This unlocks DAO treasury mechanics, perpetual storage, and replica processes.
+2. Agreement customization: Smart contracts allow for the creation of customizable agreements between clients and storage providers. This means that the terms and conditions of a deal could be tailored to the specific requirements of both parties, creating more flexible and adaptable solutions. This unlocks DAO treasury mechanics, perpetual storage, and replica processes.
 3. Improved trust: The use of smart contracts can increase trust between clients and storage providers since the execution of the contract is controlled by code rather than relying on manual intervention. This reduces the possibility of manipulation or misinterpretation of the agreement.
-4. Composable: A standard interface for programmatic deal making (proposals, verification, payments) allows both clients, storage providers, and developers to build together efficiency.
+4. Composability: A standard interface for programmatic deal making (proposals, verification, payments) allows both clients, storage providers, and developers to build together efficiency.
 
 # Specification
 
