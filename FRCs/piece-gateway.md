@@ -40,6 +40,16 @@ Implementations are free to limit the scope of work triggered by
 such as
 [`Content-Length`](#content-length-response-header)
 
+### `GET /piece/{CommR}`
+
+Downloads data at the specified **immutable** path.
+
+- `CommR` – A SealedCID or replica commitment identifier of a sealed piece.
+
+### `HEAD /piece/{CommR}`
+
+Same as GET, but does not return any payload.
+
 ### HTTP Request
 
 #### Request Headers
