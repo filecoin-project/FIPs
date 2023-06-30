@@ -76,7 +76,7 @@ This FIP does not effect incentives in itself and is of only flexibility providi
 There is no any impact on Filecoin ecosystem application or platforms. 
 
 ## Implementation
-An implementation can be provided after further discussion of the proposal. 
+These changes have been implemented in [this PR](https://github.com/filecoin-project/builtin-actors/pull/1326). 
 
 ## Copyright
 Copyright and related rights waived vis [CC0](https://creativecommons.org/publicdomain/zero/1.0/). 
