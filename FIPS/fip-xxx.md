@@ -1,4 +1,12 @@
-
+---
+fip: "xxx"
+title: Add Parameters to Base Fee Mechanism
+status: WIP
+type: Technical (Core)
+author: Guy Goren (@guy.goren)
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/686
+created: 2023-06-05
+---
 # FIP: Add Parameters to Base Fee Mechanism
 The first part of [this discussion](https://github.com/filecoin-project/FIPs/discussions/686)
 ## Simple Summary
