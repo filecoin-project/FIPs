@@ -15,7 +15,7 @@ Add a time based weighted averaging of the block sizes for the base-fee calculat
 
 ## Abstract
 The current formula for setting the base fee follows the original EIP1559 (with minor adaptions to fit a tipset setting):
-$$b[i+1]\triangleq  b[i] \cdot \left( 1+\frac{1}{8} \cdot \frac{s[i]-s^* }{s^* }\right)$$ where $i$ enumerates the epoch, $s^*$ is a predetremined block size (the "desired" size), $b[i]$ is the base fee at epoch $i$, and $s[i]$ is the average size of a block in the tipset of epoch $i$. This formula considers only the average block size $s[i]$ from the last epoch. This mechanism might lead to incentives for users to bribe miners in order to reduce the base fee, or (in analogous manner) for miners to intiate a collusion with sophisticated users for the benefit of both. (See next section.)
+$$b[i+1]\triangleq  b[i] \cdot \left( 1+\frac{1}{8} \cdot \frac{s[i]-s^* }{s^* }\right)$$ where $i$ enumerates the epoch, $s^*$ is a predetremined block size (the "desired" size), $b[i]$ is the base fee at epoch $i$, and $s[i]$ is the average size of a block in the tipset of epoch $i$. This formula considers only the average block size $s[i]$ from the last epoch. This mechanism might lead to incentives for users to bribe miners in order to reduce the base fee, or (in analogous manner) for miners to intiate a collusion with sophisticated users for the benefit of both. (See Motivation section.)
 
 We propose to consider the history of block sizes via a time wheighted average with a geometric sequence as the weights. In particular, we suggest the following update rule:
 $$b[i+1]\triangleq  b[i] \cdot \left( 1+\frac{1}{8} \cdot \frac{s_{\textit{avg}}[i]-s^* }{s^* }\right)$$ where $s_{\textit{avg}}[i]$ is defined by
