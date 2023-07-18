@@ -35,7 +35,7 @@ This is both quite expensive, and limits their utility and value.
 More efficient and flexible storage functionality could be implemented in smart contracts
 if they were not constrained by the built-in market actor.
 
-Because the built-in market deal is required intermediary, its minimum deal collateral constitutes a network policy for all data.
+Because the built-in market deal is a required intermediary, its minimum deal collateral constitutes a network policy for all data.
 Making the built-in market optional implies making this deal collateral optional at a network level.
 This proposal is to explicitly accept that optionality rather than either
 continue to require the built-in storage market as an intermediary for all data onboarding,
@@ -82,7 +82,8 @@ Locked = PledgeCollateral
 The built-in market actor constrains the data that storage providers (SPs) can store in sectors, limiting their utility and value.
 It supports only a single, simple deal schema and policies, and does not support a range of desirable market features.
 The built-in market actor is also expensive to use.
-Publishing deals is the largest on-chain cost of QA power onboarding, and currently consumes a large fraction of total chain bandwidth.
+Publishing deals is the largest on-chain cost of QA power onboarding, 
+and currently consumes a large fraction of total chain bandwidth (44% of all gas used over the 30 days to 2023-07-18).
 Much of this cost is unnecessary in the case of simple verified deals with no client payment,
 because the verified registry actor already records information describing the datacap allocation.
 The built-in market plays no necessary role in allocating or accounting for QA power.
@@ -91,7 +92,7 @@ As an alternative to declaring the built-in market optional, protocol designers 
 implementing a wide range of flexible functionality in the network core, and optimising to reduce costs (these goals will often conflict).
 This path would be expensive and slow, being subject to prudent conservatism and network governance processes.
 
-Instead, this proposal prepares to for such innovation to occur in user-programmed smart contracts.
+Instead, this proposal prepares for such innovation to occur in user-programmed smart contracts.
 This decision is a pre-requisite to future changes to provide the technical means for storage providers to commit
 data into sectors on the terms of some other smart contract, unconstrained by the built-in market's functionality or cost.
 One immediate possibility will be support for onboarding Filecoin Plus verified data at a fraction of the current gas costs,
@@ -112,8 +113,6 @@ relative to block rewards, because the deal collateral calculation does not acco
 This is a disproportionate cost/disincentive to storing data for clients that have not undergone Filecoin Plus allocation processes,
 which raises the amount that SPs must charge those clients in order to break even on storage services.
 A further motivation for this proposal is to remove this disproportionate cost in relation to block rewards for alternative storage applications.
-
-(Note: we could also adjust the built-in market's calculation to use QA Power in this FIP, if desired)
 
 ### 2. Remove built-in market balances from the network circulating supply calculation
 Given its cost and limitations, it is unlikely that the built-in market actor will account for 
