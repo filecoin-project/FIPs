@@ -1,20 +1,26 @@
-| fip | title | author | discussions-to | status | type | created |
-| --- | --- | --- | --- | --- | --- | --- |
-| 0060 | Deal making protocol between SPs and FVM smart contracts | Aadi S (@aashidham), Raul K (@raulk), Scott C (@skottie86), Jennifer W (@jennijuju), Anton E, Shrenuj B | https://github.com/filecoin-project/FIPs/discussions/492 | Draft | FRC | 2023-04-25 |
+---
+fip: "<to be assigned>" 
+title: Deal making between SPs and FVM contracts
+author: @aashidham, @raulk, @skottie86, @jennijuju, @nonsense, @shrenujbansal
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/721
+status: Draft
+type: FRC
+created: 2023-04-25
+---
 
-# Deal making protocol between SPs and FVM smart contracts
+# Deal making between SPs and FVM contracts
 
-# Simple Summary
+## Simple Summary
 
 Filecoin deal-making flows previously required manual off-chain interactions between a Filecoin Storage Provider and a deal client. This FRC proposes a robust standard for an FEVM smart contract to act abstractly as a deal client, thus enabling use cases for automated deal-making. 
 
-# Abstract
+## Abstract
 
 A set of solidity interface standards are introduced. These interfaces support both proposing programmatic deals to a Filecoin storage provider and verifying deals as a client. Instead of the client proposing off-chain deal parameters that are accepted by the storage provider and must then be verified by the client, a contract can implement either the `WildcardDealProposer` or `OneToOneDealProposer` interface (which both inherit from `BaseDealProposer`). This results in the emission of a `*DealProposalCreate` event.
 
 These events are visible to storage providers, who can then call `getDealProposal` on the event emitter and get details to begin proving the deal. Instead of requiring the off-chain client signature as input to the `PostStorageDeal` flow, it will now utilize the `BaseDealProposer` interface and execute the `handle_filecoin_method` method to verify the client’s deal.
 
-# Motivation
+## Motivation
 
 Providing a smart contract interface for deal clients in the Filecoin network brings several benefits to the FVM ecosystem:
 
@@ -23,13 +29,13 @@ Providing a smart contract interface for deal clients in the Filecoin network br
 3. Improved trust: The use of smart contracts can increase trust between clients and storage providers since the execution of the contract is controlled by code rather than relying on manual intervention. This reduces the possibility of manipulation or misinterpretation of the agreement.
 4. Composability: A standard interface for programmatic deal making (proposals, verification, payments) allows both clients, storage providers, and developers to build together efficiency.
 
-# Specification
+## Specification
 
 A valid client contract implementation would minimally support either the `OneToOneDealProposer` or `WildcardDealProposer` interface. Both of these inherit the `BaseDealProposer` interface.
 
-In particular, the `OneToOneDealProposer` interface is for client contracts that have specified a single Boost SP for every deal proposal. Developers implementing this interface will likely have to reach out and coordinate with Boost SPs specified for a particular deal. Boost SPs with address `x` can then listen to `OneToOneDealProposalCreate` events with the provider field set to `x`. This flow is tremendously simplified, since it only deals with one client contract and one Boost SP per deal proposal. 
+In particular, the `OneToOneDealProposer` interface is for client contracts that have specified a single SP for every deal proposal. Developers implementing this interface will likely have to reach out and coordinate with SPs specified for a particular deal. SPs with address `x` can then listen to `OneToOneDealProposalCreate` events with the provider field set to `x`. This flow is simple since it only deals with one client contract and one SP per deal proposal. 
 
-On the other hand, the `WildcardDealProposer` interface is for client contracts that have not specified any Boost SPs for a deal proposal. SPs can subscribe to a particular client contract, and will be selected by the contract in order to receive a certain deal proposal. If a PSD message is not released by the elected SP for the deal, the contract may elect another subscribed SP to take the deal proposal on. This process is more universal and does not require offchain coordination between an SP and a client contract. 
+On the other hand, the `WildcardDealProposer` interface is for client contracts that have not specified any SPs for a deal proposal. SPs can subscribe to a particular client contract, and will be selected by the contract in order to receive a certain deal proposal. If a PSD message is not released by the elected SP for the deal, the contract may elect another subscribed SP to take the deal proposal on. This process is more universal and does not require offchain coordination between an SP and a client contract. 
 
 Note: we may define other modalities that also inherit from `BaseDealProposer` that are not currently represented by `OneToOneDealProposer` or `WildcardDealProposer`. This is meant to be a modular standard that can be expanded upon later, with different approaches for SPs to interact with client contracts. 
 
@@ -163,7 +169,7 @@ interface WildcardDealProposer is BaseDealProposer {
 }
 ```
 
-## *DealProposalCreate (including `WildcardDealProposalCreate` and `OneToOneDealProposalCreate`)
+### *DealProposalCreate (including `WildcardDealProposalCreate` and `OneToOneDealProposalCreate`)
 
 - MUST emit a `*DealProposalCreate` event when a new deal definition is available for SPs to analyze and propose storage deals for.
 
@@ -172,13 +178,13 @@ This contract client:
 - SHOULD **not** emit a `*DealProposalCreate` event with the same proposal ID more than once.
 - MUST provide a proposal ID that is unique to all deals that are proposed for that client.
 
-## ClientContractDeployed
+### ClientContractDeployed
 
 This contract client:
 
 - MUST emit a `ClientContractDeployed` event exactly once — when the contract is first minted on the blockchain
 
-## getDealProposal
+### getDealProposal
 
 (By `DealDefinition*` we mean `DealDefinition` or `DealDefinitionNoProvider` depending on which interface is inherited.)
 
@@ -192,7 +198,7 @@ This contract client:
     - The caller could be invalid because it never subscribed to the contract (for a `WildcardDealProposer` client contract)
     - The caller could be invalid because it was not specified in the `OneToOneDealProposalCreate` event signature
 
-## getSPOrdering
+### getSPOrdering
 
 This contract client:
 
@@ -201,7 +207,7 @@ This contract client:
     - In this situation, the chosen SP for the deal proposal has failed, and the queue must be updated to the next available subscribed SP for that deal proposal
 - MUST return an empty list if the proposal ID does not exist or is invalid.
 
-## handle_filecoin_method
+### handle_filecoin_method
 
 This contract client:
 
@@ -269,11 +275,11 @@ The fields of `DealDefinition*` structs are the following:
 | skip_ipni_announce | Boolean representing whether or not the deal should be announced to IPNI indexers | false | Set to false |
 | remove_unsealed_copy | Boolean representing whether or not the provider should remove the unsealed copy of the data. If not removed, the client has the ability to immediately retrieve its data. If removed, the provider first has to unseal the data before offering it for retrieval. | false | Set to false |
 
-## Deal Flow I (Implementing `WildcardDealProposer`)
+### Deal Flow I (Implementing `WildcardDealProposer`)
 
 <img width="795" alt="Wildcard2" src="https://user-images.githubusercontent.com/782153/234464721-9da43c2d-5191-4265-a1ba-1ce46438bb9a.png">
 
-The flow for this interface would be as follows, between client contract `A` and Boost SP `B`. It requires the implementation of `WildcardDealProposer` , which itself inherits from `BaseDealProposer`.
+The flow for this interface would be as follows, between client contract `A` and SP `B`. It requires the implementation of `WildcardDealProposer` , which itself inherits from `BaseDealProposer`.
 
 1. A gets deployed onchain and emits a `ClientContractDeployed` event.
     1. B sees the `ClientContractDeployed` event and calls `subscribe()` on A.
@@ -285,39 +291,43 @@ The flow for this interface would be as follows, between client contract `A` and
     2. If B is not at the top of the queue, it takes no action.
 4. If B is top of the queue, B uses the deal definition to complete the deal, calling `PostStorageDeal`.
     1. This will call `handle_filecoin_method` for `2643134072`, which should accept the deal as long as the provider is registered against it and the epoch is before or equal to the expiry epoch.
-5. If the storage deal aligning with the deal proposal is not published within 150 epochs, steps 3 and 4 are repeated with another Boost SP that is next in the queue.
+5. If the storage deal aligning with the deal proposal is not published within 150 epochs, steps 3 and 4 are repeated with another SP that is next in the queue.
 6. The deal is posted to the chain.
 
-## Deal Flow II (Implementing `OneToOneDealProposer`)
+### Deal Flow II (Implementing `OneToOneDealProposer`)
 
 <img width="749" alt="OneToOne" src="https://user-images.githubusercontent.com/782153/234464787-9a7ab0e0-bf18-4a50-b441-d79ae6dc8658.png">
 
-The flow for this interface would be as follows, between client contract `A` and a Boost SP `B`. It requires the implementation of `OneToOneDealProposer` , which itself inherits from `BaseDealProposer`. 
+The flow for this interface would be as follows, between client contract `A` and an SP `B`. It requires the implementation of `OneToOneDealProposer` , which itself inherits from `BaseDealProposer`. 
 
-NOTE: This flow will benefit from prior coordination off-chain. It would be beneficial for `A` to communicate with `B` off-chain ahead of time, so that `B` is aware that deal proposals that `A` will send to `B`. Unlike the `WildcardDealProposer` approach, `A` must determine (ahead of time) a single Boost SP provider for each deal proposal that it is sent to the event log ahead of time. This will populate the `provider` field inside the `OneToOneDealProposalCreate` event. 
+NOTE: This flow will benefit from prior coordination off-chain. It would be beneficial for `A` to communicate with `B` off-chain ahead of time, so that `B` is aware that deal proposals that `A` will send to `B`. Unlike the `WildcardDealProposer` approach, `A` must determine (ahead of time) a single SP provider for each deal proposal that it is sent to the event log ahead of time. This will populate the `provider` field inside the `OneToOneDealProposalCreate` event. 
 
 The flow proceeds as follows:
 
 1. A gets deployed onchain and emits a `ClientContractDeployed` event.
-2. A emits a `OneToOneDealProposalCreate` message for a deal proposal, which specifies a single Boost SP B inside the event signature.
+2. A emits a `OneToOneDealProposalCreate` message for a deal proposal, which specifies a single SP B inside the event signature.
 3. B calls `getDealProposal` to receive the deal proposal payload, as specified by the `DealDefinition*` struct.
 4. B uses the deal definition to complete the deal, calling `PostStorageDeal`.
     1. This will call `handle_filecoin_method` for `2643134072`, which should accept the deal as long as the provider is registered against it and the epoch is before or equal to the expiry epoch.
 5. The deal is posted to the chain.
 
-# Design Rationale
+## Design Rationale
 
 The following design decisions have been made:
 
 - **No Formal Deal Proposal Flow:** The standard defines a `DealDefinition*` set of structs which standardizes the format for how storage providers receive deal parameters from contract clients, but does not define a contract method for generating this proposal. This enables the contract client to define, build, register, or otherwise accept deals in any manner they so choose. This flexibility ensures that we do not exclude use cases. In other words, this interface is scoped entirely to the interaction between the storage provider and the client contract.
-- **Event-based Notifications:** Using the event logs from transactions is a decentralized and trustless way of notifying network participants that deals are ready and available. Because every storage provider runs a node, event processing is a natural extension of their operations. Because most deal-making storage providers run the accompanying software Boost, the motivation is to enable Boost to listen and consume these events easily.
+- **Event-based Notifications:** Using the event logs from transactions is a decentralized and trustless way of notifying network participants that deals are ready and available. Because every storage provider runs a node, event processing is a natural extension of their operations. The motivation is to enable SPs to listen and consume these events easily.
 - **Account Abstraction Authorization:** Instead of requiring offline signatures and trusted interactions between the storage provider and the client, the `handle_filecoin_method` integration for authenticating PostStorageDeal methods is a critical aspect of being able to programmatically accept deals.
 - **Bandwidth and Cost Considerations:** We want to ensure that storage providers do not have to needlessly try to process deals that are either already in progress. Some form of ordering, preference, and deal availability is needed to prevent wasted effort, front-running, or race conditions.
 - **Permissionless**: The interface does not account for regulations, client concerns, or client / storage provider relationships. Things like allow listing, deny listing, or storage provider selection are outside the scope of this standard. However, this standard provides the interface to encapsulate and enable permissioning.
 - **Easy Entrance to Marketplace:** We want to reduce the surface area and requirements to connect a client and a storage provider to the minimum necessary. This means removing any sort of previous relationship requirements for a storage provider to offer completing a deal.
 - **Less Polling:** Providing an expiration epoch for registration clearly communicates at a protocol level when a client expects a deal to complete, and when competing storage providers can come back to register should they have missed the previous opportunity.
 
-# Test Cases
+## Backwards Compatibility
+
+Not relevant for this FRC.
+
+## Test Cases
 
 For `WildcardDealProposer`:
 
@@ -337,7 +347,7 @@ For `OneToOneDealProposer`:
 
 TODO: more engineering test cases
 
-# Security Considerations
+## Security Considerations
 
 There are a couple of security considerations that have been considered by this standard, and must be considered by both client implementations and storage provider configurations to remain robust.
 
@@ -352,23 +362,23 @@ For the Storage Provider:
 - Must sufficiently trust the contract client to honor deal registrations. A malicious contract client could spawn a bunch of proposals, enable proper registrations, and then fail PSD authorization via `handle_filecoin_method` to deny deal completion. This would waste storage provider resources, and with full unmonitored automation could prove to be a denial of service vector against specific storage providers.
 - Because of this, the storage provider should consider listening to certain clients or marketplaces, but not all by default.
 
-# Incentive Considerations
+## Incentive Considerations
 
 This standard provides some acceleration of existing incentives, but does not add any new ones:
 
 - Storage Providers are incentivized to listen to contract clients as a no-touch way to accept deals. This includes the potential upside of sourcing FIL+ deals without having to discover or engage customers
-- Programmatic deal making provides an additional incentive to also run Boost, which will support this standard out-of-the-box and provide additional configuration.
+- Programmatic deal making provides an additional incentive for SPs to run deal-making software programs like Boost, which will support this standard out-of-the-box and provide additional configuration.
 
-# Product Considerations
+## Product Considerations
 
 This FRC is built to enable two key product goals:
 
 1. Allow FVM devs to build dapps and write smart contracts on FVM that enable them to create storage deals with SPs.
 2. Enable SPs to participate efficiently with smart contracts on FVM with minimal time, bandwidth and gas expense.
 
-This opens up a large world of use cases in the FVM landscape: DataDAOs that incentivize the storage of data, perpetual storage, storage automation (though both repair and replica workers), and more. This standard aims to enable user actors to stay composable and extensible, while being adaptable and compatible with Boost SPs and other deal onboarding software used in the Filecoin ecosystem.
+This opens up a large world of use cases in the FVM landscape: DataDAOs that incentivize the storage of data, perpetual storage, storage automation (though both repair and replica workers), and more. This standard aims to enable user actors to stay composable and extensible.
 
-Note, however that the FRC is *ONLY* meant to standardize communication between participating Boost SPs and FVM smart contracts. It is not meant to standardize deal proposal creation, SP ordering or any other aspect in the lifecycle of  deal making.
+Note, however that the FRC is *ONLY* meant to standardize communication between participating SPs and FVM smart contracts. It is not meant to standardize deal proposal creation, SP ordering or any other aspect in the lifecycle of  deal making.
 
 While the aforementioned will be present in an opinionated (and complete) implementation available for developers, it will not be specified in this FRC. As such, it can be readily modified based on storage use cases on FVM.
 
@@ -377,10 +387,10 @@ Some examples:
 - The client has complete freedom in how the deal proposal is implemented and stored. The deal proposal could be stored in state. It could also be generated on the spot, stored in a database, or stored through some other method altogether.
 - The client may need extra interaction to claim a deal. This might mean making an off-chain call or some other private implementation. The FRC grants the client the flexibility of doing so as a separate set of methods specific to their use case.
 
-# Implementation
+## Implementation
 
 - [TODO: In progress](https://github.com/filecoin-project/fvm-starter-kit-deal-making/tree/main/client-contract)
 
-# Copyright
+## Copyright
 
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
