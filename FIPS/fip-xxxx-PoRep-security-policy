@@ -77,12 +77,12 @@ When a sector is close to expiration, a provider can extend the sector for up to
 This can be repeated until the **sector maximum lifetime** (currently 5 years),
 after which further extensions are prohibited.
 
-It would be desirable to allow storage providers to make longer commitments to sectors (e.g. as proposed in FIP-0036, FIP-0056).
+It would be desirable to allow storage providers to make longer commitments to sectors (e.g. as proposed in FIP-0036, FIP-0052 and FIP-0056).
 Longer commitments support stability of network’s committed storage, could immediately support longer deals,
 and generally reduce the overheads of cycling sectors into the future.
 A higher possible maximum commitment duration would be beneficial regardless of any incentives toward longer commitments.
 
-The authors assert that the implementation of a concrete mechanism, and rough consensus around policy, should be pre-requisite to increasing the maximum sector commitment duration.
+The authors assert that consensus around policy should be a pre-requisite to increasing the maximum sector commitment duration.
 
 ## Specification
 
