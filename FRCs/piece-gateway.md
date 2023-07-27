@@ -1,7 +1,12 @@
-| fip | title | author | discussions-to | status | type | created |
-| --- | --- | --- | --- | --- | --- | --- |
-| TBD | Piece Retrieval Gateway | Will Scott (@willscott), Dirk McCormick (@dirkmc) | [#711](https://github.com/filecoin-project/FIPs/discussions/711) | Draft | FRC | 2023-05-19 |
-
+---
+fip: "0066"
+title: Piece Retrieval Gateway
+author: "Will Scott (@willscott), Dirk McCormick (@dirkmc)"
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/711
+status: Draft
+type: FRC
+created: 2023-05-19
+---
 
 # Piece Retrieval Gateway
 
