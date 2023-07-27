@@ -101,3 +101,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0060](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0060.md)   | Set market deal maintenance interval to 30 days  | FIP  |Jakub Sztandera (@Kubuxu), @Zenground0, Alex North (@anorth)| Final  |
 |[0061](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0061.md)   | WindowPoSt Grindability Fix  | FIP  |@cryptonemo @Kubuxu  @DrPeterVanNostrand @Nicola @porcuquine @vmx @arajasek| Final  |
 |[0062](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0062.md)   | Fallback Method Handler for the Multisig Actor  | FIP  |JDimitris Vyzovitis (@vyzo), Raúl Kripalani (@raulk)| Final  |
+|[0067](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0067.md)   | PoRep Security Policy & Replacement Sealing Enforcement  | FIP  |. @Kubuxu, @anorth, @irenegia, @lucaniz  | Draft  |
