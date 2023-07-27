@@ -102,4 +102,5 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0061](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0061.md)   | WindowPoSt Grindability Fix  | FIP  |@cryptonemo @Kubuxu  @DrPeterVanNostrand @Nicola @porcuquine @vmx @arajasek| Final  |
 |[0062](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0062.md)   | Fallback Method Handler for the Multisig Actor  | FIP  |JDimitris Vyzovitis (@vyzo), Raúl Kripalani (@raulk)| Final  |
 |[0063](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0063.md)   | Switching to new Drand mainnet network  | FIP  | @yiannisbot, @CluEleSsUK, @AnomalRoil, @nikkolasg, @willscott                    | Draft     |
-|[0065](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0065.md)   | Ignore built-in market locked balance in circulating supply calculation  | FIP  | @anorth                                                                          | Draft     |
+|[0065](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0065.md)   | Ignore built-in market locked balance in circulating supply calculation  | FIP  | @anorth  | Draft  |
+|[0066](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0066.md)   | Piece Retrieval Gateway | FRC  | @willscott, @dirkmc  | Draft  |
