@@ -2,7 +2,7 @@
 fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
 title: Deterministic State Access
 author: Steven (@stebalien)
-discussions-to: <URL>
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/764
 status: Draft
 type: Technical Core
 created: 2023-07-25
