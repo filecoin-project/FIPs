@@ -41,6 +41,8 @@ This should allow for natural manipulation of IPLD state-trees while preventing 
 
 ### Background
 
+This section describes the FVM as it exists today. For more context and history, you may want to read about the [IPLD memory model](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0030.md#ipld-memory-model).
+
 #### IPLD API
 
 The FVM's exposes 4 syscalls for reading/writing IPLD state to actors:
