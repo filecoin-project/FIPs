@@ -1,7 +1,7 @@
 ---
 fip: "<to be assigned>" 
 title: Allow SPs to move partitions between deadlines 
-author: Steven Li (@steven004), Alan Xu (@zhiqiangxu), Mike Li (@hunjixin), Alex North (@anorth), Nickle (@nickle)
+author: Steven Li (@steven004), Alan Xu (@zhiqiangxu), Mike Li (@hunjixin), Alex North (@anorth), Nicola (@nicola)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/735
 status: Draft
 type: Technical (Core)
