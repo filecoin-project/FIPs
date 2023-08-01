@@ -25,8 +25,8 @@ By implementing this proposal, several advantages can be realized:
 - Creation of user-defined maintenance windows: SPs can create designated periods for maintenance activities without the risk of losing power. 
 - Set hours of operation for SP infrastructure maintainers: SPs can schedule all WindowPoSts during hours of operation to optimize the maintenance operation resources/on-call schedules. 
 - Cost savings for large SPs on WindowPoSt hardware: Balancing the number of partitions across all the deadlines allows large SPs to optimize their hardware usage and reduce WindowPoSt hardware costs.
-- Relieving access stress on storage nodes: In scenarios where an excessive number of partitions are concentrated within a single deadline on specific storage nodes, redistributing some partitions to other deadlines can help alleviate access stress and improve overall performance.
-- Possibility of partition compaction: By moving partitions from different deadlines into a single deadline, it becomes possible to compact partitions that were originally distributed across multiple deadlines. 
+- Relieving access stress on storage nodes: In scenarios where numerous partitions need complete WindowedPoSt within a short period and their sectors located in a specific storage node in a distributed storage system, the excessive read requests in that period can overload the node and degrade its performance. Moving some partitions to other deadlines helps achieve a more balanced workload.
+- Increasing possibility of compacting partition: By moving partitions from different deadlines into a single deadline, it becomes possible to compact partitions that were originally distributed across multiple deadlines. 
 
 ## Specification
 We propose adding the following method to the built-in `Miner` Actor. 
@@ -50,7 +50,13 @@ type MovePartitionsParams struct {
 To adhere to the requirement of conducting a _WindowPoSt_ every 24 hours, the `MovePartitions` function only permits the movement of partitions to a `DestDeadline` whose next proving period is scheduled to occur within 24 hours after the `OrigDeadline`'s last proving period. If the `DestDeadline` falls outside of this time frame, it will fail. This restriction ensures that the sector's period aligns with the required _WindowPoSt_ interval. 
 
 ## Design Rationale
-The primary objective is to introduce a straightforward mechanism for implementing flexible proving period settings for Storage Providers (SPs). Additionally, there is a consideration to offer greater flexibility by allowing the movement of any selected sectors from one deadline to another. This would enable an SP to align the expiration of sectors within a single partition. However, this approach poses certain risks, such as the potential increase in the cost of managing the bitfield due to non-sequential sector IDs. Moreover, the technical complexity involved in understanding the cost calculation may lead to unnecessary difficulties for SP operators.
+The main goal of this proposal is to introduce a straightforward mechanism for enabling flexible proving period scheduling for Storage Providers (SPs). `MovePartitions` means all sectors in the particular partitions are all together moved from the original deadline to the destination deadline if it executed successfully. 
+
+Another aspect to consider is the possibility of allowing the movement of selected sectors from one deadline to another, which would enable Storage Providers (SPs) to align the expiration of sectors within a single partition. However, this approach comes with certain risks, such as potential cost increases in managing the bitfield due to non-sequential sector IDs, leading to unexpected gas usage. Moreover, the technical complexity involved in understanding the gas calculation could create unnecessary difficulties for SP operators. Additionally, implementing this feature introduces a significant level of complexity to the system.
+
+This proposal does not currently adopt the second aspect to ennsure a more straightforward and manageable implementation, leaving the movement of selected sectors for future study. 
+
+
 
 ## Backwards Compatibility
 This proposal introduced a new method to the built-in actors, which needs a network upgrade, but otherwise breaks no backwards compatibility
