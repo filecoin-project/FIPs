@@ -23,7 +23,7 @@ When a Storage Provider (SP) maintains storage for Filecoin network, they often 
 By implementing this proposal, several advantages can be realized: 
 
 - Creation of user-defined maintenance windows: SPs can create designated periods for maintenance activities without the risk of losing power. 
-- Definition of free hours for better duty roster: SPs can allocate specific hours of the day as free hours, enabling them to optimize their duty roster. This can be achieved by moving partitions out of those hours.
+- Set hours of operation for SP infrastructure maintainers: SPs can schedule all WindowPoSts during hours of operation to optimize the maintenance operation resources/on-call schedules. 
 - Cost savings for large SPs on WindowPoSt hardware: Balancing the number of partitions across all the deadlines allows large SPs to optimize their hardware usage and reduce WindowPoSt hardware costs.
 - Relieving access stress on storage nodes: In scenarios where an excessive number of partitions are concentrated within a single deadline on specific storage nodes, redistributing some partitions to other deadlines can help alleviate access stress and improve overall performance.
 - Possibility of partition compaction: By moving partitions from different deadlines into a single deadline, it becomes possible to compact partitions that were originally distributed across multiple deadlines. 
