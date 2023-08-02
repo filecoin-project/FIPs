@@ -260,6 +260,14 @@ We made this choice for a few reasons:
 1. Performance. Fully validating CBOR would require validating UTF-8 (walking all strings byte by byte), map key order, etc.
 2. Security. The validation logic would become a part of the spec. Any deviation from said validation logic in any client implementation would cause forks. Any bug would either reject valid blocks or accept invalid blocks (betraying the user's expectation that all blocks in the state-tree are fully validated CBOR).
 
+To highlight this point:
+
+1. The DagCBOR spec has been tweaked _many_ times and I have little confidence that it won't change again in the future.
+2. The validation rules are [complicated](https://github.com/ipld/ipld/blob/master/specs/codecs/dag-cbor/spec.md#strictness).
+3. Most DagCBOR implementations _don't_ (or haven't until recently) correctly implemented this spec.
+
+So, instead, we went for a small but easily verifiable implementation that can be concisely specified with no strange edge-cases and/or exceptions.
+
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
 
