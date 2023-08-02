@@ -20,7 +20,12 @@ Where "reachable" means that the state can be "reached" by traversing IPLD links
 
 ## Abstract
 
-TODO
+This FIP introduces additional logic into the FVM's state management system to ensure that:
+
+1. An actor may only read its own state.
+2. When an actor writes new state, that new state may only reference an actors existing state.
+
+This ensures that an actor cannot read and/or reference random IPLD data in the client's blockstore which could lead to network forks (once users are allowed to deploy arbitrary native actors to the network).
 
 ## Change Motivation
 
