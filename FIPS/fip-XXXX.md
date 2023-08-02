@@ -262,7 +262,7 @@ We made this choice for a few reasons:
 
 To highlight this point:
 
-1. The DagCBOR spec has been tweaked _many_ times and I have little confidence that it won't change again in the future.
+1. The DagCBOR spec has been tweaked _many_ times and may change again in the future.
 2. The validation rules are [complicated](https://github.com/ipld/ipld/blob/master/specs/codecs/dag-cbor/spec.md#strictness).
 3. Most DagCBOR implementations _don't_ (or haven't until recently) correctly implemented this spec.
 
