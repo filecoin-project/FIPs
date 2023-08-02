@@ -34,8 +34,8 @@ This FIP proposes to enforce the existing built-in actor behavior in the FVM its
 
 It does this by introducing a "reachable set", the set of currently "accessible" blocks (specifically, the CIDs of said blocks), and the following two rules:
 
-1. The actor may only read (open) blocks in the reachable set. Blocks [referenced by](#block-analysis) newly opened blocks are added to the reachable set.
-2. The actor may only write (create) blocks that [referenced](#block-analysis) blocks currently in the reachable set. Newly created blocks are added to the reachable set.
+1. The actor may only read (open) blocks in the reachable set. Blocks [referenced by][ block-analysis ] newly opened blocks are added to the reachable set.
+2. The actor may only write (create) blocks that [referenced][ block-analysis ] blocks currently in the reachable set. Newly created blocks are added to the reachable set.
 
 This should allow for natural manipulation of IPLD state-trees while preventing an actor from reading arbitrary state.
 
@@ -68,6 +68,19 @@ The FVM currently supports reading (`ipld::block_open`) and writing (`ipld::bloc
 3. `DagCBOR` (0x71) -- cbor-encoded _linked_ (IPLD) data
 
 Of these codecs, only the last one, `DagCBOR`, can "link" to other objects.
+
+### Gas
+
+We define 4 new gas fees:
+
+| Name                       | Gas  | Description                                     |
+|----------------------------|------|-------------------------------------------------|
+| `ipld_cbor_scan_per_field` | TODO | the fee charged per CBOR field read             |
+| `ipld_cbor_scan_per_cid`   | TODO | the fee charged per CID read while parsing CBOR |
+| `ipld_link_tracked`        | TODO | the fee charged per "reachable" CID tracked     |
+| `ipld_link_checked`        | TODO | the fee charged per "reachable" CID checked     |
+
+Read on for how these fees will be applied.
 
 ### IPLD Block Link Analysis
 [block-analysis]: #ipld-block-link-analysis
@@ -112,7 +125,7 @@ We start by setting the expected number of fields to 1. If this number would eve
 
 Then, while the expected number of fields is non-zero, we:
 
-1. Charge gas for reading a single CBOR field. XXX
+1. Charge gas (`ipld_cbor_scan_per_field`) for reading a single CBOR field.
 2. Decrement the expected number of fields by 1.
 3. Read the that CBOR field "header" (major type + immediate value):
     1. We read one byte where the first 3 bits (0-7) are the major type and the remaining 5 are the additional information.
@@ -125,7 +138,7 @@ Then, while the expected number of fields is non-zero, we:
 7. If the major type is 5 (map) we add two times the immediate value to the expected number of fields, and continue. We do not or restrict the allowed key/value types, nor do we validate the order of keys, nor do we check for duplicates.
 8. If the major type is 6 (tag):
     1. If the immediate value is 42, we:
-        1. Charge gas for reading a single CID from a CBOR field. XXX
+        1. Charge gas (`ipld_cbor_scan_per_cid`) for reading a single CID from a CBOR field.
         2. Read the next CBOR header as described in step 3.
         3. If the field is not a byte-string, abort with an error.
         4. If the field does not start with a single 0x0 byte, abort with an error.
@@ -153,7 +166,7 @@ Importantly, this set is per-actor-instance, not global. For example, if actor A
 On `ipld::block_create(codec, data) -> handle`, the FVM:
 
 1. Validates that the codec is in the `SUPPORTED_CODECS` set.
-2. Calls `ListReachable(codec, data)` validating that all returned CIDs are currently in the reachable set.
+2. Calls `ListReachable(codec, data)`, charges `ipld_link_checked` per CID, then validates that all returned CIDs are currently in the reachable set.
     1. If this function returns an error, the syscall fails with [`Serialization`][err-serialization].
     2. If this function returns any CIDs not currently in the reachable set, the syscall fails with [`NotFound`][err-notfound].
 3. Continues to create the block as usual, recording the reachable CIDs alongside the block.
@@ -165,9 +178,9 @@ On `ipld::block_create(codec, data) -> handle`, the FVM:
 
 On `ipld::block_open(cid) -> handle`, the FVM:
 
-1. Validates that the requested CID is in the reachable set.
+1. Validates that the requested CID is in the reachable set, charging `ipld_link_checked` gas.
 2. Loads the block from the client's blockstore.
-3. Calls `ListReachable` on the newly opened block, adding the referenced CIDs to the reachable set.
+3. Calls `ListReachable` on the newly opened block, adding the referenced CIDs to the reachable set and charging , `ipld_link_tracked` gas per CID referenced.
 
 NOTE: The CID must be blake2b-256, not an identity hash. Actors must handle blocks inlined into identity hashes internally as said CIDs are _not_ tracked in the reachable set.
 
@@ -177,20 +190,20 @@ On `ipld::block_link(handle, hash_code, hash_len) -> cid`, the FVM:
 
 1. Validates that the handle references an open block and that the hash code/len are exactly blake2b-256 and 32 respectively.
 2. Puts the block into the client's blockstore (or, at least, a write buffer for said blockstore).
-3. Adds the newly created CID to the reachable set.
+3. Adds the newly created CID to the reachable set, charging `ipld_link_tracked` gas.
 
 ### `self::root`
 
 On `self::root() -> cid`, the FVM:
 
-1. Adds the root CID to the reachable set.
+1. Adds the root CID to the reachable set, charging `ipld_link_tracked` gas.
 2. Returns the root CID.
 
 ### `self::set_root`
 
 On `self::set_root(cid)`, the FVM:
 
-1. Validates that the cid is in the reachable set.
+1. Validates that the cid is in the reachable set, charging `ipld_link_checked` gas.
 2. Updates the actor's state-root.
 
 NOTE: The root CID _must_ be a blake2b-256 CID, not an identity-hashed inlined block.
@@ -201,10 +214,10 @@ On `send::send(..., parameters_handle, ...) -> (..., return_handle, ...)`, the F
 
 1. Validates that `parameters_handle` is a valid IPLD block handle.
 2. Copies the referenced block into the receiving actor's open block table.
-3. Adds the CIDs reachable from the sent (parameters) block to the receiving actor's reachable set. This operation requires no additional parsing as the reachable CIDs are already recorded alongside the block.
+3. Adds the CIDs reachable from the sent (parameters) block to the receiving actor's reachable set (charging `ipld_link_tracked` gas per CID). This operation requires no additional parsing as the reachable CIDs are already recorded alongside the block.
 4. Invokes the receiving actor.
 5. On return, copies the returned block into the caller's open block table.
-6. Adds the CIDs reachable from the returned block to the caller's reachable set.
+6. Adds the CIDs reachable from the returned block to the caller's reachable set (charging `ipld_link_tracked` gas per CID).
 7. Returns to the caller.
 
 ## Design Rationale
