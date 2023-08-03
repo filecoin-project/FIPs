@@ -29,7 +29,9 @@ By implementing this proposal, several advantages can be realized:
 - Increasing possibility of compacting partition: By moving partitions from different deadlines into a single deadline, it becomes possible to compact partitions that were originally distributed across multiple deadlines. 
 
 ## Specification
-We propose adding the following method to the built-in `Miner` Actor. 
+We propose the addition of a new method to the built-in `Miner` Actor, called `MovePartitions`, which allows Storage Providers (Miners) to move sectors within partitions from one deadline to another. 
+
+### Method Signature and Parameters
 
 ``` golang
 // Moves sectors in partitions in one deadline to another
@@ -47,7 +49,14 @@ type MovePartitionsParams struct {
 } 
 ```
 
-To adhere to the requirement of conducting a _WindowPoSt_ every 24 hours, the `MovePartitions` function only permits the movement of partitions to a `DestDeadline` whose next proving period is scheduled to occur within 24 hours after the `OrigDeadline`'s last proving period. If the `DestDeadline` falls outside of this time frame, it will fail. This restriction ensures that the sector's period aligns with the required _WindowPoSt_ interval. 
+### Constraits and Rules
+
+1. To adhere to the requirement of conducting a _WindowPoSt_ every 24 hours, the `MovePartitions` function only permits the movement of partitions to a `DestDeadline` whose next proving period is scheduled to occur within 24 hours after the `OrigDeadline`'s last proving period. If the `DestDeadline` falls outside of this time frame, it will fail. This restriction ensures that the sector's period aligns with the required _WindowPoSt_ interval.
+2. Partitions cannot be moved to or from a deadline during its challenge window or immediately before it, matching existing mutability constraints.
+3. A partition containing faulty or unproven sectors cannot be moved. 
+4. The partitions are moved as a whole, without any compaction.
+5. An empty partition is left behind in the source deadline after the move. This ensures that partition indices do not change.
+6. If the original deadline falls within its optimistic WindowPoSt challenge window, the previously submitted WindowPoSt is validated during the MovePartitions method's execution. This validation helps to demonstrate the correctness of the previously submitted WindowPoSt data.
 
 ## Design Rationale
 The main goal of this proposal is to introduce a straightforward mechanism for enabling flexible proving period scheduling for Storage Providers (SPs). `MovePartitions` means all sectors in the particular partitions are all together moved from the original deadline to the destination deadline if it executed successfully. 
