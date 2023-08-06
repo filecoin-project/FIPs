@@ -1,11 +1,11 @@
 ---
 fip: "TBD"
 title: Piece Multihash
-author: "Adin Schmahmann (@aschmahmann), Peter Rabbitson (@ribasushi), ..."
+author: "Adin Schmahmann (@aschmahmann), Peter Rabbitson (@ribasushi)"
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/759
 status: Draft
 type: FRC
-created: 2023-MM-DD
+created: 2023-07-26
 ---
 
 # Piece Multihash and v2 Piece CID
