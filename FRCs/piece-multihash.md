@@ -12,17 +12,17 @@ created: 2023-07-26
 
 ## Simple Summary
 
-Introduce an alternative CID representation for the FR32 padded sha256-trunc254-padded binary merkle trees used in Filecoin Piece Commitments (i.e. CommP). In it we use the [Raw codec](https://github.com/multiformats/multicodec/blob/566eaf857a9d20573d3910221db7b34d98e8a0fc/table.csv#L41) and a new [sha2-256-trunc254-padded-binary-tree multihash (or piece multihash)](https://link.tld) rather than the [Fil-commitment-unsealed codec](https://github.com/multiformats/multicodec/blob/566eaf857a9d20573d3910221db7b34d98e8a0fc/table.csv#L517) and the [sha2-256-trunc254-padded multihash](https://github.com/multiformats/multicodec/blob/566eaf857a9d20573d3910221db7b34d98e8a0fc/table.csv#L149).
+Introduces an alternative CID representation for the FR32 padded sha256-trunc254-padded binary merkle trees used in Filecoin Piece Commitments (i.e. CommP). In it we use the [Raw codec](https://github.com/multiformats/multicodec/blob/566eaf857a9d20573d3910221db7b34d98e8a0fc/table.csv#L41) and a new [sha2-256-trunc254-padded-binary-tree multihash (or piece multihash)](https://link.tld) rather than the [Fil-commitment-unsealed codec](https://github.com/multiformats/multicodec/blob/566eaf857a9d20573d3910221db7b34d98e8a0fc/table.csv#L517) and the [sha2-256-trunc254-padded multihash](https://github.com/multiformats/multicodec/blob/566eaf857a9d20573d3910221db7b34d98e8a0fc/table.csv#L149).
 
 
 ## Abstract
 This specification describes a new way to reference Pieces using CIDs.
 
-While the current way of describing Piece CIDs (i.e. with the fil-commitment-unsealed codec and sha2-256-trunc254-padded multihash) has been useful for some purposes in practice it turns out to be much more useful to be able to express the tuple of (Root hash, size of tree) than just the root hash.
+While the current way of describing Piece CIDs (i.e. with the fil-commitment-unsealed codec and sha2-256-trunc254-padded multihash) has been useful for some purposes, in practice it turns out to be much more useful to be able to express the tuple of (Root hash, size of tree) rather than just the root hash.
 
-For example, in much of the relevant portions of the Filecoin spec and lotus' Go code Piece CIDs are not used on their own, but rather combined with the piece size in the [Piece Info](https://pkg.go.dev/github.com/filecoin-project/go-state-types@v0.11.0/abi#PieceInfo) type. For example in the [Storage Proving Subsystem](https://github.com/filecoin-project/specs/blob/e5d44e1bdac4635997f3aaa917511016842a50e5/content/systems/filecoin_mining/storage_proving/storage_proving_subsystem.id#L10-L11).
+For example, in much of the relevant portions of the Filecoin spec and lotus' Go code, Piece CIDs are not used on their own but rather are combined with the piece size in the [Piece Info](https://pkg.go.dev/github.com/filecoin-project/go-state-types@v0.11.0/abi#PieceInfo) type. One such example of this is in the [Storage Proving Subsystem](https://github.com/filecoin-project/specs/blob/e5d44e1bdac4635997f3aaa917511016842a50e5/content/systems/filecoin_mining/storage_proving/storage_proving_subsystem.id#L10-L11).
 
-Similarly this makes it much more natural to work with new concepts like [Deal Aggregates](https://pkg.go.dev/github.com/filecoin-project/go-data-segment@v0.0.0-20230605095649-5d01fdd3e4a1/datasegment#NewAggregate) proposed in [FRC-0058](https://github.com/filecoin-project/FIPs/blob/7e499523c9c7ed2c48c6a36967f7f011cee1fefd/FRCs/frc-0058.md).
+This makes it much more natural to work with new concepts like [Deal Aggregates](https://pkg.go.dev/github.com/filecoin-project/go-data-segment@v0.0.0-20230605095649-5d01fdd3e4a1/datasegment#NewAggregate), as proposed in [FRC-0058](https://github.com/filecoin-project/FIPs/blob/7e499523c9c7ed2c48c6a36967f7f011cee1fefd/FRCs/frc-0058.md).
 
 To resolve this we introduce a new multihash type [fr32-sha2-256-trunc254-padded-binary-tree multihash](https://link.tld) which combines the root hash with the tree height (which in the full and balanced binary trees used in Piece commitments is equivalent to size).
 
