@@ -1,3 +1,13 @@
+---
+fip: "xxxx"
+title: Add Cost Opportunity For New Miner Creation
+author: "Zac <@remakeZK>"
+status: Draft
+type: Technical
+category: Core
+created: 2023-08-08
+---
+
 ## Simple Summary
 
 - Add opportunity cost (in FIL) to each node creation to prevent the miner ID creation spam.
