@@ -49,7 +49,7 @@ type MovePartitionsParams struct {
 } 
 ```
 
-### Constraits and Rules
+### Constraints and Rules
 
 1. To adhere to the requirement of conducting a _WindowPoSt_ every 24 hours, the `MovePartitions` function only permits the movement of partitions to a `DestDeadline` whose next proving period is scheduled to occur within 24 hours after the `OrigDeadline`'s last proving period. If the `DestDeadline` falls outside of this time frame, it will fail. This restriction ensures that the sector's period aligns with the required _WindowPoSt_ interval.
 2. Partitions cannot be moved to or from a deadline during its challenge window or immediately before it, matching existing mutability constraints.
