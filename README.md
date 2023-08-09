@@ -104,6 +104,6 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0063](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0063.md)   | Switching to new Drand mainnet network  | FIP  | @yiannisbot, @CluEleSsUK, @AnomalRoil, @nikkolasg, @willscott                    | Draft     |
 |[0065](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0065.md)   | Ignore built-in market locked balance in circulating supply calculation  | FIP  | @anorth  | Draft  |
 |[0066](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0066.md)   | Piece Retrieval Gateway | FRC  | @willscott, @dirkmc  | Draft  |
-|[0067](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0067.md)   | PoRep Security Policy & Replacement Sealing Enforcement  | FIP  |. @Kubuxu, @anorth, @irenegia, @lucaniz  | Draft  |
+|[0067](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0067.md)   | PoRep Security Policy & Replacement Sealing Enforcement  | FIP  | @Kubuxu, @anorth, @irenegia, @lucaniz  | Last Call  |
 |[0068](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0068.md)   | Deal-Making Between SPs and FVM Smart Contracts | FRC  | @aashidham, @raulk, @skottie86, @jennijuju, @nonsense, @shrenujbansal  | Draft  |
 |[0069](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md)   | Piece Multihash and v2 Piece CID | FRC  | @aschmahmann, @ribasushi  | Draft  |
