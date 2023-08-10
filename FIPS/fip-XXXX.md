@@ -128,11 +128,11 @@ For DagCBOR, we read the CBOR field-by-field according to the [CBOR specificatio
 
 We start by setting the expected number of fields to 1. If this number would ever exceed `2^64`, we abort processing the block with an error.
 
-Then, while the expected number of fields is non-zero, we:
+Then, while the expected number of fields is non-zero (and we are not out of gas), we:
 
 1. Charge gas (`ipld_cbor_scan_per_field`) for reading a single CBOR field.
 2. Decrement the expected number of fields by 1.
-3. Read the that CBOR field "header" (major type + immediate value):
+3. Read the CBOR field "header" (major type + immediate value):
     1. We read one byte where the first 3 bits (0-7) are the major type and the remaining 5 are the additional information.
     2. If the additional information is in the range 0-23 inclusive, we treat it as the immediate value.
     3. If the additional information is 24, 25, 26, 27; we read an additional 1, 2, 4, 8 bytes respectively; decode said bytes as a big-endian integer; and treat that as the immediate value. We do not validate that such integers are "minimally encoded" (e.g., 0x1 could be encoded in 8 bytes).
