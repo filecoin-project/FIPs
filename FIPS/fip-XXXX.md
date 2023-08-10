@@ -64,6 +64,8 @@ Additionally, it exposes 2 syscalls for manipulating the actor's state-tree itse
 
 Finally, IPLD blocks can be sent between actors by as message parameters/return values (via `send::send`). Such IPLD blocks are sent _by-handle_, not by-cid.
 
+NOTE: the function signatures above are for illustrative purposes. The actual syscalls are defined in [FIP0030](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0030.md#namespace-ipld).
+
 #### Supported IPLD Codecs
 
 The FVM currently supports reading (`ipld::block_open`) and writing (`ipld::block_create`) state with the following IPLD codecs (`SUPPORTED_CODECS`):
@@ -239,6 +241,10 @@ This FIP _could_ have proposed a single "reachable" set maintained across an ent
 This FIP forbids "inlining" blocks into state-root CIDs as we'd _otherwise_ need to perform IPLD Link Analysis on the inlined block when calling `ipld::set_root`.
 
 ### Link Analysis
+
+#### Ignoring v. Rejecting Unknown CIDs
+
+The link analysis algorithm defined in this FIP _rejects_ CIDs with unknown codecs and/or hash functions instead of simply ignoring such CIDs for better forward-compatibility. This way, new codecs and hash functions can be supported in the future without worrying that such CIDs may already be present in the state (where they would have previously not been covered by link analysis).
 
 #### Native v. Wasm
 
