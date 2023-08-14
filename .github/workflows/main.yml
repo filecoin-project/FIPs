@@ -1,0 +1,31 @@
+name: run githublabeler.py
+
+on:
+  schedule:
+    - cron: "5 * * * *"
+  
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout repo content
+        uses: actions/checkout@v3 # checkout the repository content
+
+      - name: setup python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11' # install the python version needed
+
+      - name: install python packages
+        run: |
+          python -m pip install --upgrade pip
+          cd .github/workflows 
+          pip install -r "requirements.txt"
+
+          
+
+      - name: execute py script # run githublabeler.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.FILECOIN_GOVERNANCE_BOT_TOKEN }}
+        run: python .github/workflows/githublabeler.py
