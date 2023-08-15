@@ -1,5 +1,5 @@
 ---
-fip: "<to be assigned>" 
+fip: "<to be assigned>"
 title: Improved Event Syscall API
 author: Fridrik Asmundsson (@fridrik01), Steven Allen (@stebalien)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/775
@@ -14,19 +14,19 @@ Revise the internal [`emit_event`](https://docs.rs/fvm_sdk/latest/fvm_sdk/sys/ev
 
 ## Abstract
 
-The current procedure for emitting an event through the FVM SDK involves sending an ActorEvent structure as input. This structure is encoded into a byte array with CBOR formatting and then sent to the kernel.
+The current procedure for emitting an event through the FVM SDK involves sending an `ActorEvent` structure as input. This structure is encoded into a byte array with CBOR formatting and then sent to the kernel.
 
 Inside the kernel, complete CBOR deserialization is necessary before any validation can occur, which results in an upfront gas charge. However, accurately estimating the gas charge is challenging, as the original size of the `ActorEvent` remains unknown until the CBOR byte array is fully deserialized. Consequently, to ensure sufficient gas, a slightly higher gas fee is imposed, making this process more costly than necessary.
 
-Moreover, the upfront cost of deserialization must be paid before any validation on the `ActorEvent` instance can take place.
+Moreover, the current gas charge is estimated based on the cost of emitting EVM events and won't be accurate for general events emitted by Wasm actors. Thus, we propose a new approach to calculating the gas cost, which should account for any type of emitted events.
 
 ## Change Motivation
 
-This proposal aims to optimize the `emit_event` syscall by eliminating the need for CBOR encoding altogether. This change would enable precise gas charging since the original size of the `ActorEvent` is known, and it would allow validation to be performed concurrently during the deserialization of the input.
+This proposal aims to optimize the `emit_event` syscall by eliminating the need for CBOR encoding altogether. This change enables precise gas charging since the original size of the `ActorEvent` is known including total sizes of key and value lenghts allowing us to charge them separately in addition to fixed overhead of each event entry. Moreover, this proposal allows validation to be performed concurrently during the deserialization of the input.
 
 ## Specification
 
-Currently the [`emit_event`](https://docs.rs/fvm_sdk/latest/fvm_sdk/sys/event/fn.emit_event.html) syscall is defined as: 
+Currently the [`emit_event`](https://docs.rs/fvm_sdk/latest/fvm_sdk/sys/event/fn.emit_event.html) syscall is defined as:
 
 ```rust
 pub fn emit_event(
@@ -35,7 +35,7 @@ pub fn emit_event(
 ) -> Result<()>;
 ```
 
-The syscall takes in `event_off` and `event_len` which refer to a pointer and length in WASM memory where the CBOR encoded `ActorEvent` has been written. An `ActorEvent` structure is defined in `fvm_shared::event` as:
+The syscall takes in `event_off` and `event_len` which refer to a pointer and length in WASM memory where the CBOR encoded `ActorEvent` has been written. An `ActorEvent` structure is defined as:
 
 ```rust
 pub struct ActorEvent {
@@ -63,59 +63,104 @@ pub fn emit_event(
 ) -> Result<()>;
 ```
 
-We also introduce a new public struct in `fvm_shared::sys` where we will store the fixed fields per `Entry` (24 bytes for each entry):
+We also introduce a new struct `EventEntry` which is encoded as a packed tuple in field order `(u64, u64, u32, u32)` where `flags`/`codec` fields are copied from `Entry` directly and `key_len`/`value_len` are the length of their respective `key`/`value` fields in `Entry`:
 
 ```rust
-// in fvm_shared::sys
+#[repr(C, packed)]
 pub struct EventEntry {
-    pub flags: crate::event::Flags,
-    pub codec: u64,
-    pub key_len: u32,
-    pub val_len: u32,
+    pub flags: u64,   // copy of Entry::flags
+    pub codec: u64 ,  // copy Entry::codec
+    pub key_len: u32, // Entry::key.len()
+    pub val_len: u32, // Entry::value.len()
 }
 ```
 
 In the new `emit_event` syscall instead of taking the whole `ActorEvent` data encoded using CBOR this proposed version splits the `ActorEvent` instance into three different buffers that each refer to a pointer and length in WASM memory where their data has been written and are defined as follows:
-- `event_off/event_len`: Pointer to a buffer of all `EventEntry` for all entries. 
-- `key_off/key_len`: Pointer to a buffer of all the concatinated keys for all entries.
-- `value_off/value_len`: Pointer to a buffer of all the concatenated values for all entries.
+- `event_off/event_len`: Pointer to an array of `EventEntry` where `event_len` is the number of elements in the array.
+- `key_off/key_len`: Pointer to a buffer of size `key_len` bytes of all the keys from each entry are concatinated.
+- `value_off/value_len`: Pointer to a buffer of size `value_len` bytes of all the values from each entry are concatenated.
 
-### Serialization and validation
+### Serialization
 The serialization from the syscall to FVM is implemented as follows:
 
-1. Prepare a buffer named `entries` with a size of 24 bytes multiplied by the number of entries.
-2. Set up two counters: `total_key_len` and `total_val_len`.
-3. For each entry `e`:
-    1. Create an `EventEntry` that includes flags, codec, and the size of the key/value for `e`, then add it to buf.
-    2. Update the counters `total_key_len` and `total_val_len`.
-4. Create a buffer called `keys` with a size of `total_key_len` bytes, and another buffer named `values` with a size of `total_val_len` bytes.
-5. For each entry `e`:
-    1. Add `e.keys` to the `keys` buffer.
-    2. Add `e.values` to the `values` buffer.
-6. Cast the raw memory pointed to by `entries` into a `EventEntry` slice of size equal to the number of entries making sure the pointer is aligned and within bounds.
+Given a `ActorEvent` with _N_ number of `Entry` elements, declare three buffer:
+- `entries` an array of `EventEntry` of size _N_.
+- `keys` a byte buffer of size equal to the total number of keys in all entries.
+- `values` a buffer of size equal to the total number of values in all entries.
 
-In the FVM we reconstruct the `ActorEvent` as follows:
+Then for each entry `e` in `ActorEvent`:
+- Create `EventEntry` from `e` and add it to `entries`.
+- Add `e.keys` to the `keys` buffer.
+- Add `e.values` to the `values` buffer.
+
+Deserialiaztion in FVM is done in a similar fashion where we read each `EventEntry` from `entries` and create a new `Entry` object by using the flags/codec from `EventEntry` and reconstructing its keys/values by reading exactly `key_len`/`val_len` from `keys`/`values` respectively.
+
+### Validation
+In the FVM we perform the following valdidation while deserializing the input:
 
 1. Initial validation:
-    1. Confirm that the total number of entries is fewer than 256.
-    2. Ensure the total length of combined entry data does not exceed 8KiB.
-2. Initialize `key_offset` and `val_offset` counters.
-3. Create a vector `v` of `Entry` with capacity matching the size of the `EventEntry` array.
-4. For each event entry 'ee':
-    1. Validate that the `ee.flag` bits are valid,
-    2. Validate that the `ee.key_len` is at most 32 bytes and is a valid UTF-8.
-    3. Validate that the `ee.codec` is acceptable. Currently, only `IPLD_RAW` (0x55) is allowed).
-    4. Create a new `key` string by reading from the `keys` buffer, starting from `key_offset` and spanning `ee.key_len` bytes.
-    5. Create a new `value` byte array by reading from the `values` buffer, starting from `val_offset` and spanning `ee.val_len` bytes.
-    6. Create new a `Entry` using `ee.flag`/`ee.codec`/`key`/`value` and append that to `v`.
-    7. Update `key_offset` and `val_offset`.
-5. Return vector `v`.
+    1. Validate that the size of `entries` is 255 or less. Previously 256 entries was accepted but reducing it by 1 ensures that the resulting CBOR encoding can store the length in a single byte.
+    2. Validate that the size of `values` does not exceed 8KiB.
+2. For each event entry `ee` in `entries`:
+    1. Validate that the `ee.flags` bits are valid (see [FIP-0049](https://github.com/filecoin-project/FIPs/blob/6c2be9a09a7f03f16aa5f635e4beadeaa9c4fb3b/FIPS/fip-0049.md#new-chain-types) for more details).
+    2. Validate that the `ee.key_len` is 31 bytes or less and is a valid UTF-8. Previously 32 byte sized keys was accepted but we reduce it by 1 to ensure more compact CBOR encoding.
+    3. Validate that the `ee.val_len` is 8Kib or less.
+    4. Validate that the `ee.codec` is acceptable. Currently, only `IPLD_RAW` (0x55) is allowed).
 
 ### Gas
 
-We combined the gas charges for `OnActorEventValidate` and `OnActorEventAccept` into an upfront `OnActorEvent` gas charge, applied prior to any validation, allocations, or deserialization. 
+This FIP makes an adjustment to the gas cost when emitting an event as originally defined in [FIP-0049#Gas costs](https://github.com/filecoin-project/FIPs/blob/6c2be9a09a7f03f16aa5f635e4beadeaa9c4fb3b/FIPS/fip-0049.md#gas-costs). Instead of having a separate gas fee for validation and processing of an event, we instead charge an upfront gas fee. This fee is applied after checking for read-only but before any other validation, allocation, or deserialization is performed as described in the specification above.
 
-## Design Rationale 
+Notable changes from previous gas fee is that we:
+- Removed the indexing cost associated with specifying flags that indicate that keys/values should be indexed by the client. This was not used and therefore removed here.
+- We charge an additional memory allocation per event.
+- Refactored the gas charges allowing us to tune gas for entry and key validation separately.
+
+
+The proposed processing fee is:
+
+```
+// cost for processing each entry
+p_gas_per_entry_flat := 1750
+p_gas_per_entry_per_byte := 25
+
+// cost for UTF-8 decoding per byte, set to zero for now
+p_gas_per_key_flat = 0
+p_gas_per_key_per_byte = 0
+
+p_memcpy_gas_per_byte = 400
+p_block_alloc_cost_per_byte = 2
+p_hashing_cost_per_byte = 10
+
+nr_entries = <number of entries>
+key_len = <total size of keys in all entries>
+value_len <total size of values in all entries>
+
+// gas cost for validation of entries (including utf-8 parsing)
+gas_validate_entries = p_gas_per_entry_flat + p_gas_per_entry_per_byte * nr_entries;
+gas_validate_utf8 = p_gas_per_key_flat + p_gas_per_key_per_byte * key_len;
+
+// estimated size (in bytes)
+estimated_size = 12 + // event overhead
+    9 * nr_entries + // entry overhead
+    key_len +
+    value_len
+
+// calculate the gas for making a copy
+copy_and_alloc = p_memcpy_gas_per_byte * estimated_size +
+    p_block_alloc_cost_per_byte * estimated_size
+
+// calculate the gas for hashing on AMT insertion
+hash = p_hashing_cost_per_byte * estimated_size
+
+processing_fee = copy_and_alloc +
+    gas_validate_entries +
+    gas_validate_utf8 +
+    copy_and_alloc * 2 +
+    hash
+```
+
+## Design Rationale
 
 ### Serialize a single buffer instead of using three
 We considered serializing the `ActorEvent` using a single buffer (as with CBOR) for simplicity but decided against that since it required _some_ parsing if we wanted to charge gas for keys/values separately.
@@ -126,7 +171,7 @@ This FIP is consensus breaking, but should have no other impact on backwards com
 
 ## Test Cases
 
-Provided with implementation. 
+Provided with implementation.
 
 ## Security Considerations
 
