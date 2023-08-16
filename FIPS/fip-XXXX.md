@@ -1,5 +1,5 @@
 ---
-fip: "0068"
+fip: "<to be assigned>"
 title: Improved Event Syscall API
 author: Fridrik Asmundsson (@fridrik01), Steven Allen (@stebalien)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/775
