@@ -251,7 +251,7 @@ The link analysis algorithm defined in this FIP _rejects_ CIDs with unknown code
 We previously considered performing link analysis in a Wasm module to:
 
 1. Take advantage of our existing Wasm gas accounting rather than manually charging for gas based on the CBOR's structure.
-2. Ensure that all implementations used the exact same wasm parsing and validation logic.
+2. Ensure that all implementations used the exact same Wasm parsing and validation logic.
 
 However, this would have increased implementation complexity and introduced additional runtime costs (switching in and out of Wasm isn't free).
 
@@ -287,7 +287,7 @@ TODO
 ## Security Considerations
 <!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
 
-This FIP primarily aims to increase the security of the FVM and guard against malicious and/or buggy wasm actors. However, as with any code:
+This FIP primarily aims to increase the security of the FVM and guard against malicious and/or buggy Wasm actors. However, as with any code:
 
 1. This FIP increases the complexity of the protocol, potentially introducing bugs.
 2. This FIP proposes algorithms to parse potentially user-specified data. If the parsing algorithms and gas costs are not carefully designed/implemented, this could introduce an attack vector.
