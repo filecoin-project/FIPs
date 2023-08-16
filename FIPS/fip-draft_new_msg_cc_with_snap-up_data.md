@@ -2,7 +2,7 @@
 fip: "0066"
 title: Add a message for New CC Sector with Snap-up Data
 author: Andy Jackson (@snadrus)
-discussions-to: https://github.com/filecoin-project/FIPs/discussions/76
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/765
 status: Draft
 type: Technical
 category: Core 
