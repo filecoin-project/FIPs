@@ -85,7 +85,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0044](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0044.md)   | Standard Authentication Method for Actors | FIP  |@arajasek, @anorth |Final  |
 |[0045](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0045.md)   | De-couple verified registry from markets | FIP  |@anorth, @zenground0 |Final  |
 |[0046](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0046.md)   | Fungible token standard | FRC  |@anorth, @jsuresh, @alexytsu |Draft  |
-|[0047](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0047.md)   | Proof Expiration & PoRep Security Policy | FIP  |@Kubuxu, @irenegia, @anorth |Accepted  |
+|[0047](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0047.md)   | Proof Expiration & PoRep Security Policy | FIP  |@Kubuxu, @irenegia, @anorth | Superseded  |
 |[0048](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0048.md)   | f4 Address Class | FIP  |@stebalien, @mriise, @raulk | Final  |
 |[0049](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md)   | Actor Events | FIP  |@stebalien, @raulk | Final  |
 |[0050](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0050.md)   | API Between User-Programmed Actors and Built-In Actors | FIP  |@anorth, @arajasek | Final  |
@@ -102,4 +102,10 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0061](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0061.md)   | WindowPoSt Grindability Fix  | FIP  |@cryptonemo @Kubuxu  @DrPeterVanNostrand @Nicola @porcuquine @vmx @arajasek| Final  |
 |[0062](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0062.md)   | Fallback Method Handler for the Multisig Actor  | FIP  |JDimitris Vyzovitis (@vyzo), Raúl Kripalani (@raulk)| Final  |
 |[0063](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0063.md)   | Switching to new Drand mainnet network  | FIP  | @yiannisbot, @CluEleSsUK, @AnomalRoil, @nikkolasg, @willscott                    | Draft     |
-|[0065](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0065.md)   | Ignore built-in market locked balance in circulating supply calculation  | FIP  | @anorth                                                                          | Draft     |
+|[0065](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0065.md)   | Ignore built-in market locked balance in circulating supply calculation  | FIP  | @anorth  | Draft  |
+|[0066](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0066.md)   | Piece Retrieval Gateway | FRC  | @willscott, @dirkmc  | Draft  |
+|[0067](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0067.md)   | PoRep Security Policy & Replacement Sealing Enforcement  | FIP  |. @Kubuxu, @anorth, @irenegia, @lucaniz  | Draft  |
+|[0068](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0068.md)   | Deal-Making Between SPs and FVM Smart Contracts | FRC  | @aashidham, @raulk, @skottie86, @jennijuju, @nonsense, @shrenujbansal  | Draft  |
+|[0069](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md)   | Piece Multihash and v2 Piece CID | FRC  | @aschmahmann, @ribasushi  | Draft  |
+|[0070](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0070.md)   | Allow SPs to move partitions between deadlines  | FIP  |Steven Li (@steven004), Alan Xu (@zhiqiangxu), Mike Li (@hunjixin), Alex North (@anorth), Nicola (@nicola)| Draft  |
+
