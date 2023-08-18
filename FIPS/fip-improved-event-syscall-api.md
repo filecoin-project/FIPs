@@ -65,15 +65,15 @@ pub fn emit_event(
 ) -> Result<()>;
 ```
 
-We also introduce a new struct `EventEntry` which is encoded as a packed tuple in field order `(u64, u64, u32, u32)` where `flags`/`codec` fields are copied from `Entry` directly and `key_len`/`value_len` are the length of their respective `key`/`value` fields in `Entry`:
+We also introduce a new struct `EventEntry` which is encoded as a packed tuple in field order `(u64, u64, u32, u32)` where `flags`/`codec` fields are copied from `Entry` directly and `key_size`/`value_size` are the size (in bytes) of their respective `key`/`value` fields in `Entry`:
 
 ```rust
 #[repr(C, packed)]
 pub struct EventEntry {
     pub flags: u64,   // copy of Entry::flags
     pub codec: u64 ,  // copy Entry::codec
-    pub key_len: u32, // Entry::key.len()
-    pub val_len: u32, // Entry::value.len()
+    pub key_size: u32, // Entry::key.len()
+    pub value_size: u32, // Entry::value.len()
 }
 ```
 
@@ -85,7 +85,7 @@ In the new `emit_event` syscall instead of taking the whole `ActorEvent` data en
 ### Serialization
 The serialization from the syscall to FVM is implemented as follows:
 
-Given a `ActorEvent` with _N_ number of `Entry` elements, declare three buffer:
+Given an `ActorEvent` with _N_ number of `Entry` elements, declare three buffers:
 - `entries` an array of `EventEntry` of size _N_.
 - `keys` a byte buffer of size equal to the total number of keys in all entries.
 - `values` a buffer of size equal to the total number of values in all entries.
@@ -95,7 +95,7 @@ Then for each entry `e` in `ActorEvent`:
 - Add `e.keys` to the `keys` buffer.
 - Add `e.values` to the `values` buffer.
 
-Deserialization in FVM is done in a similar fashion where we read each `EventEntry` from `entries` and create a new `Entry` object by using the flags/codec from `EventEntry` and reconstructing its keys/values by reading exactly `key_len`/`val_len` from `keys`/`values` respectively.
+Deserialization in FVM is done in a similar fashion where we read each `EventEntry` from `entries` and create a new `Entry` object by using the flags/codec from `EventEntry` and reconstructing its keys/values by reading exactly `key_size`/`value_size` from `keys`/`values` respectively.
 
 ### Validation
 In the FVM we perform the following validation while deserializing the input:
@@ -105,13 +105,13 @@ In the FVM we perform the following validation while deserializing the input:
     2. Validate that the size of `values` does not exceed 8KiB.
 2. For each event entry `ee` in `entries`:
     1. Validate that the `ee.flags` bits are valid (see [FIP-0049#New chain types](https://github.com/filecoin-project/FIPs/blob/6c2be9a09a7f03f16aa5f635e4beadeaa9c4fb3b/FIPS/fip-0049.md#new-chain-types) for more details).
-    2. Validate that the `ee.key_len` is 31 bytes or less and is a valid UTF-8. Previously 32 byte sized keys were accepted but reducing it by 1 ensures compact CBOR encoding.
-    3. Validate that the `ee.val_len` is 8Kib or less.
-    4. Validate that the `ee.codec` is acceptable. Currently, only `IPLD_RAW` (0x55) is allowed).
+    2. Validate that the `ee.key_size` is 31 bytes or less and is a valid UTF-8. Previously 32 byte sized keys were accepted but reducing it by 1 ensures compact CBOR encoding.
+    3. Validate that the `ee.value_size` is 8Kib or less.
+    4. Validate that the `ee.codec` is acceptable. Currently, only `IPLD_RAW` (0x55) is allowed.
 
 ### Gas
 
-This FIP makes an adjustment to the gas cost when emitting an event as originally defined in [FIP-0049#Gas costs](https://github.com/filecoin-project/FIPs/blob/6c2be9a09a7f03f16aa5f635e4beadeaa9c4fb3b/FIPS/fip-0049.md#gas-costs). Instead of having a separate gas fee for validation and processing of an event, we instead charge an upfront gas fee. This fee is applied after checking for read-only but before any other validation, allocation, or deserialization is performed as described in the specification above.
+This FIP makes an adjustment to the gas cost when emitting an event as originally defined in [FIP-0049#Gas costs](https://github.com/filecoin-project/FIPs/blob/6c2be9a09a7f03f16aa5f635e4beadeaa9c4fb3b/FIPS/fip-0049.md#gas-costs). Instead of having a separate gas fee for validation and processing of an event, we instead charge a single upfront gas fee covering both validation and processing. This fee is applied after checking for read-only but before any other validation, allocation, or deserialization is performed as described in the specification above.
 
 Notable changes from previous gas fee is that we:
 - Removed the indexing cost associated with specifying flags that indicate that keys/values should be indexed by the client. This was not used and therefore removed here.
@@ -123,6 +123,8 @@ The proposed processing fee is:
 
 ```go
 // cost for processing each entry
+//
+// TODO: This needs to be benchmarked and tuned before this FIP can proceed to Final status
 p_gas_per_entry_flat := 1750
 p_gas_per_entry_per_byte := 25
 
@@ -157,6 +159,7 @@ copy_and_alloc = p_memcpy_gas_per_byte * estimated_size +
 // calculate the gas for hashing on AMT insertion
 hash = p_hashing_cost_per_byte * estimated_size
 
+// TODO: Confirm reduced processing fee
 processing_fee = copy_and_alloc +
     gas_validate_entries +
     gas_validate_utf8 +
@@ -172,6 +175,8 @@ We considered serializing the `ActorEvent` using a single buffer (as with CBOR) 
 ## Backwards Compatibility
 
 This FIP is consensus breaking, but should have no other impact on backwards compatibility.
+
+Although this proposal restricts the number of entries accepted (from 256 to 255) and the key size (from 32 to 31) it will not have any compatibility issues with current EVM runtime as it produces events with maximum 5 entries and 5 keys.
 
 ## Test Cases
 
