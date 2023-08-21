@@ -66,8 +66,8 @@ All FIPs must contain a section that discusses the product implications/consider
 The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.
 
 ## TODO
-<!--A section that lists any unresolved issues or tasks that need to be addressed before giving the FIP a "Final" status but are otherwise not required to move the FIP forward in the review process. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc.-->
-A section that lists any unresolved issues or tasks that need to be addressed before giving the FIP a "Final" status but are otherwise not required to move the FIP forward in the review process. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc.
+<!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a “Last Call” status once all these items have been resolved.-->
+A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a “Last Call” status once all these items have been resolved.
 
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
