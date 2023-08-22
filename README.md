@@ -97,7 +97,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0056](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0056.md)   | Sector Duration Multiplier  | FIP  | @AxCortesCubero, @jbenet, @misilva73, @momack2, @tmellan, @vkalghatgi, @zixuanzh | Rejected  |
 |[0057](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0057.md)   | Update Gas Charging Schedule and System Limits for FEVM  | FIP  |@raulk, @stebalien, @aakoshh, @kubuxu| Final  |
 |[0058](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md)   | Verifiable Data Aggregation  | FRC  |Jakub Sztandera (@Kubuxu), Nicola Greco (@nicola), Peter Rabbitson (@ribasushi)| Draft  |
-|[0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)   | Synthetic PoRep  | FIP  |@Kubuxu @Luca @Rosario Gennaro @Nicola @Irene| Last Call  |
+|[0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)   | Synthetic PoRep  | FIP  |@Kubuxu @Luca @Rosario Gennaro @Nicola @Irene| Accepted  |
 |[0060](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0060.md)   | Set market deal maintenance interval to 30 days  | FIP  |Jakub Sztandera (@Kubuxu), @Zenground0, Alex North (@anorth)| Final  |
 |[0061](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0061.md)   | WindowPoSt Grindability Fix  | FIP  |@cryptonemo @Kubuxu  @DrPeterVanNostrand @Nicola @porcuquine @vmx @arajasek| Final  |
 |[0062](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0062.md)   | Fallback Method Handler for the Multisig Actor  | FIP  |JDimitris Vyzovitis (@vyzo), Raúl Kripalani (@raulk)| Final  |
