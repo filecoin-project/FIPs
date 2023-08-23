@@ -11,7 +11,7 @@ created: 2023-08-21
 
 ## Simple Summary
 
-- Add opportunity cost (in FIL) to each node creation to prevent the miner ID creation spam.
+- Add opportunity cost (in FIL) to each miner actor creation to prevent the miner ID creation spam.
 
 ## Abstract
 
@@ -31,24 +31,24 @@ By August 2023, according to the statistics of Filscan, there are 601,131 Miner 
 <img width="913" alt="recent_two_months" src="https://github.com/remakeZK/FIPs/assets/92775781/2b41e3a8-ad5f-481a-bbbb-569fc4533e0b">
 
   
-Many users randomly create numerous nodes just to get preferred IDs, wasting resources and burdening the network for no purpose. Moreover, those wasted nodes occupy the storage of the network; with time elapsed, the waste resource rate will increase, along with increasing the future gas price because of those unnecessary storages of the network. Furthermore, there is a risk of exposure to potential attacks by creating numerous accounts, causing network congestion.  
+Many users randomly create numerous miner actors just to get preferred IDs, wasting resources and burdening the network for no purpose. Moreover, those wasted miner actors occupy the storage of the network; with time elapsed, the waste resource rate will increase, along with increasing the future gas price because of those unnecessary storages of the network. Furthermore, there is a risk of exposure to potential attacks by creating numerous accounts, causing network congestion.  
 
 
 ## Specification
 
-In creating a new node,
+In creating a new miner actor,
 
-- Currently: there is no cost associated with creating new miners, so users spams many new nodes without limit
+- Currently: there is no cost associated with creating new miners, so users spams many new miner actors without limit
 - Proposed:   
 Require spending of a one-time 500FIL to create a new miner ID and deposit the 500FIL into miner account as locked rewards.
 
 ## Design Rationale
 
-Adding an opportunity cost will prevent such spammy behavior; moreover, depositing fees as locked rewards does not incur actual costs but will occupy funds and bring opportunity costs. Users need to weigh the opportunity cost of locking funds for 180 days per new node. Also, the more nodes created, the more funds need to be locked. This can prevent users from abusing node creation. Additionally, this mechanism helps determine whether each new node will be fully utilized since idle miners will waste locked funds in vain. 
+Adding an opportunity cost will prevent such spammy behavior; moreover, depositing fees as locked rewards does not incur actual costs but will occupy funds and bring opportunity costs. Users need to weigh the opportunity cost of locking funds for 180 days per new miner actor. Also, the more miner actors created, the more funds need to be locked. This can prevent users from abusing miner actor creation. Additionally, this mechanism helps determine whether each new miner actor will be fully utilized since idle miners will waste locked funds in vain. 
 
 ## Backward Compatibility
 
-The charging fee of node creation might increase the entry barrier of new SPs, but 500FIL is a small amount in terms of initiating. Moreover, the proposed first solution of converting fees to 180-day locked rewards adds no real capital cost, only opportunity cost. This encourages on-demand account creation, as users will create accounts based on actual needs, ensuring practical use of each new account.
+The charging fee of miner actor creation might increase the entry barrier of new SPs, but 500FIL is a small amount in terms of initiating. Moreover, the proposed first solution of converting fees to 180-day locked rewards adds no real capital cost, only opportunity cost. This encourages on-demand account creation, as users will create accounts based on actual needs, ensuring practical use of each new account.
 
 ## Test Cases
 
@@ -68,7 +68,7 @@ Charging for creating new accounts can help prevent abuse, reduce unnecessary st
 
 ## Product Considerations
 
-Currently, setting no cost for node creation has no benefits but potential risks and drawbacks to the network, occupying the unnecessary storage will increase the network burden and future gas fees, also expanding the potential attack exposure. Therefore, By charging the creation node fees and later either burning the creation fee or converting the fees to lock rewards will stop the abuse of ID creation since they would consider the worthiness of the opportunity cost if they do so. Moreover, this proposal guides or returns to the normal phenomenon that should supposed to exist - truly implement on-demand account creation, where new accounts are only created when they are actually needed for use, or newly created accounts are put into practical use.
+Currently, setting no cost for miner actor creation has no benefits but potential risks and drawbacks to the network, occupying the unnecessary storage will increase the network burden and future gas fees, also expanding the potential attack exposure. Therefore, By charging the creation miner actor fees and later either burning the creation fee or converting the fees to lock rewards will stop the abuse of ID creation since they would consider the worthiness of the opportunity cost if they do so. Moreover, this proposal guides or returns to the normal phenomenon that should supposed to exist - truly implement on-demand account creation, where new accounts are only created when they are actually needed for use, or newly created accounts are put into practical use.
 
 ## Copyright
 
