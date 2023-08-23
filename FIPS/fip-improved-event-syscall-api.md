@@ -77,7 +77,7 @@ pub struct EventEntry {
 }
 ```
 
-In the new `emit_event` syscall instead of taking the whole `ActorEvent` data encoded using CBOR this proposed version splits the `ActorEvent` instance into three different buffers that each refer to a pointer and length in WASM memory where their data has been written and are defined as follows:
+In the new `emit_event` syscall, instead of taking the whole `ActorEvent` data encoded using CBOR, this proposed version splits the `ActorEvent` instance into three different buffers that each refer to a pointer and length in WASM memory where their data has been written.  They are as follows:
 - `event_off/event_len`: Pointer to an array of `EventEntry` where `event_len` is the number of elements in the array.
 - `key_off/key_len`: Pointer to a buffer of size `key_len` bytes of all the keys from each entry are concatenated.
 - `value_off/value_len`: Pointer to a buffer of size `value_len` bytes of all the values from each entry are concatenated.
