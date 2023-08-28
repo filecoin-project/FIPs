@@ -5,9 +5,9 @@ The Filecoin Improvement Protocol contains the set of fundamental governing prin
 
 ## The Filecoin Vision
 
-Filecoin is a peer-to-peer network that stores files, with built-in economic incentives to ensure that files are stored reliably over time. Its mission is to create a decentralized, efficient and robust foundation for humanity’s information. To advance that mission, Filecoin has created a decentralized storage network that lets anyone in the world store or retrieve files. 
+Filecoin is a peer-to-peer network that stores files, with built-in economic incentives to ensure that files are stored reliably over time. Its mission is to create a decentralized, efficient and robust foundation for humanity’s information. To advance that mission, Filecoin has created a decentralized storage network that lets anyone in the world store or retrieve files.
 
-In Filecoin, users pay to store their files on storage miners. Storage miners are computers responsible for storing files and proving they have stored the files correctly over time. Anyone who wants to store their files or get paid for storing other users’ files can join Filecoin. Available storage and pricing are not controlled by any single entity. Instead, Filecoin facilitates open markets for storing and retrieving files that anyone can participate in, thereby providing storage to billions of people who are currently locked out of the web. 
+In Filecoin, users pay to store their files on storage miners. Storage miners are computers responsible for storing files and proving they have stored the files correctly over time. Anyone who wants to store their files or get paid for storing other users’ files can join Filecoin. Available storage and pricing are not controlled by any single entity. Instead, Filecoin facilitates open markets for storing and retrieving files that anyone can participate in, thereby providing storage to billions of people who are currently locked out of the web.
 
 ## Filecoin Design Principles
 
@@ -32,9 +32,9 @@ FIPs are classified into three categories:
 
 ## A decentralized, global network
 
-Filecoin is still in its infancy, but it has the potential to play a central role in the storage and distribution of humanity’s information. To help the network grow and evolve, it is critical for the community to collectively be engaged in proposing, discussing, and implementing changes that improve the network and its operations. 
+Filecoin is still in its infancy, but it has the potential to play a central role in the storage and distribution of humanity’s information. To help the network grow and evolve, it is critical for the community to collectively be engaged in proposing, discussing, and implementing changes that improve the network and its operations.
 
-This improvement protocol helps achieve that objective for all members of the Filecoin community (developers, miners, clients, token holders, ecosystem partners, and more). 
+This improvement protocol helps achieve that objective for all members of the Filecoin community (developers, miners, clients, token holders, ecosystem partners, and more).
 
 ## FIPs
 
@@ -109,3 +109,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0069](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md)   | Piece Multihash and v2 Piece CID | FRC  | @aschmahmann, @ribasushi  | Draft  |
 |[0070](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0070.md)   | Allow SPs to move partitions between deadlines  | FIP  |Steven Li (@steven004), Alan Xu (@zhiqiangxu), Mike Li (@hunjixin), Alex North (@anorth), Nicola (@nicola)| Draft  |
 |[0071](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0071.md )   | Deterministic State Access (IPLD Reachability)  | FIP  |@stebalien| Draft  |
+|[0072](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0072.md)   | Improved event syscall API  | FIP  | @fridrik01, @Stebalien  | Draft  |
