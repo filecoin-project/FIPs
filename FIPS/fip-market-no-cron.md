@@ -187,12 +187,23 @@ and placing the necessary part under the block gas limit and market for computat
 This proposal does not introduce any reductions in security.
 
 ## Incentive Considerations
-<!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
-TODO
+This proposal has some impact on the incentives to use the built-in storage market actor for deals by
+placing the cost of settling those deals on the storage provider, rather than being subsidised by the network.
+By subjecting deal settlement to gas marketplace, SPs are incentivised to use block space efficiently.
+For example, SPs may settle payments less frequently, and thus incur less cost.
+
+Note that a concurrent proposal to support direct data onboarding will remove the key incentive
+to use the built-in market actor at all,
+being that it is currently the only permitted way to commit data to the network.
+Thus participants will have incentive to use the built-in market actor only when on-chain payments need settlement,
+and a disincentive (cost) otherwise.
 
 ## Product Considerations
-<!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
-TODO
+This proposal reduces the (unsustainable) level of service provided by the network to deal participants.
+The level of service poses a critical risk to blockchain progress.
+
+However, it also removes a subsidy to the built-in market actor that could never be provided to user-programmed smart contracts.
+This change thus supports the future development of user-programmed markets to compete on a more level playing field.
 
 ## Implementation
 Implementation of this proposal is in progress in https://github.com/filecoin-project/builtin-actors/pull/1377.
