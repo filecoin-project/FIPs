@@ -9,6 +9,7 @@ created: 2023-08-29
 ---
 
 ## Simple Summary
+
 Currently, actors can delete themselves and send away their funds (to another actor) in a single operation. Unfortunately, this doesn't behave exactly like a _normal_ transfer of funds and introduces some complexity. We propose to simplify this "self destruct" mechanism by requiring users to send away any remaining funds first through a normal send, if desired.
 
 ## Abstract
@@ -20,10 +21,13 @@ Currently, the `self::self_destruct(beneficiary)` syscall transfers funds to som
 
 Unfortunately, `self_destruct` transfers funds in a non-standard way. I.e., it doesn't send a message, it just implicitly transfers the funds. This means:
 
-1. This transfer won't show up in traces (although this could be changed).
-2. It won't automatically create the beneficiary, unlike a normal `send`. Changing this is difficult as we don't want `self_destruct` to ever implicitly execute code. However, as-is, it's a foot-gun.
-3. It adds unnecessary complexity. We already have a mechanism for transferring funds, why have another.
-4. If we ever decide to implement some mechanism whereby actors can execute code whenever they receive funds, this syscall, as currently implemented, could pose an issue.
+1. This transfer won't show up in traces. This is fixable without a FIP, but adds some complexity to parsing traces.
+2. It won't automatically create the beneficiary, unlike a normal `send` (requires a FIP to fix). This is a foot-gun because it behaves differently from how `send` currently behaves.
+3. If we ever decide to implement some mechanism whereby actors can execute code whenever they receive funds, this syscall, as currently implemented, could pose an issue. E.g., it might cause reentrency on self-destruct.
+
+We could fix the first two issues instead of removing the beneficiary and there may be ways to work around the third issue. However, that would add unnecessary complexity. This complexity is _unnecessary_ as there's already a way to transfer funds (the `send` syscall).
+
+Instead, this FIP proposed to fix this issue by reducing complexity: the `self_destruct` syscall will be responsible for deleting the actor and that's it. Sending away funds will be the responsibility of the actor.
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
@@ -46,7 +50,7 @@ There's no additional gas charge to burn funds as:
 1. We'll already charge to update the actor being deleted.
 2. We don't charge to update the burnt-funds actor per [FIP-0057](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0057.md).
 
-So any additional cost for burning funds is negligable.
+So any additional cost for burning funds is negligible.
 
 ### Burning v. Erroring
 
@@ -56,6 +60,16 @@ We considered two potential implementations of `self_destruct`:
 2. We also considered always burning funds.
 
 We settled on a boolean flag because neither option is strictly superior. Passing a flag forces the user to make an explicit decision.
+
+### Account Abstraction
+
+If we ever introduce account abstractions, accounts may want to "delete" themselves. It's unclear whether or not we even want to _allow_ this however, if we do, we'll run into an issue: the account will be refunded for any unused gas _after_ it has self-destructed. If a beneficiary is specified in `self_destruct`, this is less of an issue as the unspent gas can simply be sent to said beneficiary.
+
+However, I'm not particularly concerned about this for a few reasons:
+
+1. It's unclear whether or not we'll even allow this.
+2. This is already an issue even with the syscall as specified today as the beneficiary may self-destruct, leaving the FVM no place to send the refund from unused gas.
+3. Said refund will usually be negligible.
 
 ## Backwards Compatibility
 
@@ -78,7 +92,7 @@ This FIP has no impact on network incentives.
 ## Product Considerations
 <!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
 
-This FIP removes a potential foot-gun.
+This FIP removes a potential foot-gun (`self_destruct` not behaving like `send`) and simplifies the FVM a bit.
 
 ## Implementation
 <!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
