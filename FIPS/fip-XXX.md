@@ -1,0 +1,90 @@
+---
+fip: <to be assigned>
+title: Remove beneficiary from the self_destruct syscall
+author: @stebalien
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/524
+status: Draft
+type: Technical Core
+created: 2023-08-29
+---
+
+## Simple Summary
+Currently, actors can delete themselves and send away their funds (to another actor) in a single operation. Unfortunately, this doesn't behave exactly like a _normal_ transfer of funds and introduces some complexity. We propose to simplify this "self destruct" mechanism by requiring users to send away any remaining funds first through a normal send, if desired.
+
+## Abstract
+
+Currently, the `self::self_destruct(beneficiary)` syscall transfers funds to some designated beneficiary before deleting the actor. We propose to remove the beneficiary from this syscall. Instead, the user will be able to pass a boolean to specify if any remaining funds should be burnt, or if the self-destruct operation should fail if there are any remaining funds.
+
+## Change Motivation
+<!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
+
+Unfortunately, `self_destruct` transfers funds in a non-standard way. I.e., it doesn't send a message, it just implicitly transfers the funds. This means:
+
+1. This transfer won't show up in traces (although this could be changed).
+2. It won't automatically create the beneficiary, unlike a normal `send`. Changing this is difficult as we don't want `self_destruct` to ever implicitly execute code. However, as-is, it's a foot-gun.
+3. It adds unnecessary complexity. We already have a mechanism for transferring funds, why have another.
+4. If we ever decide to implement some mechanism whereby actors can execute code whenever they receive funds, this syscall, as currently implemented, could pose an issue.
+
+## Specification
+<!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
+
+We replace the `self_destruct(beneficiary: Address)` syscall with a `self_destruct(burn: bool)` syscall. This syscall will:
+
+1. Check if the actor is executing in "read-only" mode. If so, the syscall will fail as it currently does.
+2. Check if there are remaining funds. If there are:
+    1. If `burn` is `false`, this syscall will fail with an [`IllegalOperation`](https://docs.rs/fvm_sdk/latest/fvm_sdk/sys/enum.ErrorNumber.html#variant.IllegalOperation) error number (0x2).
+    2. If `burn` is `true`, the funds will be transferred to the burnt funds account (charging no additional gas).
+3. Proceed to delete the actor.
+
+## Design Rationale
+<!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
+
+### No Charge Burn Funds
+
+There's no additional gas charge to burn funds as:
+
+1. We'll already charge to update the actor being deleted.
+2. We don't charge to update the burnt-funds actor per [FIP-0057](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0057.md).
+
+So any additional cost for burning funds is negligable.
+
+### Burning v. Erroring
+
+We considered two potential implementations of `self_destruct`:
+
+1. The first we considered was to always return an error when `self_destruct` is called and there are remaining unspent funds in the actor.
+2. We also considered always burning funds.
+
+We settled on a boolean flag because neither option is strictly superior. Passing a flag forces the user to make an explicit decision.
+
+## Backwards Compatibility
+
+This FIP changes a syscall used by exactly one actor: the payment channel. Changing the payment channel actor to use the new syscall is trivial and already implemented in https://github.com/filecoin-project/builtin-actors/pull/1362.
+
+## Test Cases
+
+The implementation includes unit tests.
+
+## Security Considerations
+<!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
+
+This FIP has negligible risk from a security standpoint.
+
+## Incentive Considerations
+<!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
+
+This FIP has no impact on network incentives.
+
+## Product Considerations
+<!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
+
+This FIP removes a potential foot-gun.
+
+## Implementation
+<!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
+
+- FVM: https://github.com/filecoin-project/ref-fvm/pull/1838
+- Builtin Actors: https://github.com/filecoin-project/builtin-actors/pull/1362
+
+## Copyright
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
