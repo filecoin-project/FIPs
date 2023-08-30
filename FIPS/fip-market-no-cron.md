@@ -10,7 +10,7 @@ created: 2023-08-24
 ---
 
 ## Simple Summary
-Add a method to the built-in market actor to allow storage providers to settle deals manually.
+Add a method to the built-in market actor to allow storage providers to settle deal payments manually.
 Stop performing automatic deal settlement in the built-in market actor's cron handler.
 This removes risk that cron-based deal settlement work will overtake the chain's processing capacity.
 
@@ -21,12 +21,12 @@ This "cron" activity has a real validation cost, which can be accounted in gas u
 
 The built-in storage market actor uses cron at every epoch to perform maintenance
 (mainly the settlement of payments) for active deals.
-Since this work is "free" to the beneficiaries, it is essentially a subsidised service.
+Since this work is "free" to the deal providers and clients, it is essentially a subsidised service.
 The cost of this level of service is unsustainable, and threatens chain progress if utilisation grows. 
 Similar subsidised service cannot be made available to user-programmed smart contracts, 
 reducing their competitiveness as storage applications or markets.
 
-This proposal instead provides a method for storage providers to settle deals manually, 
+This proposal instead provides a method for storage providers to settle deal payments manually, 
 and disables the automatic settlement for new deals.
 Existing deals continue to be settled automatically until they expire.
 
@@ -35,8 +35,8 @@ A fast and predictable tipset validation time is important to the ability of val
 to sync the chain quickly (especially when catching up), 
 and critical for block producers to be able to produce new blocks for timely inclusion. 
 Cron currently accounts for more than half of the computational cost of tipset validation,
-and the built-in market actor's use a significant proportion of that.
-Although there is significant buffer in target tipset validation times to account for 
+and the built-in market actor accounts for a significant proportion of that.
+Although there is significant a buffer in the target tipset validation times to account for 
 network delays and the variability of expected consensus, 
 extended cron execution can threaten chain quality and minimum hardware specs for validators.
 
@@ -55,11 +55,11 @@ There remains significant risk that this processing could grow beyond the abilit
 
 ### Impact of direct data onboarding
 A concurrent proposal is to support skipping the built-in storage market actor for some data onboarding, 
-which provides a cost reduction for arrangements that don’t need payments. 
+which provides a cost reduction for arrangements that don’t need on-chain payments. 
 As this capability is implemented and adopted, the number of built-in market deals might decrease 
 even as total data onboarding increases.
 If and when adopted, this would mitigate the risk significantly. 
-However, this benefit depends on participants' adoption of new methods, which is uncertain. 
+However, this benefit depends on participants' adoption of the new onboarding methods, which is uncertain. 
 The built-in market actor might in any case be host a large number of payment-bearing deals.
 Thus, direct data onboarding cannot be relied upon in either the near- or long-term as a final solution.
 
@@ -68,7 +68,7 @@ Today, at the end of each epoch, the market actor loads all deals that are sched
 For each deal, the function:
 - removes state for any unactivated deals that have timed out (“expired”);
 - settles incremental payments for activated deals; and
-- removes state for any completed or terminated deals.
+- settles payments/refunds/penalties and removes state for any completed or terminated deals.
 
 This proposal is to provide a new, explicit user message to settle payments, 
 and provide an explicit method to settle deals.
@@ -90,7 +90,7 @@ struct SettleDealPaymentsReturn {
     // Indicators of success or failure for each deal.
     Results: {
         SuccessCount: u32,
-        FailCods: []{
+        FailCodes: []{
             Index: u32,
             ExitCode: ExitCode,
         },
@@ -107,9 +107,13 @@ struct DealSettlementSummary {
 }
 ```
 
-### Synchronous clean-up on termination
+If the caller specifies a deal which has not yet activated nor expired, settlement succeeds but has no effect.
+If the caller specifies a deal which has expired (not activated in time) or already terminated or completed,
+settlement fails with the `USR_NOT_FOUND` exit code (regardless of whether cron has removed the deal proposal from state).
+
+### Immediate clean-up on termination
 The existing built-in market actor `OnMinerSectorsTerminate` method is changed to 
-synchronously make a final payment settlement, charge penalties, and clean up state.
+immediately make a final payment settlement, charge penalties, and clean up state.
 It behaves as if `SettleDealPayments` was invoked immediately after marking deals as terminated.
 This replaces the current technique of merely recording the termination epoch and then 
 waiting for cron to do the work.
@@ -125,6 +129,14 @@ Future settlements must be manual.
 
 ### Continued automatic settlement for existing deals
 Deals that are already activated prior to this change continue to be settled automatically in cron.
+
+### Transition
+This proposal changes termination processing from deferred to immediate.
+For a short period after this new code is deployed, it will be possible for a deal to have been marked as terminated
+by the old code, but not yet cleaned up by the scheduled cron handler.
+
+Deals that are marked as terminated are not eligible for manual settlement.
+Specifying a terminated deal will cause `SettleDealPayments` to abort with `USR_ILLEGAL_ARGUMENT`.
 
 ## Design Rationale
 An explicit settlement message aligns the gas cost of settling payments with the party deriving the benefit.
