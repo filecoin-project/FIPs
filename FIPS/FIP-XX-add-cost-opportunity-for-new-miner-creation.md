@@ -25,10 +25,12 @@ By imposing a cost, this proposal helps prevent the spamming of creating miner I
 
 ## Problem Motivation
 
-From @Jennijuju mentions: https://github.com/filecoin-project/FIPs/discussions/780#discussioncomment-6787043.  
-this was a real issue occurred in March 2021 where someone spammed the network with thousands of thousands of CreateMiner messages with very cheap cost. It caused a couple issue: 1) base fee increases and congests the mpool 2) stress some nodes from block producing opportunities 3)chain performance (cron jobs overload - which was addressed in nv12 upgrade)
+It [was documented](https://github.com/filecoin-project/FIPs/discussions/780#discussioncomment-6787043) that in March 2021, someone had spammed the network by sending thousands of CreateMiner messages.  This caused several issues: 
+1) Base fee increases associated with mpool congestion
+2) Redirect nodes away from producing blocks
+3) Lower overall chain performance, specifically related to cron jobs overload
 
-By August 2023, according to the statistics of Filscan, there are 601,131 Miner IDs have been built with only 4,862 actives. The actual ID usage counts for merely 0.8% and the abuse of ID creation trend continues. The actual ID usage only counts 3.7% for the recent two months (125 Miner IDs are active out of 3,254 newly created). 
+As of August 2023, according to FilScan statistics, there were 601,131 Miner IDs and only 4,862 actively in use. The actual ID usage counts for merely 0.8% of all existing Miner IDs, and the abuse of ID creation trend continues. In the previous two months, only 3.7% of all newly created Miner IDs (125 Miner IDs are active out of 3,254 newly created) were active. 
 
 <img width="865" alt="total_in_use" src="https://github.com/remakeZK/FIPs/assets/92775781/fc8266ab-4224-49ab-a4a7-6450377d4638">
 <img width="913" alt="recent_two_months" src="https://github.com/remakeZK/FIPs/assets/92775781/2b41e3a8-ad5f-481a-bbbb-569fc4533e0b">
