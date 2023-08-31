@@ -36,7 +36,9 @@ As of August 2023, according to FilScan statistics, there were 601,131 Miner IDs
 <img width="913" alt="recent_two_months" src="https://github.com/remakeZK/FIPs/assets/92775781/2b41e3a8-ad5f-481a-bbbb-569fc4533e0b">
 
   
-Many users randomly create numerous miner actors just to get preferred IDs, wasting resources and burdening the network for no purpose. Moreover, those wasted miner actors occupy the storage of the network; with time elapsed, the waste resource rate will increase, along with increasing the future gas price because of those unnecessary storages of the network. Furthermore, there is a risk of exposure to potential attacks by creating numerous accounts, one can cause network mpool congestion by sending numerous `CreateMiner` messages yet with low cost, which leads to unstable network base fee and potentially blocks more useful/critical/time sensitive network messages (i.e: SubmitWindowedPoSt, ReportConsensusFault, sector/data onboarding messages, to land on-chain.  
+Users create multiple Minder IDs in order to get preferred IDs, wasting resources and unnecessarily burdening the network. Unused Miner IDs continue to occupy storage on the network.  As time goes on, it is expected that the rate of wasted resources will increase, as will future gas prices.  
+
+Furthermore, allowing network participants to cheaply and easily create numerous accounts introduces a potential attack vector.  Were participants to spam the network with CreateMiner messages, mpool congestion and unstable network fees could potentially affect more useful, critical, and/or time sensitive messages (i.e: SubmitWindowedPoSt, ReportConsensusFault, sector/data onboarding messages) from landing on chain.
 
 
 ## Specification
