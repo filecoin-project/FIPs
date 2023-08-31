@@ -21,7 +21,7 @@ By imposing a cost, this proposal helps prevent the spamming of creating miner I
 
 2) Prevent wasted resources and incremental increases in gas cost caused by wasted storage, and;
 
-3) avoid the malicious attacks achieved by sending large amount of `CreateMiner` messages with low cost that congestion and unstable gas fees
+3) Avoid an attack vector whereby an attacker sends a large amount of low cost `CreateMiner` messages, thus causing network congestion and destabilizing gas fees. 
 
 ## Problem Motivation
 
