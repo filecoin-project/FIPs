@@ -63,7 +63,9 @@ N/A
 
 ## Implementation
 
-The change of implementing this proposal is minor and easy to conduct. No impact to any other miner related activities. 
+These changes have been implemented in this PR.
+
+https://github.com/filecoin-project/builtin-actors/pull/1398
 
 ## Security Considerations
 
