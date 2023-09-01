@@ -110,3 +110,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0070](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0070.md)   | Allow SPs to move partitions between deadlines  | FIP  |Steven Li (@steven004), Alan Xu (@zhiqiangxu), Mike Li (@hunjixin), Alex North (@anorth), Nicola (@nicola)| Draft  |
 |[0071](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0071.md )   | Deterministic State Access (IPLD Reachability)  | FIP  |@stebalien| Draft  |
 |[0072](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0072.md)   | Improved event syscall API  | FIP  | @fridrik01, @Stebalien  | Draft  |
+|[0073](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0073.md)   | : Remove beneficiary from the self_destruct syscall | FIP  | @Stebalien | Draft  |
