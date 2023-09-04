@@ -12,13 +12,17 @@ replaces: FIP-0003
 ```
 
 ## Simple Summary
-This proposal aims to remove restrictions associated with the 10X multiplier in Fil+ deals and allow any actor to mint Datacap, promoting decentralization and simplifying the Filecoin ecosystem.
+This proposal removes restrictions on access to the 10X multiplier in Fil+ deals, allowing any actor to mint Datacap.
 
 ## Abstract
-The Fil+ program was designed to encourage high-quality storage on the Filecoin network. The current proposal intends to remove complexities that have arisen from its initial conception, thereby ensuring the Filecoin mission is better represented and uncomplicated.
+The Fil+ program intended to incentivize storage of non-random, monetizable data on Filecoin. It did succeed in accelerating the development of data-onboarding tools. However, the notary system used to execute Fil+ has not brought paid storage to Filecoin, and probably never will. This proposal removes the permissioned, off-chain pathways to the 10x multiplier, and makes it available to all actors who stake the required collateral.
 
 ## Change Motivation≠
-The current Fil+ implementation, though well-intentioned, has added complexities that deviate from Filecoin's core mission. Simplifying this system will encourage the onboarding of genuine data and uphold the integrity of the Filecoin blockchain.
+The current Fil+ implementation, though well-intentioned, has incentivized behaviors that do not drive value to Filecoin. The dominant strategy for miners has rested on two pillers: first, the fabrication of datasets or sourcing of 'real' data with no attention paid to whether the dataset was monetizable or useful when stored on Filecoin, and second, developing relationships with gate-keepers of the multiplier, notaries and the governance team, in order to increase the chances of getting Fil+ applications approved and to get access to Fil+ deals submitted by other miners. Decisions about what data to upload to Filecoin have been made exclusively by miners, notaries and the governance team, rather than paying users. In fact, the miners themselves have become the 'users'. 
+
+By removing notaries we disincentivize fraud. The collateral required to obtain a 10x multiplier is the same regardless of what kind of data is stored, so miners will have no incentive to pretend their data is something that it's not. We'll also have certainty that all storage deals involve a real user, since no miner would go through the trouble of storing non-random data in a sector unless they were paid to do so.   
+
+This proposal also resolves another community concern: the over-centralization of power in the hands of notaries and the Filecoin Plus governance team. It returns the chain to full permissionlessness, giving all investors and miners confidence that they are competing on a level playing-field.
 
 ## Specification
  **Change in the Datacap Actor's Mint Function**: Alter the DataCap actor's mint() function to remove the restriction that the caller must be the "governor" (the verified registry actor). Allow any actor to mint datacap.
