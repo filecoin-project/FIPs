@@ -8,7 +8,7 @@ type: Technical
 category: Core
 created: 2023-08-22
 requires: 
-replaces:
+replaces: FIP-0003
 ```
 
 ## Simple Summary
