@@ -11,12 +11,13 @@ created: 2023-08-24
 
 ## Simple Summary
 
-Adds new prove-commit and replica-update methods to the miner actor which support committing to data
-and claiming verified allocations without requiring a deal with the built-in market actor.
+Adds new `ProveCommitSectors2` (method 33) and `ProveReplicaUpdates2` (method 34) methods to the miner actor
+which support committing to data and claiming verified allocations without requiring a built-in market deal.
 Adds a sector→deal mapping in the built-in market actor and deprecates the storage of deal IDs in the miner actor.
-Removes the legacy Miner::PreCommitSector (method 6) and Miner::PreCommitSectorBatch (method 25),
-in favour of the existing Miner::PreCommitSectorBatch2 (method 28) which requires
+Removes the legacy `PreCommitSector` (method 6) and `PreCommitSectorBatch` (method 25)
+in favour of the existing `PreCommitSectorBatch2` (method 28) which requires
 the sector unsealed CID to be specified while pre-committing.
+Removes the legacy and unused `ProveReplicaUpdates2` (method 29) (giving that name to the new method 34).
 
 Existing onboarding flows that use the built-in market actor remain fully supported, but optional.
 
@@ -35,7 +36,8 @@ The verified registry actor already records deal-like information describing Dat
 This proposal adds new onboarding methods which support direct commitment of data into sectors,
 without necessary reference to any deal.
 This provides gas-cheap data onboarding for many use cases.
-It also introduces a new scheme for deal activation which can support deals brokered by user-programmed smart contracts.
+It also introduces a new scheme for deal activation which can support deals (and other data-application transactions)
+brokered by user-programmed smart contracts.
 This new scheme is initially limited to the built-in market actor, but can be extended to other actors in the future.
 
 ## Change Motivation
@@ -65,7 +67,7 @@ It cannot support the expansion in usage or functionality that network participa
 This proposal aims to:
 
 - Support data onboarding, including Fil+ verified data, with no smart-contract intermediary;
-- Provide a new scheme for data activation which can support
+- Provide a new scheme for data activation which can later support
   user-programmed smart contracts to function as data storage applications (including as markets);
 - Continue supporting existing onboarding methods to give participants time to migrate their workflows.
 
@@ -103,14 +105,11 @@ Existing onboarding methods are retained and remain fully supported, but optiona
 ### Storage miner actor
 
 No changes to miner state schemas are necessary,
-but the deal IDs stored on with each sector's metadata are redundant.
-The sector→deal association will be stored in the built-in market actor instead, and
-any information that remains in the miner actor state will be incomplete.
+but the deal IDs stored on with each sector's metadata are no longer used.
+Any deal-related information that remains in the miner actor state will be incomplete so should not be used.
+A sector→deal association will be stored in the built-in market actor instead (see below).
 
-The interpretation of some fields changes slightly.
-No migration is necessary.
-
-TODO: remove PreCommitSector and PreCommitSectorBatch methods
+The interpretation of some per-sector metadata fields changes slightly.
 
 #### State
 
@@ -124,7 +123,7 @@ Pre-commit deal IDs may be removed in a future FIP when deprecating the old meth
 ##### SectorOnChainInfo
 
 The per-sector `DealIDs` field is deprecated and to be ignored.
-The miner actor will not write to it.
+The miner actor will not write new deals to it.
 
 The `DealWeight` field is interpreted to carry the weight of _any non-zero, unverified data_ in a sector,
 not only the weight of deals made via the built-in market actor.
@@ -136,29 +135,33 @@ Per-sector deal IDs may be removed from state in a future migration.
 #### Sector activation
 
 The miner actor exports new methods for sector activation:
-`ProveCommitSectors2` (method 33) and `ProveReplicaUpdates3` (method 34).
+`ProveCommitSectors2` (method 33) and `ProveReplicaUpdates2` (method 34).
 These new methods both support either batched or aggregated proofs, though aggregated proofs for
 replica updates are not yet possible.
 
 ##### ProveCommitSectors2
 
-This method rejects sectors that deal IDs specified at pre-commit.
-Such sectors must be activated with the existing `ProveCommitSector` or `ProveCommitAggegate` methods.
+This method rejects sectors with deal IDs specified at pre-commit.
+Such sectors must be activated with the existing `ProveCommitSector` or `ProveCommitAggregate` methods.
 This method does not fetch deal information from the built-in market actor.
-Instead, the pieces of data that comprise a sector are declared as a _manifest_.
+Instead, the pieces of data that comprise a sector are declared by the sender as a _manifest_.
 
 Each piece in a manifest _may_ declare a verified data allocation ID that it satisfies.
 The method will attempt to claim that allocation directly from the verified registry actor and, if successful,
 calculate quality-adjusted power according to the piece’s size.
-If unsuccessful, the sector will not be activated.
+If unsuccessful, the containing sector will not be activated.
 
-Each piece in a manifest _may_ specify the address of an actor and a notification payload,
+Each piece in a manifest _may_ specify zero or more addresses of an actor and notification payloads,
 to be notified synchronously when the sector is activated.
 After successful activation, the method will invoke the `SectorContentChanged` method
-on the target actor with the piece CID and payload.
-This functions as a notification that the piece has been committed, e.g. to a marketplace.
+on the target actor(s) with the piece CID and payload.
+This functions as a synchronous notification that the piece has been committed, e.g. to a marketplace.
 `SectorContentChanged` will be invoked just once per recipient actor, with a message body
 describing all pieces to be notified to that actor.
+
+The miner actor will reject attempts to notify any actor other than the built-in storage market actor (`f05`).
+This restriction may be lifted in a future FIP once the security considerations of calls into
+untrusted code are better understood and mitigated.
 
 In execution of `ProveCommitSectors2`, the miner actor:
 
@@ -170,7 +173,7 @@ In execution of `ProveCommitSectors2`, the miner actor:
 6. notifies any actors specified in the piece manifests.
 
 ```
-struct ProveCommit2Params {
+struct ProveCommitSectors2Params {
     // Activation manifest for each sector being proven.
     SectorActivations: []SectorActivationManifest,
     // Proofs for each sector, parallel to activation manifests.
@@ -219,40 +222,30 @@ struct DataActivationNotification {
     Payload: []byte,
 }
 
-struct ProveCommit2Return {
-    // Sector activation results, parallel to input sector activation manifests.
-    Sectors: []SectorActivationReturn,
+// Note transparent serialization of single-element struct.
+struct ProveCommitSectors2Return {
+    // Success/fail of each input in order.
+    ActivationResults: BatchReturn
 }
 
-struct SectorActivationReturn {
-    // Whether the sector was activated.
-    Activated: bool,
-    // Power of the activated sector (or zero).
-    Power: StoragePower,
-    // Piece activation results, parallel to input piece activation manifests.
-    Pieces: []]PieceActivationReturn,
+// This BatchReturn type is an existing structure used for batched results in other built-in actors.
+struct BatchReturn {
+    // Total successes in batch
+    SuccessCount: u32,
+    // Failure code and index for each failure in batch
+    FailCodes: []FailCode,
 }
 
-struct PieceActivationReturn {
-    // Whether a verified allocation was successfully claimed by the piece.
-    Claimed: bool,
-    // Results from notifications of piece activation, parallel to input notification requests.
-    Notifications: []DataActivationNotificationReturn,
-}
-
-struct DataActivationNotificationReturn {
-    // Exit code from the notified actor.
+struct FailCode {
+    Idx: u32,
     Code: ExitCode,
-    // Return value from the notified actor.
-    Data: RawBytes,
 }
-
-
 ```
 
-##### ProveReplicaUpdates3
+##### ProveReplicaUpdates2
 
-As for `ProveCommitSectors2`, this method does not fetch deal information from the built-in market actor.
+The name `ProveReplicaUpdates2` is taken from the existing and now-deprecated method 29.
+Like `ProveCommitSectors2`, this method does not fetch deal information from the built-in market actor.
 Instead, the pieces of data that comprise the updated sector content are declared as a _manifest_.
 This manifest is similar to the manifest for `ProveCommitSectors2`, with differences being to specify
 the existing sector state to be updated rather than a new one.
@@ -260,7 +253,7 @@ the existing sector state to be updated rather than a new one.
 The specification and semantics of pieces, including verified allocation IDs and notifications,
 is the same as for `ProveCommitSectors2`.
 
-In execution of `ProveReplicaUpdates3`, the miner actor:
+In execution of `ProveReplicaUpdates2`, the miner actor:
 
 1. validates that the existing sectors are eligible for update;
 2. computes an unsealed CID from the piece manifests;
@@ -271,7 +264,7 @@ In execution of `ProveReplicaUpdates3`, the miner actor:
 6. notifies any actors specified in the piece manifests.
 
 ```
-struct ProveReplicaUpdates3Params {
+struct ProveReplicaUpdates2Params {
     SectorUpdates: []SectorUpdateManifest,
     // Proofs for each sector, parallel to activation manifests.
     // Exactly one of sector_proofs or aggregate_proof must be non-empty.
@@ -301,7 +294,7 @@ pub struct SectorUpdateManifest {
     Pieces: []PieceActivationManifest,
 }
 
-type ProveReplicaUpdates3Return = ProveCommit2Return;
+type ProveReplicaUpdates2Return = ProveCommit2Return;
 ```
 
 #### SectorContentChanged
@@ -309,12 +302,8 @@ type ProveReplicaUpdates3Return = ProveCommit2Return;
 When a piece manifest specifies one or notification receivers,
 the storage miner invokes these receivers after activating the sector or replica update.
 The receiving actor must accept the `SectorContentChanged` method number and parameter schema.
-`SectorContentChanged` is an FRC-0046 method, intended to be implemented by other actors.
+`SectorContentChanged` is an FRC-0046 method, intended to be implemented by user-programmed actors.
 The miner actor will invoke each receiver address only once, with a batch of notification payloads.
-
-The miner actor will reject attempts to notify any actor other than the built-in storage market actor (`f05`).
-This restriction may be lifted in a future FIP once the security considerations of calls into
-untrusted code are better understood and mitigated.
 
 ```
 // Notification of change committed to one or more sectors.
@@ -323,7 +312,7 @@ untrusted code are better understood and mitigated.
 // Note transparent serialization of single-element struct.
 struct SectorContentChangedParams {
     // Distinct sectors with changed content.
-    Sectors: []]SectorChanges,
+    Sectors: []SectorChanges,
 }
 
 // Description of changes to one sector's content.
@@ -346,7 +335,7 @@ struct PieceChange {
     Size: PaddedPieceSize,
     // A receiver-specific identifier.
     // E.g. an encoded deal ID which the provider claims this piece satisfies.
-    Payload: []byte],
+    Payload: []byte,
 }
 
 // For each piece in each sector, the notifee returns an exit code and
@@ -355,21 +344,20 @@ struct PieceChange {
 // Note transparent serialization of single-element struct.
 struct SectorContentChangedReturn {
     // A result for each sector that was notified, in the same order.
-    Sectors: []]SectorReturn,
+    Sectors: []SectorReturn,
 }
 
 // Note transparent serialization of single-element struct.
 struct SectorReturn {
     // A result for each piece for the sector that was notified, in the same order.
-    Added: []]PieceReturn,
+    Added: []PieceReturn,
 }
 
+// Note transparent serialization of single-element struct.
 struct PieceReturn {
     // Indicates whether the receiver accepted the notification.
     // The caller (miner) is free to ignore this, but may chose to abort and roll back.
-    Code: ExitCode,
-    // Receiver-specific result data about the piece, to be passed back to top level caller.
-    Data: []byte,
+    Accepted: bool,
 }
 ```
 
@@ -380,18 +368,20 @@ Each data piece can have a single verified claim and multiple notifications.
 Any of these items might fail, but only limited ability to handle individual failures in a group is practical.
 
 **The activation of each sector is independent**.
-A failed activation will not cause the method to abort, unless all activations fail.
+A failed sctor activation will not cause a top-level method to abort, unless all activations fail.
 An SP can specify `RequireActivationSuccess=true` to instead require every sector activation to succeed,
 aborting the operation if one fails.
 
 **Sector activation includes claiming of any verified allocations**.
-If a claim fails for one piece, no claims will be made for any piece in the sector and the sector will not be activated.
-An SP cannot choose to have activation proceed despite an invalid claim;
+If a claim fails for one piece in a sector, no claims will be made for any piece in the sector
+and the sector will not be activated.
+The caller cannot choose to have activation proceed despite an invalid claim;
 they can instead resubmit the failed sector with only the remaining valid claims.
 
 **Sector activation does not include notifications**.
 Notifications are sent strictly _after_ activation, and only for successfully activated sectors.
-If a notification call returns a non-zero exit code, sector activation will be committed regardless.
+If a notification call returns a non-zero exit code, sector activation will be committed regardless;
+notifications are sent on a _best-effort_ basis.
 An SP can specify `RequireNotificationSuccess=true` to instead require every notification to succeed,
 aborting the entire operation if one fails.
 There is no ability to roll back the activation of only some sectors in response to failed notifications.
@@ -400,20 +390,42 @@ This is a change in sequencing and semantics from the existing onboarding method
 where deal activation happens first and failure leads to an individual sector failing,
 and verified claims happen second and must all succeed.
 
+#### Sector termination
+
+When a sector is terminated, the built-in market actor is notified of the sector termination
+if the sector has non-zero deal weight or verified deal weight.
+This is a change from the previous logic of notifiying the market actor explicitly of
+the deals contained in a sector (if any).
+
+The miner actor no longer carries reliable information about which sectors carry deals.
+
+Note that this notification on termination is a privilege of the built-in market actor that
+may not be extended to other actors in the future (because termination can be invoked by cron).
+
 #### ProveCommitSector
 
-The existing `ProveCommitSector` method (method 7) remains,
-and continues to activate deals in the built-in market actor and claim verified allocations using
+The existing `ProveCommitSector` (method 7) and `ProveCommitAggregate` (method 26) remain,
+and continue to activate deals in the built-in market actor and claim verified allocations using
 the current algorithm.
-The method no longer writes deal IDs into per-sector chain state.
+These methods no longer writes deal IDs into per-sector chain state.
+
+These methods cannot be used for direct data onboarding and wil always incur the cost of a built-in market deal.
+
+#### ProveReplicaUpdates
+
+The existing `ProveReplicaUpdates` (method 27) remains and continues to activate deals and claim verified allocations
+using the current algorithm.
+This method no longer writes deal IDs into per-sector chain state.
+
+This method cannot be used for direct data onboarding and wil always incur the cost of a built-in market deal.
 
 #### Deprecation of legacy methods
 
-TODO:
+The following methods are removing. Invoking them will result in a `USR_UNHANDLED_METHOD` exit code (22).
 
-- PreCommitSector
-- PreCommitSectorBatch
-- ProveReplicaUpdates2 (name taken by new method)
+- PreCommitSector (method 6)
+- PreCommitSectorBatch (method 25)
+- ProveReplicaUpdates2 (method 29)
 
 ### Storage market actor
 
@@ -434,12 +446,12 @@ struct SectorDeals {
     Deals: []DealID
 }
 
-// Existing deal state structure get a new field with sector number.
+// Existing deal state structure gets a new field with sector number.
 struct DealState {
     // All existing fields as today.
     // ...
 
-    // 0 if not yet included in proven sector (0 is also a valid sector number)
+    // 0 if not yet included in proven sector (0 is also a valid sector number).
     SectorNumber: SectorNumber,
 }
 
@@ -458,12 +470,13 @@ struct State {
 }
 ```
 
-#### ActivateDeals
+#### BatchActivateDeals
+
 When an SP activates a piece with the existing activation methods,
-deals are activated with the `BatchActivateDeals` method.
+deals are activated with the `BatchActivateDeals` (method 6).
 This method returns the necessary verified allocation IDs to the miner actor.
-The `BatchActivateDeals` method parameters are expanded to include the sector ID for each deal,
-in order to update the new `ProviderSectors` mapping.
+The `BatchActivateDeals` method parameters are expanded to include the sector ID for each deal.
+When activating a deal, the market actors writes it into the new `ProviderSectors` mapping.
 
 ```
 struct BatchActivateDealsParams {
@@ -484,49 +497,244 @@ struct SectorDeals {
 ```
 
 #### SectorContentChanged
+
 When an SP activates a piece with the new onboarding methods,
-any deals are activated by the `SectorContentChanged` method instead of ActivateDeals.
+any deals are activated by the `SectorContentChanged` method instead of `BatchActivateDeals`.
+The notification payload must be a CBOR-serialized deal ID.
 
-The implementation checks that the piece CID and size match the deal ID nominated in the notification topic, 
-and considers the deal active if so. 
-If piece fails to meet the conditions to activate a deal.
+The implementation checks that the deal ID nominated in the notification payload is valid for activation,
+and that committed piece CID and size match the deal proposal.
+If a deal ID is invalid, ineligible for activation, or doesn't match the piece CID and size,
+no deal is activated and the method returns `Accepted=false` for the corresponding piece.
+Otherwise, the deal is activated.
+Deals succeed or fail independently, including within the same sector group.
 
-TODO: sketch algorithm
+#### OnMinerSectorsTerminate
 
+The built-in market actor receives synchronous notification from the miner actor when a sector is terminated.
+The miner actor no longer knows which sectors have deals, so instead notifies the market actor of
+all sectors with non-empty data.
+
+```
+struct OnMinerSectorsTerminateParams {
+    Epoch: ChainEpoch,
+    Sectors: BitField,
+}
+```
+
+The sector is removed from the `ProviderSectors` mapping, if present.
+Any deals mapped to that sector are marked as terminated, and subsequent processing deferred to cron.
 
 ## Design Rationale
 
-<!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
-TODO:
+This proposal makes deals optional in order to reduce the cost of data onboarding when deal payments are not required.
+It separates the concerns of verified data allocations and client deals,
+making each one an optional component of data activation.
+A scheme for notifying actors of sector data commitments is introduced in order to support future user-programmed
+actors implementing markets and other data applications on the same level as the built-in storage market.
+Such actors will be able to implement deals (and other arrangements) with both greater efficiency and flexibility than
+the built-in market actor when they are not forced to use it as an intermediary.
+After this proposal, the only privilege of the built-in market actor that could not be made available to
+user-programmed actors is the synchronous notification of sector terminations.
 
-- why requiring CommD at pre-commit
-- why notifications are limited to built-in market
-- moving sector-deal mapping to market
-- implementing new sectorcontentchanged in market
-- future: verified allocatino vouchers
-- gas impacts
+### CommD required at pre-commit
+
+The existing `PreCommitSector[Batch]` methods are deprecated in order to enforce the specification of
+the unsealed sector CID (CommD) during pre-commitment.
+This is necessary in order to commit to the data to be proven when this can no longer be implied
+from deals looked-up in built-in market actor.
+`PreCommitSectorBatch2` was introduced in FIP-0041 precisely to support this deprecation.
+
+### CommD not required at replica update
+
+FIP-0041 introduced a `ProveReplicaUpdates2` (method 29) in order to add an explicit CommD parameter
+with similar reasoning to that motivating `PreCommitSectorBatch2`.
+However, the specification of piece manifests renders this unnecessary.
+Method 29 is not used by the widely used "Lotus miner" software and has never been invoked on mainnet.
+It is deprecated in order to reduce the number of actively-supported methods.
+The name `ProveReplicaUpdates2` is taken for the new method 34 in order to align the `2` suffix with the
+similarly-behaving `ProveReplicaUpdates2`.
+
+### Sector deal information moved to market actor
+
+Deal-related metadata is removed from the miner actor, with a mapping from sector to deal ID added to the market actor.
+This is a pattern that can be extended to other data application actors in the future,
+without requiring further changes to the built-in actors or adding cost or complexity in the miner actor.
+
+The per-sector deal IDs are no longer used or maintained by the miner actor and may be removed in a future FIP.
+
+### Implementation of SectorContentChanged by the built-in market
+
+The built-in market actor implements `SectorContentChanged` in order to demonstrate this pattern of deal activation.
+`SectorContentChanged` is an _untrusted_ method: the miner actor does not rely on its result
+for any critical computation.
+This pattern can thus be extended to other actors in the future without significant modification.
+
+Sector content notifications are initially restricted to the built-in market actor because it may be possible
+for user-programmed actors to disrupt the miner actor by exhausting resources like gas or call stack depth.
+A future FIP can lift this restriction after implementing appropriate mitigations.
+
+### Client-initiated workflow for verified data
+
+This proposal changes the high level workflow for verified data onboarding to require an initial on-chain message
+from the client to allocate DataCap.
+This differs from the current scheme, where the storage provider initiates the on-chain allocation of DataCap
+as a side effect of publishing a deal.
+The reason for this change is that verified allocations and deals are independent: a client can allocate DataCap
+without necessarily involving the built-in market actor, and save the SP significant gas costs by doing so.
 
 ## Backwards Compatibility
-<!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
+
+This proposal deprecated the miner methods `PreCommitSector` (method 6), `PreCommitSectorBatch` (method 25),
+and `ProveReplicaUpdates2` (method 29).
+All three have alternatives already available on mainnet that should be used instead.
+
+This proposal requires a state migration to the market actor to add the new `ProviderSectors` mapping.
+Computing this mapping requires reading all sector metadata from the miner actor.
+
+This proposal requires a network upgrade to deploy the new built-in actor code.
 
 ## Test Cases
-<!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
+
+To be provided with implementation (see below).
 
 ## Security Considerations
-<!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
+
+This proposal has no impact on consensus or blockchain security.
 
 ## Incentive Considerations
+
 <!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
 
+- gas impacts
+
+Note gas cost of new PreCommit isn't subsidised by cron, so can be more expensive than the old one.
+But if not for time and priority constraints, we would be deprecating the old one anyway.
+This provides an easy path to do that.
+
 ## Product Considerations
-<!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
+
+### Direct Fil+ supports maximum term
+
+This proposal enables allocation and claiming verified data without a built-in market deal.
+This means that a client can make an allocation for the maximum permitted duration (5 years)
+instead of being limited by the built-in market actor's maximum deal term (1.5 years).
+While a storage provider can still only commit to a sector for 1.5 years at a time,
+they will be able to extend a sector claiming such an allocation out to the 5-year maximum while retaining
+the full power multiplier with no further client interaction.
+
+### Direct data onboarding reduces collateral costs
+
+This proposal enables an SP to commit to sector data without a built-in market deal.
+This means the SP need not deposit the built-in market actor's required deal collateral
+when there is no on-chain deal for that collateral to protect.
+
+### Changes to gas costs
+
+This proposal greatly reduces the total gas cost of common onboarding workflows by limiting the
+on-chain computation and state only to the necessary components for the features desired by participants.
+
+As compared with current workflow costs:
+
+- For direct onboarding with no verified claim, neither publishing a deal nor transferring datacap are necessary.
+  Thus, the full cost of `PublishStorageDeals` is avoided.
+  The cost of sector pre-commitment is reduced slightly by avoiding interaction with the built-in market actor
+  The cost of sector activation is reduced by avoiding the cost of deal activation.
+- For direct onboarding with a verified claim, most of the cost of `PublishStorageDeals` is avoided.
+  The cost of transferring DataCap is still incurred, but is only a fraction of the cost of publishing a deal.
+  The cost of sector pre-commitment is reduced slightly by avoiding interaction with the built-in market actor
+  The cost of sector activation is reduced by avoiding the cost of deal activation.
+- For direct onboarding with a verified claim and a built-in storage market deal, the cost of `PreCommitSectorBatch`
+  is reduced slightly by avoiding interaction with the built-in market actor.
+
+As an illustrative example, an analysis of the gas cost of selected onboarding messages
+with a batch size of 16 in epoch 2844239 indicates:
+
+| Message              | Observed w/ Fil+ | Direct with Fil+ | Observed ex Fil+ | Direct ex Fil+   | 
+|----------------------|------------------|------------------|------------------|------------------|
+| PublishStorageDeals  | 1,911M           | 283M (14.8%)     | 1,624M           | 0 (0%)           |
+| PreCommitSectorBatch | 111M             | 99M (89%)        | 111M             | 99M (89%)        |
+| ProveCommitAggregate | 2,509M           | 1,591M (63%)     | 1,342M           | 348M (25%)       |
+| **Total**            | **4,531M**       | **1,973M (43%)** | **3,077M**       | **447M (14.5%)** |
+
+The "direct" gas costs are approximated by analysing an execution trace and ignoring the gas costs of
+internal messages sent to the built-in storage market actor.
+The "ex Fil+" gas costs are similarly approximated by ignoring the gas costs of internal messages to the
+DataCap and verified registry actors.
+
+Note that since the epoch at which the trace were gathered, optimisations to the built-in actors have reduced
+the costs associated with both verified claims and deal activation.
+These optimisations are not yet deployed to the network, so it is not possible to gather baseline data
+that takes them into account.
+Thus, the _relative_ gas savings of this proposal are likely to be smaller than the above figures indicate,
+when based on this optimised code.
+However, the absolute gas costs of both changes combined will be even lower than the above figures indicate.
+
+In the case of a single sector activation, the new onboarding methods may cost more gas
+than using `ProveCommitSector`.
+This is because `ProveCommitSector` defers sector activation (including verified claims and deals) to be performed
+in cron, thus subsidising the SP's gas consumption.
+This is considered to be a protocol bug, expected to be resolved in a future FIP by forcing
+(now much reduced) sector activation costs to be paid by the SP.
+After this proposal, one way to do this would be to simply deprecate `ProveCommitSector`
+in favour of `ProveCommitSectors2`.
+See https://github.com/filecoin-project/FIPs/discussions/689.
+
+### Client-initiated workflow for verified data
+
+This proposal requires a client to initiate the on-chain allocation of DataCap for verified data,
+as discussed in _Design Rationale_.
+This requires a client to hold sufficient tokens to pay the associated gas fee,
+and have some method of submitting messages to the network.
+
+A future change could restore a high-level workflow initiated by the SP by specifying a mechanism
+for _verified allocation vouchers_.
+A voucher would be a message signed by the client, but submitted to the verified registry actor by the SP,
+much like publishing a deal.
+Such functionality is omitted from this proposal in the interest of simplicity.
+
+### Storage provider metadata for activation
+
+This proposal avoids the storage of deal-related information on chain between sector pre-commitment and activation.
+Rather than the looking up piece CIDs and allocation IDs in the built-in storage market actor during activation,
+an SP must provide them explicitly as parameters.
+This movement of data and computation off-chain enables gas savings,
+but requires the storage provider to maintain this metadata during the onboarding process.
+
+### Source of truth for data commitments and verified claims
+
+This proposal decouples the both ability to commit to data, and the allocation of DataCap,
+from on-chain deals with the built-in market actor.
+The motivation for this is to avoid the high costs of the built-in market actor when they are not necessary.
+
+This decoupling breaks potential assumptions by network observers that
+(a) all data in any sector is reflected in an on-chain deal,
+and (b) all verified data is reflected in an on-chain deal.
+Observers relying on these assumptions could previously inspect only the built-in market actor's state in order to infer
+the total amount and composition of data and verified data in the network.
+
+After this proposal, information representing data commitments, verified claims, and deals are maintained separately.
+
+- The source of truth for sector data commitments is the piece activation manifests in the message history.
+- The source of truth for verified data claims is the verified registry actor state.
+- The built-in market actor state is a source of truth only for on-chain deal accounting.
+
+The built-in market actor may have a partial view of both piece commitments and verified claims,
+but this is no longer a reliable or complete source of information about either.
+Clients, explorers and analytic tools should inspect the source of truth for each type of information,
+and avoid reliance on the presence of deals with built-in market actor.
 
 ## Implementation
-<!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
+
+Implementation of the protocol changes is being developed in the `integration/direct-onboarding`
+[branch of the built-in actors](https://github.com/filecoin-project/builtin-actors/tree/integration/direct-onboarding)
+repository.
 
 ## TODO
+
 - Determine whether we will migrate to remove SectorOnChainInfo.Deals, or merely deprecate its use.
-- Determine whether to deprecate ProveReplicaUpdates2 (and claim its name for PRU3)
+- Determine whether to remove the unreliable verified claim ID from deal state
 
 ## Copyright
+
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
