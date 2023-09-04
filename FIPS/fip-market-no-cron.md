@@ -118,6 +118,13 @@ It behaves as if `SettleDealPayments` was invoked immediately after marking deal
 This replaces the current technique of merely recording the termination epoch and then 
 waiting for cron to do the work.
 
+The existing `GetDealActivation` method result includes a field for termination epoch.
+This field is (already) an unreliable source of termination information.
+After a deal is completed, there is no information on-chain to distinguish successfully completed deals
+from those terminated early, and `GetDealActivation` will fail.
+Immediate clean-up on termination will render this field useless.
+The `Terminated` field of the `GetDealActivation` result is thus deprecated and should always be set to `-1`.
+
 ### No automatic settlement for new deals
 When a deal is first published, it is added to the cron queue after its start epoch. 
 If it is not activated prior to that epoch, it is expired and cleaned up in cron. 
@@ -129,6 +136,8 @@ Future settlements must be manual.
 
 ### Continued automatic settlement for existing deals
 Deals that are already activated prior to this change continue to be settled automatically in cron.
+Such deals may also be settled manually by the new `SettleDealPayments` method, 
+which will compute incremental payments since the automatic or manual settlement.
 
 ### Transition
 This proposal changes termination processing from deferred to immediate.
@@ -168,6 +177,11 @@ This proposal does not remove or change any exported APIs, nor change any state 
 It is backwards compatible for all callers.
 Since it requires a change to actor code, a network upgrade is required to deploy it.
 
+Immediate clean-up on termination means that `GetDealActivated` will never return a termination epoch for a deal.
+After a deal is terminated, the method will instead abort with `EX_DEAL_EXPIRED`.
+This is already the behaviour today when a deal has been cleaned up by cron, 
+but will become the only possible behaviour.
+ 
 The proposal does remove a subsidised function that some parties may have relied upon.
 SPs who host paid-for deals with the built-in market actor must now settle payments manually.
 
