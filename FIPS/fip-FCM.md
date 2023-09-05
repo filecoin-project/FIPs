@@ -30,7 +30,7 @@ This proposal also resolves another community concern: the over-centralization o
 ## Design Rationale
 While more comprehensive solutions might be considered in the future, this FIP offers an immediate, simpler approach. 
 
-Allowing any actor to mint datacap is the simplest change to the current protocol that removes the Fil+ process restrictions on datacap issuance. This datacap can then be transferred to the verified registry to create a verified allocation and claim the associated multiplier when onboarding data.
+Allowing any actor to mint datacap is the simplest change to the current protocol that removes the Fil+ process restrictions on datacap issuance. Datacap can then be transferred to the verified registry to create a datacap allocation. Storage Providers can claim the allocation assigned to them and get the associated 10x deal multiplier when onboarding the data piece.
 After this change, the verified registry and datacap actors will be mostly obsolete. Allowing unlimited datacap does not create any complexity, but does make it possible to remove some. Future protocol improvements could remove these actors and support direct specification of a multiplier when onboarding to further simplify the protocol and reduce cost.
 
 ## Backwards Compatibility
