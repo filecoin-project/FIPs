@@ -83,7 +83,7 @@ Settling the final payment for a completed deal also removes the deal metadata f
 ```
 // Note transparent serialization for single-item struct.
 struct SettleDealPaymentsParams {
-    Deals: []DealID,
+    Deals: Bitfield,
 }
 
 struct SettleDealPaymentsReturn {
@@ -107,9 +107,13 @@ struct DealSettlementSummary {
 }
 ```
 
+If the caller specifies a deal which has never existed, settlement fails with the `USR_NOT_FOUND` code.
 If the caller specifies a deal which has not yet activated nor expired, settlement succeeds but has no effect.
-If the caller specifies a deal which has expired (not activated in time) or already terminated or completed,
-settlement fails with the `USR_NOT_FOUND` exit code (regardless of whether cron has removed the deal proposal from state).
+If the caller specifies a deal which has expired (not activated in time) or already completed,
+settlement fails with the `EX_DEAL_EXPIRED` exit code (regardless of whether cron has removed the deal proposal from state).
+It is an error to specify a deal that has been marked for termination but not yet cleaned up by cron, 
+and doing so will result in an abort with `USR_ILLEGAL_ARGUMENT`.
+This situation is only transiently possible in the period immediately after this proposal is deployed. 
 
 ### Immediate clean-up on termination
 The existing built-in market actor `OnMinerSectorsTerminate` method is changed to 
@@ -123,7 +127,8 @@ This field is (already) an unreliable source of termination information.
 After a deal is completed, there is no information on-chain to distinguish successfully completed deals
 from those terminated early, and `GetDealActivation` will fail.
 Immediate clean-up on termination will render this field useless.
-The `Terminated` field of the `GetDealActivation` result is thus deprecated and should always be set to `-1`.
+To avoid confusion, `GetDealActivation` is changed to always fail with `EX_DEAL_EXPIRED` 
+for expired, completed, or terminated deals, regardless of whether the state has been cleaned up.
 
 ### No automatic settlement for new deals
 When a deal is first published, it is added to the cron queue after its start epoch. 
