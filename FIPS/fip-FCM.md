@@ -15,14 +15,17 @@ replaces: FIP-0003
 This proposal removes restrictions on access to the 10X multiplier in Fil+ deals, allowing any actor to mint Datacap.
 
 ## Abstract
-The Fil+ program intended to incentivize storage of non-random, monetizable data on Filecoin. It did succeed in accelerating the development of data-onboarding tools. However, the notary system used to execute Fil+ has not brought paid storage to Filecoin, and probably never will. This proposal removes the permissioned, off-chain pathways to the 10x multiplier, and makes it available to all actors who stake the required collateral.
+The Fil+ program intended to compensate miners for storing non-random data on Filecoin. It was hoped that these datasets would increase the utility of the network and thereby attract paying users. Fil+ did succeed in accelerating the development of data-onboarding tools. However, the notary system used to execute Fil+ has not brought paying data clients to Filecoin, and is riddled with perverse incentives. This proposal removes the permissioned, off-chain pathways to the 10x multiplier, and makes it available to all actors who stake the required collateral.
 
 ## Change Motivation≠
-The current Fil+ implementation, though well-intentioned, has incentivized behaviors that do not drive value to Filecoin. The dominant strategy for miners has rested on two pillers: first, the fabrication of datasets or sourcing of 'real' data with no attention paid to whether the dataset was monetizable or useful when stored on Filecoin, and second, developing relationships with gate-keepers of the multiplier, notaries and the governance team, in order to increase the chances of getting Fil+ applications approved and to get access to Fil+ deals submitted by other miners. Decisions about what data to upload to Filecoin have been made exclusively by miners, notaries and the governance team, rather than paying users. In fact, the miners themselves have become the 'users'. 
+The current Fil+ implementation, though well-intentioned, has incentivized behaviors that do not drive value to Filecoin. The dominant strategy for miners has rested on two pillers: first, the fabrication of datasets and sourcing of 'real' data with no concern for monetizability, and second, developing relationships with gate-keepers of the multiplier, notaries and the governance team, in order to increase the chances that their Fil+ applications get approved and to get access to Fil+ deals applied for by other miners. Decisions about what data to upload to Filecoin have been made exclusively by miners, notaries and the governance team, rather than real, paying users. In fact, the miners themselves have become the 'users', and go to great lengths to secure the power multiplier.  
 
-By removing notaries we disincentivize fraud. The collateral required to obtain a 10x multiplier is the same regardless of what kind of data is stored, so miners will have no incentive to pretend their data is something that it's not. We'll also have certainty that all storage deals involve a real user, since no miner would go through the trouble of storing non-random data in a sector unless they were paid to do so.   
+By removing notaries we will instantly eliminate all fraud, bribery and other harmful behavior in Filecoin. Under this proposal, miners will obtain a 10x multiplier as long as they post the required collateral, regardless of what kind of data they store. So there will be no reason for a miner to pretend their data is something that it's not. We'll also have complete certainty that all storage deals involve a real user and useful storage, since no miner would go through the trouble of storing non-random data in a sector unless they were paid to do so, and no user would pay for storage unless they believed in its utility.   
 
-This proposal also resolves another community concern: the over-centralization of power in the hands of notaries and the Filecoin Plus governance team. It returns the chain to full permissionlessness, giving all investors and miners confidence that they are competing on a level playing-field.
+This proposal also resolves another community concern: the over-centralization of power in the hands of notaries and the Filecoin Plus governance team. It returns the chain to full permissionlessness, giving all investors and miners confidence that they are competing on a level playing-field. This will attract new miners to the network and drive down the price of storage.
+
+Last but not least, by making the permissionless part of the network profitable again, miners and users are freed from the relatively slow, high-friction UX of Filecoin Plus.
+
 
 ## Specification
  **Change in the Datacap Actor's Mint Function**: Alter the DataCap actor's mint() function to remove the restriction that the caller must be the "governor" (the verified registry actor). Allow any actor to mint datacap.
@@ -47,11 +50,11 @@ Test that a non-account actor can mint datacap
 This FIP, though providing simplified access, doesn't introduce new security threats. 
 
 ## Incentive Considerations
-The proposed change effectively removes a significant incentive for the onboarding of data that was previously determined as valuable by the off-chain notaries under the Fil+ mechanism. As a result, it's anticipated that the overall rate of data onboarding may decrease. The extent to which the currently incentivized data under this mechanism is fraudulent remains uncertain.
+The proposed change removes Fil+'s incentive for the onboarding of non-random data whose utility has been affirmed by off-chain, human notaries. As a result, it's anticipated that the onboarding rate of non-random data may decrease. The extent to which data currently incentivized under this mechanism is fraudulent remains uncertain.
 
-With the removal of the restriction, effectively-empty sectors can now benefit from a multiplier. This adjustment allows Storage Providers (SPs) to onboard more Raw Byte Power (RPB) at a potential profit, potentially leading to an increase in such sectors being onboarded.
+With the removal of this restriction, effectively-empty sectors can now benefit from a multiplier. This adjustment allows Storage Providers (SPs) to onboard more Raw Byte Power (RPB) at a potential profit, potentially leading to an increase in such sectors being onboarded.
 
-Following this amendment, primary motivations for SPs to onboard data will still need to originate from outside the core protocol. This could encompass direct client payments or potential incentive models established within upcoming user-defined smart contracts.
+Following this amendment, the primary impetus for SPs to onboard data will originate from outside the core protocol. This could include direct payments from real clients or new incentive models implemented in user-defined smart contracts.
 
 
 ## Product Considerations
