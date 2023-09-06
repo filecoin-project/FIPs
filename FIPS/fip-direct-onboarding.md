@@ -12,8 +12,9 @@ created: 2023-08-24
 ## Simple Summary
 
 Adds new `ProveCommitSectors2` (method 33) and `ProveReplicaUpdates2` (method 34) methods to the miner actor
-which support committing to data and claiming verified allocations without requiring a built-in market deal.
-Adds a sector→deal mapping in the built-in market actor and deprecates the storage of deal IDs in the miner actor.
+which support committing data to sectors and claiming verified allocations without requiring a built-in market (`f05`) deal.
+Adds a provider→sector→deal mapping in the built-in market actor and deprecates the storage of deal IDs in 
+sector metadata in the miner actor.
 Removes the legacy `PreCommitSector` (method 6) and `PreCommitSectorBatch` (method 25)
 in favour of the existing `PreCommitSectorBatch2` (method 28) which requires
 the sector unsealed CID to be specified while pre-committing.
@@ -24,14 +25,15 @@ Existing onboarding flows that use the built-in market actor remain fully suppor
 ## Abstract
 
 The only mechanism today by which storage providers (SPs) are permitted to commit data in sectors is
-to make a deal with the built-in storage market actor.
+to complete a deal with the built-in storage market actor.
 The built-in market actor is expensive in gas, and offers only basic functionality.
-Requiring its use raises costs and limits the utility and value of sectors,
+Requiring its use raises costs for those who don't need its features and limits the utility and value of sectors,
 and the applications that can be built on Filecoin.
 
 This cost and inconvenience is unnecessary in the common cases of verified deals with no client payments,
 and storage arrangements that do not require any on-chain deal.
-The verified registry actor already records deal-like information describing DataCap allocation terms.
+The verified registry actor already records DataCap allocation "deal" terms on-chain;
+duplicating this information in a built-in market deal is an unnecessary cost.
 
 This proposal adds new onboarding methods which support direct commitment of data into sectors,
 without necessary reference to any deal.
@@ -42,13 +44,13 @@ This new scheme is initially limited to the built-in market actor, but can be ex
 
 ## Change Motivation
 
-The built-in market actor is expensive to use but provides very little utility to majority data onboarding use cases.
-A vast majority of deals today are simple FIL+ verified deals with no client payment.
+The built-in market actor is expensive to use, but provides very little utility to the majority of data onboarding use cases.
+A vast majority of deals today are simple Fil+ verified deals with no on-chain client payment.
 Since the verified registry actor already records all relevant information about DataCap allocation terms
 (the client and provider, piece commitment, and duration),
 the built-in market actor's replication of this data is unnecessary.
 The built-in market plays no necessary role in allocating or accounting for QA power.
-Publishing deals is the largest on-chain cost of QA power onboarding,
+Publishing deals is the largest on-chain cost of onboarding data and consensus power,
 currently consuming a large fraction (about half) of total chain bandwidth.
 If the built-in storage market actor were bypassed for the common cases of un-paid or off-chain settled deals,
 both verified and unverified data could be onboarded at a significant reduction in gas cost.
@@ -60,14 +62,10 @@ of using the built-in market actor as an intermediary for any data commitments.
 They are also restricted by the lack of any hooks into the built-in miner actor to be notified of sector data
 commitments.
 
-Requiring the built-in market actor raises costs and limits the utility and value of sectors,
-and the applications that can be built on Filecoin.
-It cannot support the expansion in usage or functionality that network participants hope for.
-
 This proposal aims to:
 
-- Support data onboarding, including Fil+ verified data, with no smart-contract intermediary;
-- Provide a new scheme for data activation which can later support
+- Support data onboarding, including Fil+ verified data, with no intermediary actor;
+- Provide a new scheme for data activation notifications from storage miner actors, which can later support
   user-programmed smart contracts to function as data storage applications (including as markets);
 - Continue supporting existing onboarding methods to give participants time to migrate their workflows.
 
@@ -79,13 +77,13 @@ Direct data onboarding comprises changes to the built-in miner and market actors
 to provide new onboarding methods that do not require a built-in market deal.
 These new methods accept additional parameters from the storage provider which specify
 the pieces of data activated in the sector, any verified allocations being claimed,
-and the address of any actors to notify about the successful activation.
-Deals are possible, but not necessary.
+and the address of any actors to notify about the successful data commitment.
+Deals with the built-in storage market actor are possible, but not necessary.
 
 In the direct onboarding flow:
 
-- _[for verified data only]_ a client makes a verified allocation directly with the verified registry
-  by transferring DataCap tokens to it (this is already possible today),
+- _[for verified data only]_ a client (or authorized delegate) makes a verified allocation directly with 
+  the verified registry by transferring DataCap tokens to it (this is already possible today),
 - _[for on-chain paid deals only]_ an SP publishes storage deals to the built-in market actor (also already possible
   today),
 - at pre-commit, an SP must specify a sector’s data commitment (unsealed CID),
@@ -97,7 +95,7 @@ In the direct onboarding flow:
 
 The miner actor verifies that the pieces of data claimed by the SP correspond to the data commitment proven.
 The verified registry is involved only if verified data is being claimed.
-The built-in market actor is involved only if an on-chain-settled deal is required (i.e. if non-zero payment).
+The built-in market actor need only be involved if an on-chain-settled deal is required (i.e. if non-zero payment).
 Otherwise, the SP simply commits data directly to their sector with no unnecessary overhead.
 
 Existing onboarding methods are retained and remain fully supported, but optional.
@@ -107,7 +105,7 @@ Existing onboarding methods are retained and remain fully supported, but optiona
 No changes to miner state schemas are necessary,
 but the deal IDs stored on with each sector's metadata are no longer used.
 Any deal-related information that remains in the miner actor state will be incomplete so should not be used.
-A sector→deal association will be stored in the built-in market actor instead (see below).
+A sector→deal association will be stored in the built-in market actor instead (see [below](#storage-market-actor)).
 
 The interpretation of some per-sector metadata fields changes slightly.
 
@@ -421,7 +419,7 @@ This method cannot be used for direct data onboarding and wil always incur the c
 
 #### Deprecation of legacy methods
 
-The following methods are removing. Invoking them will result in a `USR_UNHANDLED_METHOD` exit code (22).
+The following methods are removed. Invoking them will result in a `USR_UNHANDLED_METHOD` exit code (22).
 
 - PreCommitSector (method 6)
 - PreCommitSectorBatch (method 25)
@@ -438,7 +436,10 @@ from the miner actor's new activation methods.
 
 #### State
 
-A new field maps sector numbers to the deal IDs that the market has been notified are stored in those sectors.
+A new field maps provider addresses, to sector numbers, to the deal IDs that the market has been notified
+are stored in those sectors.
+The reverse mapping from deal to sector number is provided by a new field in the deal state structure.
+The unused verified claim ID field is removed from the deal state structure. 
 
 ```
 // New structure storing per-sector deal information.
@@ -448,11 +449,15 @@ struct SectorDeals {
 
 // Existing deal state structure gets a new field with sector number.
 struct DealState {
-    // All existing fields as today.
-    // ...
-
     // 0 if not yet included in proven sector (0 is also a valid sector number).
     SectorNumber: SectorNumber,
+
+    // Other existing fields as today.
+    // ...
+    
+    // REMOVED
+    // VerifiedClaim: AllocationID,
+
 }
 
 struct State {
@@ -476,7 +481,7 @@ When an SP activates a piece with the existing activation methods,
 deals are activated with the `BatchActivateDeals` (method 6).
 This method returns the necessary verified allocation IDs to the miner actor.
 The `BatchActivateDeals` method parameters are expanded to include the sector ID for each deal.
-When activating a deal, the market actors writes it into the new `ProviderSectors` mapping.
+When activating a deal, the market actor writes it into the new `ProviderSectors` mapping.
 
 ```
 struct BatchActivateDealsParams {
@@ -589,14 +594,15 @@ This proposal deprecated the miner methods `PreCommitSector` (method 6), `PreCom
 and `ProveReplicaUpdates2` (method 29).
 All three have alternatives already available on mainnet that should be used instead.
 
-This proposal requires a state migration to the market actor to add the new `ProviderSectors` mapping.
+This proposal requires a state migration to the market actor to add the new `ProviderSectors` mapping,
+and to add a sector number to and remove allocation ID from each `DealState`.
 Computing this mapping requires reading all sector metadata from the miner actor.
 
 This proposal requires a network upgrade to deploy the new built-in actor code.
 
 ## Test Cases
 
-To be provided with implementation (see below).
+To be provided with [implementation](#implementation).
 
 ## Security Considerations
 
@@ -604,13 +610,34 @@ This proposal has no impact on consensus or blockchain security.
 
 ## Incentive Considerations
 
-<!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
+This proposal decreases the cost of, and hence disincentive to, committing data to Filecoin sectors
+(see [Changes to gas costs](#changes-to-gas-costs)).
+The resulting cost depends on the functionality desired by the participants,
+which can avoid the costs associated with on-chain deals if they are not required.
+An absolute cost reduction for onboarding data might increase the profitability of doing so, and hence the uptake.
 
-- gas impacts
+This proposal changes the _relative_ cost of onboarding data with different features, which is fairly uniform at present.
+After this proposal:
+- _unverified_ data _without_ on-chain payments will be the cheapest to onboard;
+- _verified_ data _without_ on-chain payments will be slightly more expensive;
+- _unverified_ data _with_ on-chain payments will be significantly more expensive;
+- _verified_ data _with_ on-chain payments will be the most expensive (but still a little cheaper than current).
 
-Note gas cost of new PreCommit isn't subsidised by cron, so can be more expensive than the old one.
-But if not for time and priority constraints, we would be deprecating the old one anyway.
-This provides an easy path to do that.
+The variations in cost account for the variations in computational work necessary to provide incremental functionality.
+These variation might increase the relative profitability of onboarding data that is unverified
+and/or requires no on-chain payments, and hence the uptake of these.
+When `SectorContentChanged` notifications support user-programmed actors, they may be able to implement
+on-chain payments more efficiently than the built-in storage market actor.
+
+Data that is onboarded without a built-in market deal is not subject to the minimum deal collateral required by the built-in market actor.
+This deal collateral is intended to provide an assurance mechanism to benefit clients,
+and represents a cost and risk to storage providers.
+Because the deal collateral is calculated on raw byte power, 
+it represents a proportionally 10x larger assurance and cost/risk for unverified data than verified data,
+as compared with the QA power and rewards attributable to the data.
+This proposal reduces the cost of onboarding data by removing the need for deal collateral.
+Parties can still use the built-in market actor for arrangements where deal collateral is desired.
+Future user-programmed actors will also be able to implement more flexible collateral schemes.
 
 ## Product Considerations
 
@@ -729,11 +756,6 @@ and avoid reliance on the presence of deals with built-in market actor.
 Implementation of the protocol changes is being developed in the `integration/direct-onboarding`
 [branch of the built-in actors](https://github.com/filecoin-project/builtin-actors/tree/integration/direct-onboarding)
 repository.
-
-## TODO
-
-- Determine whether we will migrate to remove SectorOnChainInfo.Deals, or merely deprecate its use.
-- Determine whether to remove the unreliable verified claim ID from deal state
 
 ## Copyright
 
