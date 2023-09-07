@@ -751,6 +751,9 @@ but this is no longer a reliable or complete source of information about either.
 Clients, explorers and analytic tools should inspect the source of truth for each type of information,
 and avoid reliance on the presence of deals with built-in market actor.
 
+## TODO
+- Specify gas cost of synchronous PoRep verification and any consequent change to batch balancer parameters.
+
 ## Implementation
 
 Implementation of the protocol changes is being developed in the `integration/direct-onboarding`
