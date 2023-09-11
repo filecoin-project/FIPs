@@ -5,9 +5,9 @@ The Filecoin Improvement Protocol contains the set of fundamental governing prin
 
 ## The Filecoin Vision
 
-Filecoin is a peer-to-peer network that stores files, with built-in economic incentives to ensure that files are stored reliably over time. Its mission is to create a decentralized, efficient and robust foundation for humanity’s information. To advance that mission, Filecoin has created a decentralized storage network that lets anyone in the world store or retrieve files. 
+Filecoin is a peer-to-peer network that stores files, with built-in economic incentives to ensure that files are stored reliably over time. Its mission is to create a decentralized, efficient and robust foundation for humanity’s information. To advance that mission, Filecoin has created a decentralized storage network that lets anyone in the world store or retrieve files.
 
-In Filecoin, users pay to store their files on storage miners. Storage miners are computers responsible for storing files and proving they have stored the files correctly over time. Anyone who wants to store their files or get paid for storing other users’ files can join Filecoin. Available storage and pricing are not controlled by any single entity. Instead, Filecoin facilitates open markets for storing and retrieving files that anyone can participate in, thereby providing storage to billions of people who are currently locked out of the web. 
+In Filecoin, users pay to store their files on storage miners. Storage miners are computers responsible for storing files and proving they have stored the files correctly over time. Anyone who wants to store their files or get paid for storing other users’ files can join Filecoin. Available storage and pricing are not controlled by any single entity. Instead, Filecoin facilitates open markets for storing and retrieving files that anyone can participate in, thereby providing storage to billions of people who are currently locked out of the web.
 
 ## Filecoin Design Principles
 
@@ -32,9 +32,9 @@ FIPs are classified into three categories:
 
 ## A decentralized, global network
 
-Filecoin is still in its infancy, but it has the potential to play a central role in the storage and distribution of humanity’s information. To help the network grow and evolve, it is critical for the community to collectively be engaged in proposing, discussing, and implementing changes that improve the network and its operations. 
+Filecoin is still in its infancy, but it has the potential to play a central role in the storage and distribution of humanity’s information. To help the network grow and evolve, it is critical for the community to collectively be engaged in proposing, discussing, and implementing changes that improve the network and its operations.
 
-This improvement protocol helps achieve that objective for all members of the Filecoin community (developers, miners, clients, token holders, ecosystem partners, and more). 
+This improvement protocol helps achieve that objective for all members of the Filecoin community (developers, miners, clients, token holders, ecosystem partners, and more).
 
 ## FIPs
 
@@ -97,16 +97,19 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0056](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0056.md)   | Sector Duration Multiplier  | FIP  | @AxCortesCubero, @jbenet, @misilva73, @momack2, @tmellan, @vkalghatgi, @zixuanzh | Rejected  |
 |[0057](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0057.md)   | Update Gas Charging Schedule and System Limits for FEVM  | FIP  |@raulk, @stebalien, @aakoshh, @kubuxu| Final  |
 |[0058](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md)   | Verifiable Data Aggregation  | FRC  |Jakub Sztandera (@Kubuxu), Nicola Greco (@nicola), Peter Rabbitson (@ribasushi)| Draft  |
-|[0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)   | Synthetic PoRep  | FIP  |@Kubuxu @Luca @Rosario Gennaro @Nicola @Irene| Last Call  |
+|[0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)   | Synthetic PoRep  | FIP  |@Kubuxu @Luca @Rosario Gennaro @Nicola @Irene| Accepted  |
 |[0060](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0060.md)   | Set market deal maintenance interval to 30 days  | FIP  |Jakub Sztandera (@Kubuxu), @Zenground0, Alex North (@anorth)| Final  |
 |[0061](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0061.md)   | WindowPoSt Grindability Fix  | FIP  |@cryptonemo @Kubuxu  @DrPeterVanNostrand @Nicola @porcuquine @vmx @arajasek| Final  |
 |[0062](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0062.md)   | Fallback Method Handler for the Multisig Actor  | FIP  |JDimitris Vyzovitis (@vyzo), Raúl Kripalani (@raulk)| Final  |
 |[0063](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0063.md)   | Switching to new Drand mainnet network  | FIP  | @yiannisbot, @CluEleSsUK, @AnomalRoil, @nikkolasg, @willscott                    | Draft     |
-|[0065](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0065.md)   | Ignore built-in market locked balance in circulating supply calculation  | FIP  | @anorth  | Draft  |
+|[0065](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0065.md)   | Ignore built-in market locked balance in circulating supply calculation  | FIP  | @anorth  | Last Call  |
 |[0066](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0066.md)   | Piece Retrieval Gateway | FRC  | @willscott, @dirkmc  | Draft  |
-|[0067](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0067.md)   | PoRep Security Policy & Replacement Sealing Enforcement  | FIP  | @Kubuxu, @anorth, @irenegia, @lucaniz  | Last Call  |
+|[0067](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0067.md)   | PoRep Security Policy & Replacement Sealing Enforcement  | FIP  | @Kubuxu, @anorth, @irenegia, @lucaniz  | Accepted  |
 |[0068](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0068.md)   | Deal-Making Between SPs and FVM Smart Contracts | FRC  | @aashidham, @raulk, @skottie86, @jennijuju, @nonsense, @shrenujbansal  | Draft  |
 |[0069](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md)   | Piece Multihash and v2 Piece CID | FRC  | @aschmahmann, @ribasushi  | Draft  |
 |[0070](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0070.md)   | Allow SPs to move partitions between deadlines  | FIP  |Steven Li (@steven004), Alan Xu (@zhiqiangxu), Mike Li (@hunjixin), Alex North (@anorth), Nicola (@nicola)| Draft  |
+|[0071](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0071.md)   | Deterministic State Access (IPLD Reachability)  | FIP  |@stebalien| Draft  |
+|[0072](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0072.md)   | Improved event syscall API  | FIP  | @fridrik01, @Stebalien  | Draft  |
+|[0073](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0073.md)   | Remove beneficiary from the self_destruct syscall | FIP  | @Stebalien | Draft  |
+|[0075](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0075.md)   | Improvements to the FVM randomness syscalls  | FIP  | @arajasek, @Stebalien  | Draft  |
 |[0077](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0077.md)   | Add Cost Opportunity For New Miner Creation  | FIP  |Zac (@remakeZK), Mike Li (@hunjixin)| Draft  |
-
