@@ -1,5 +1,5 @@
 ---
-fip: "xxxx"
+fip: "0077"
 title: Add Cost Opportunity For New Miner Creation
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/780
 author: "Zac <@remakeZK>"
