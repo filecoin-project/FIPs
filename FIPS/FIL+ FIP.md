@@ -1,5 +1,13 @@
-
-# FIPXXXX: Phasing Out Fil+ and Restoring Deal Quality Multiplier to 1x
+---
+fip: "0000"
+title: Phasing Out Fil+ and Restoring Deal Quality Multiplier to 1x
+author: "@The-Wayvy, @Fatman13, @ArthurWang1255, @flyworker, @stuberman, @Eliovp, @dcasem"
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/774
+status: Draft
+type: Technical
+category: Core
+created: 2023-08-03
+---
 
 ## Summary
 
