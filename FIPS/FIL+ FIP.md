@@ -1,7 +1,7 @@
 ---
 fip: "0000"
 title: Phasing Out Fil+ and Restoring Deal Quality Multiplier to 1x
-author: "@The-Wayvy, @Fatman13, @ArthurWang1255, @flyworker, @stuberman, @Eliovp, @dcasem"
+author: "@Fatman13, @ArthurWang1255, @stuberman, @Eliovp, @dcasem, @The-Wayvy"
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/774
 status: Draft
 type: Technical
@@ -13,18 +13,17 @@ created: 2023-08-03
 
 This proposal eliminates the 10X multiplier associated with Fil+ deals, effectively restoring the deal multiplier to its raw byte value.
 
-## Authors
+## Abstract
 
-@Fatman13, @ArthurWang1255, @stuberman, @Eliovp, @dcasem, @The-Wayvy 
+This proposal aligns with Filecoin's mission to provide useful storage and maintains the network's core values of decentralization, objectivity, and permissionlessness. It aims to reduce complexity and friction in the ecosystem, encourage the onboarding of real data, and foster a healthier growth environment for the Filecoin network.
 
-## Motivation
+## Change Motivation
 
 The Fil+ program's current implementation has created complexities and challenges that hinder the growth trajectory of the Filecoin network. By phasing out the Fil+ multiplier, this proposal seeks to restore the integrity of Filecoin blockchain and alleviate issues related to consensus overload, complexity, pledge availability, poor UX, loss of privacy/censorship resistance, and other problems outlined in the initial discussion[LINK].
 
 ## Specification
 
 ### Elimination of the 10X Multiplier
-
 
 1. ***Removal of Verifreg Actor***: Set the [power/weight multiplier](https://github.com/filecoin-project/builtin-actors/blob/fe72aa8e14bc566d661d47625dcdbdd960bf4525/actors/miner/src/policy.rs#L33) for verified deals to 1.
 
@@ -46,9 +45,9 @@ lazy_static! {
 
 3. **Sector Extension**: Upon sector extension, the 10x multiplier will no longer be applicable after the upgrade.
 
-## Rationale
+## Design Rationale
 
-This proposal aligns with Filecoin's mission to provide useful storage and maintains the network's core values of decentralization, objectivity, and permissionlessness. It aims to reduce complexity and friction in the ecosystem, encourage the onboarding of real data, and foster a healthier growth environment for the Filecoin network.
+There are many ways to achieve the stated goal of the FIP discussion. After filtering out some of the less practical ones, it comes down to either prevent DC from being minted or reduce the multiplier for DC deals. Multiplier reduction is chosen not only for its simplicity in implementation but also avoiding the debate of wether turning off DC minting should be governed by Fil+ program or not.
 
 ## Impact and Migration
 
