@@ -26,7 +26,22 @@ The Fil+ program's current implementation has created complexities and challenge
 ### Elimination of the 10X Multiplier
 
 
-1. ***Removal of Verifreg Actor***: The Verifreg actor will be removed following the update. 
+1. ***Removal of Verifreg Actor***: Set the [power/weight multiplier](https://github.com/filecoin-project/builtin-actors/blob/fe72aa8e14bc566d661d47625dcdbdd960bf4525/actors/miner/src/policy.rs#L33) for verified deals to 1.
+
+```rust
+lazy_static! {
+    /// Quality multiplier for committed capacity (no deals) in a sector
+    pub static ref QUALITY_BASE_MULTIPLIER: BigInt = BigInt::from(10);
+
+    /// Quality multiplier for unverified deals in a sector
+    pub static ref DEAL_WEIGHT_MULTIPLIER: BigInt = BigInt::from(10);
+
+    /// Quality multiplier for verified deals in a sector
+    /// >>> This value <<<
+    pub static ref VERIFIED_DEAL_WEIGHT_MULTIPLIER: BigInt = BigInt::from(100);
+}
+```
+
 2. **Existing Deals**: For sectors with existing Fil+ deals (DC sectors), the current Quality Adjusted Power (QAP) will remain until these deals expire. Technical solutions may need to be devised to ensure a smooth transition.
 3. **Sector Extension**: Upon sector extension, the 10x multiplier will no longer be applicable after the upgrade.
 
