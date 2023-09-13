@@ -11,7 +11,7 @@ created: 2023-08-03
 
 ## Summary
 
-This proposal eliminates the 10X multiplier associated with Fil+ deals, effectively restoring the deal multiplier to its raw byte value. It intends to immediately halt the new Datacap allocations and remove the deal multiplier according to community consensus upon FIP finalization in the upcoming network upgrade.
+This proposal eliminates the 10X multiplier associated with Fil+ deals, effectively restoring the deal multiplier to its raw byte value.
 
 ## Authors
 
