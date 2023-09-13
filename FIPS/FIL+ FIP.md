@@ -25,10 +25,10 @@ The Fil+ program's current implementation has created complexities and challenge
 
 ### Elimination of the 10X Multiplier
 
-1. **Upgrade Activation**: This change will be activated in the next network upgrade following the FIP's finalization.
-2. ***Removal of Verifreg Actor***: The Verifreg actor will be removed following the update. 
-3. **Existing Deals**: For sectors with existing Fil+ deals (DC sectors), the current Quality Adjusted Power (QAP) will remain until these deals expire. Technical solutions may need to be devised to ensure a smooth transition.
-4. **Sector Extension**: Upon sector extension, the 10x multiplier will no longer be applicable after the upgrade.
+
+1. ***Removal of Verifreg Actor***: The Verifreg actor will be removed following the update. 
+2. **Existing Deals**: For sectors with existing Fil+ deals (DC sectors), the current Quality Adjusted Power (QAP) will remain until these deals expire. Technical solutions may need to be devised to ensure a smooth transition.
+3. **Sector Extension**: Upon sector extension, the 10x multiplier will no longer be applicable after the upgrade.
 
 ### Technical Changes
 
