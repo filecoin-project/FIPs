@@ -58,7 +58,11 @@ The proposed change removes Fil+'s incentive for the onboarding of non-random da
 
 With the removal of this restriction, effectively-empty sectors can now benefit from a multiplier. This adjustment allows Storage Providers (SPs) to onboard more Raw Byte Power (RPB) at a potential profit, potentially leading to an increase in such sectors being onboarded.
 
-Following this amendment, the primary impetus for SPs to onboard data will originate from outside the core protocol. This could include direct payments from real clients or new incentive models implemented in user-defined smart contracts.
+Following this amendment, the primary impetus for SPs to onboard data will originate from outside the core protocol. This could include direct payments from data clients or new incentive models implemented in user-defined smart contracts.
+
+Because all sectors will have the same multiplier, we expect miners to charge more for storing user data. So users whose data is currently stored via Fil+ deals will have to pay more for storage after the sector containing their data expires. We suggest existing users discuss pricing changes with their SPs or the intermediary who handled deal-making for them. It is unlikely that user data will be dumped before sector expiry since a miner would have to pay a termination fee and re-seal a new sector. 
+
+Data onboarded after the transition to equal multipliers for all sectors will not face any new risks.  
 
 ## Product Considerations
 Clients and Storage Providers will experience a streamlined interaction with the Filecoin network, which could lead to more user-friendly products and services built on top of Filecoin. 
