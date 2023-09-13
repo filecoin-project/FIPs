@@ -23,10 +23,6 @@ The Fil+ program's current implementation has created complexities and challenge
 
 ## Specification
 
-### Stopping new Datacap allocations
-
-1. **Immediate Halt**: After this FIP's acceptance, no new Datacap allocations will be permitted. Existing allocations will continue as per their original agreement, but no new datacap quotas shall be released.
-
 ### Elimination of the 10X Multiplier
 
 1. **Upgrade Activation**: This change will be activated in the next network upgrade following the FIP's finalization.
