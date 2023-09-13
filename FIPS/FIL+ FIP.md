@@ -49,7 +49,7 @@ lazy_static! {
 
 There are many ways to achieve the stated goal of the FIP discussion. After filtering out some of the less practical ones, it comes down to either prevent DC from being minted or reduce the multiplier for DC deals. Multiplier reduction is chosen not only for its simplicity in implementation but also avoiding the debate of wether turning off DC minting should be governed by Fil+ program or not.
 
-## Impact and Migration
+## Incentive & Product Considerations
 
 - **Storage Providers (SPs)**: SPs need to adjust to the new multiplier rules and consider their strategies for attracting non-Fil+ deals.
 - **Data Clients**: The transition may affect existing clients using Fil+. New mechanisms that are not embedded in Filecoin’s core protocol to promote real data storage can be developed.
