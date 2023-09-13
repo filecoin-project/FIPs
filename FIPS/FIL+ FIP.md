@@ -46,14 +46,6 @@ lazy_static! {
 
 3. **Sector Extension**: Upon sector extension, the 10x multiplier will no longer be applicable after the upgrade.
 
-### Technical Changes
-
-The following technical changes must be implemented to facilitate this proposal:
-
-- **Remove Verireg Actor**: The verifreg actor will be removed following the update.This change will stop the issuance of new DataCap, while existing DataCap and Quality Adjusted Power (QAP) will remain untouched. 
-- **Block New Datacap Requests**: Prevent any new requests for Datacap allocations within the protocol.
-- **Transition Handling for Existing Deals**: Implement mechanisms to handle the transition for existing DC sectors, ensuring that they continue with the current QAP until expiration.
-
 ## Rationale
 
 This proposal aligns with Filecoin's mission to provide useful storage and maintains the network's core values of decentralization, objectivity, and permissionlessness. It aims to reduce complexity and friction in the ecosystem, encourage the onboarding of real data, and foster a healthier growth environment for the Filecoin network.
