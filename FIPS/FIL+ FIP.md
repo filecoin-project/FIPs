@@ -51,6 +51,8 @@ There are many ways to achieve the stated goal of the FIP discussion. After filt
 
 ## Incentive & Product Considerations
 
+The FIP would likely not detour the already downward decline of RBP in short term but would highly likely allow L1 to [capture much more value](https://filecoinproject.slack.com/archives/CEHTVSEG6/p1692722289461299) in the long term. The FIP may increase the likelyhood of reduction in onboarding, consequent loss of RBP meaning further reduced blockrewards due to baseline minting model, the supply inflation resulting from expiring sectors with no onboarding and increasing initial pledge requirements (further compounding unprofitability) until the market finds equilibrium price again with new readjusted mining cost. The CEL report [here](https://medium.com/cryptoeconlab/resilience-of-the-filecoin-network-d7861ee9986a) shows the resilience properties of the Filecoin network in such case. Though we would like to point out that of course all such models have limitations.
+
 - **Storage Providers (SPs)**: SPs need to adjust to the new multiplier rules and consider their strategies for attracting non-Fil+ deals.
 - **Data Clients**: The transition may affect existing clients using Fil+. New mechanisms that are not embedded in Filecoin’s core protocol to promote real data storage can be developed.
 - **Existing Deals**: Existing Fil+ deals will remain unaffected until their expiration.The extra pledge will be returned once the sector is terminated or expires. 
