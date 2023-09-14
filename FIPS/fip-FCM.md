@@ -48,9 +48,14 @@ Test that an account actor that is not a notary can mint datacap
 Test that a non-account actor can mint datacap
 
 ## Security Considerations
-This FIP, though providing simplified access, doesn't introduce new security threats. 
 
-The effects of this change on RBP, QAP and network security were analyzed by CEL [in this report](https://hackmd.io/zp-40inqSny5HMqmTSOKxw?view)
+Substitution Risk refers to the possibility that once DC is available in unlimited quantities, miners might replace all their CC sectors with DC, thereby both maintaining their QAP and unplugging 90% of the hardware they had committed to the network.
+
+Such behavior would be equally likely if the distribution of DC and Fil+ deals was more efficient than it is today (even if DC/Fil+ deals were limited to "good" data and "observant" SPs). It won't change the behavior of SPs who already have easy access to FIL+ deals; It could change the behavior of SPs who do not, but it's hard to say in what direction: the risk of substitution is offset by the possibility that SPs who currently can't get FIL+ deals in the quantity they desire will increase their onboarding rates once random data is profitable again. 
+
+Substitution risk is also mitigated by the fact that the expiration of CC sectors is a well-established trend. Substitution may even help to retain some hardware that would otherwise completely drop off the network.
+
+The effects of this change on RBP, QAP and network security were also analyzed by CEL [in this report](https://hackmd.io/zp-40inqSny5HMqmTSOKxw?view)
 
 
 ## Incentive Considerations
