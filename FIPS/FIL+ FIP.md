@@ -60,7 +60,11 @@ The FIP would likely not detour the already downward decline of RBP in short ter
 
 ## Security Considerations
 
-This FIP does not introduce new security concerns. However, it is critical to ensure that the transition is handled securely, particularly when dealing with existing sectors.
+This FIP does not introduce new security concerns. From the same [CEL report](https://medium.com/cryptoeconlab/resilience-of-the-filecoin-network-d7861ee9986a) above Filecoin is resilient to power shocks...
+
+> What does resilience mean? Merriam-Webster defines resilience as the ability to recover from or adjust easily to misfortune or change. Resilience is relevant to many aspects of a cryptoeconomy like Filecoin; examples include 51% attacks, Sybil attacks, and Finney attacks, to name a few. 
+
+However, it is critical to ensure that the transition is handled securely, particularly when dealing with existing sectors.
 
 ## Afterwards
 Fil+ team and many more customized deal markets will be developed on L2 of Filecoin in either permissioned or permissionless manners in an open and fair market competition. 
