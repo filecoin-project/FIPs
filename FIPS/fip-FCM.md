@@ -70,9 +70,10 @@ Because all sectors will have the same multiplier, we expect miners to charge mo
 Data onboarded after the transition to equal multipliers for all sectors will not face any new risks.  
 
 ## Product Considerations
-Clients and Storage Providers will experience a streamlined interaction with the Filecoin network, which could lead to more user-friendly products and services built on top of Filecoin. 
 
-The Fil+ team and ecosystem participants are free to build customized deal markets on the FVM or Filecoin L2s. These systems can be either permissioned or permissionless, and will compete with one another in an open, fair market. 
+Removing the notary system will streamline data onboarding for users as well as lower costs and uncertainty for miners. 
+
+The Fil+ team and ecosystem participants will be free to build deal markets on the FVM or Filecoin L2s. These can be either permissioned or permissionless, and they will have to compete with one another for users. 
 
 The proposed changes present SPs with a more flexible environment, allowing them to select a pledge-to-hardware ratio best aligned with their operational costs and deal-flow. This enhanced flexibility means SPs can make more rational decisions based on their individual circumstances.
 
