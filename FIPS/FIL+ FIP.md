@@ -25,7 +25,7 @@ The Fil+ program's current implementation has created complexities and challenge
 
 ### Elimination of the 10X Multiplier
 
-1. ***Removal of Verifreg Actor***: Set the [power/weight multiplier](https://github.com/filecoin-project/builtin-actors/blob/fe72aa8e14bc566d661d47625dcdbdd960bf4525/actors/miner/src/policy.rs#L33) for verified deals to 1.
+1. ***Reset DC multiplier***: Set the [power/weight multiplier](https://github.com/filecoin-project/builtin-actors/blob/fe72aa8e14bc566d661d47625dcdbdd960bf4525/actors/miner/src/policy.rs#L33) for verified deals to 1.
 
 ```rust
 lazy_static! {
