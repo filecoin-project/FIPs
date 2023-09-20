@@ -12,17 +12,17 @@ replaces: FIP-0003
 ```
 
 ## Simple Summary
-This proposal removes restrictions on access to the 10X multiplier in Fil+ deals, allowing any actor to mint Datacap.
+This proposal removes restrictions on access to the 10X multiplier, allowing any actor to mint Datacap.
 
 ## Abstract
-The Fil+ program intended to compensate miners for storing non-random data on Filecoin. It was hoped that these datasets would increase the utility of the network and thereby attract paying users. Fil+ did succeed in accelerating the development of data-onboarding tools. It also attracted users to experiment with storing their data on Filecoin, and it is possible that in the future some of these users will pay miners highly enough to have their data continue to be stored on Filecoin even after subsidies run out. However, the notary system used by 3/4 of Fil+ programs is inefficient, not objective, and riddled with perverse incentives. This proposal removes the permissioned, off-chain pathways to the 10x multiplier, and makes it available to all actors who stake the required collateral.
+The Fil+ program intended to compensate miners for storing non-random data on Filecoin. It was hoped that these datasets would increase the utility of the network and thereby attract paying users. Fil+ did succeed in accelerating the development of data-onboarding tools. It also attracted users to experiment with storing their data on Filecoin, and it is possible that even after subsidies run out some of these users will pay miners enough to have their data continue to be stored on Filecoin. However, the notary system used by 3/4 of Fil+ programs is inefficient, not objective, and riddled with perverse incentives. This proposal removes the permissioned, off-chain pathways to the 10x multiplier, and makes it available to all actors who stake the required collateral.
 
 ## Change Motivation≠
-The current Fil+ implementation, though well-intentioned, has incentivized behaviors that do not drive value to Filecoin. In order to get the 10x multiplier miners fabricate datasets and source  'real' data regardless monetizability. They also lobby gate-keepers of the multiplier, notaries and the governance team, in order to increase the chances of their Fil+ applications getting approved and to get access to Fil+ deals applied for by other miners. This in turn has led to rent-seeking behaviors on the part of notaries.   
+The current Fil+ implementation, though well-intentioned, has incentivized behaviors that do not drive value to Filecoin. In order to get the 10x multiplier, miners fabricate datasets and source  'real' data regardless of its monetizability. They also lobby gate-keepers of the multiplier, notaries and the governance team, in order to increase the chances of their Fil+ applications getting approved and to get better access to Fil+ deals applied for by other miners. This in turn has led to rent-seeking behaviors on the part of notaries.   
 
 By removing notaries we will instantly eliminate all fraud, bribery and other harmful behavior in Filecoin. Under this proposal, miners can get the 10x multiplier as long as they post the required collateral, regardless of what kind of data they store, so there will be no reason for a miner to pretend their data is something that it's not. We'll also have complete certainty that all storage deals involve a real user and useful storage since no miner would go through the trouble of storing non-random data in a sector unless they were paid to do so, and no user would pay for storage unless they believed in its utility.   
 
-A more transparent, predictable and fair Filecoin will attract new miners, driving down the price of storage.
+The more transparent, predictable and fair Filecoin that we propose will attract new miners to the network, end malinvestment into the storage of unmonetizable datasets, and free up a large amount of money and man-hours that can be spent on more productive endeavors like improving the tech and business development with paying users. 
 
 ## Specification
  **Change in the Datacap Actor's Mint Function**: Alter the DataCap actor's mint() function to remove the restriction that the caller must be the "governor" (the verified registry actor). Allow any actor to mint datacap.
@@ -49,7 +49,7 @@ Test that a non-account actor can mint datacap
 
 ## Security Considerations
 
-Substitution Risk refers to the possibility that once DC is available in unlimited quantities, miners might replace all their CC sectors with DC, thereby both maintaining their QAP and unplugging 90% of the hardware they had committed to the network.
+Substitution Risk refers to the possibility that once DC is available in unlimited quantities, miners might replace all their CC sectors with DC, thereby maintaining their QAP while unplugging 90% of the hardware they had committed to the network.
 
 Such behavior would be equally likely if the distribution of DC and Fil+ deals was more efficient than it is today (even if DC/Fil+ deals were limited to "good" data and "observant" SPs). It won't change the behavior of SPs who already have easy access to FIL+ deals; It could change the behavior of SPs who do not, but it's hard to say in what direction: the risk of substitution is offset by the possibility that SPs who currently can't get FIL+ deals in the quantity they desire will increase their onboarding rates once random data is profitable again. 
 
@@ -59,15 +59,15 @@ The effects of this change on RBP, QAP and network security were also analyzed b
 
 
 ## Incentive Considerations
-The proposed change removes Fil+'s incentive for the onboarding of non-random data whose utility has been affirmed by off-chain, human notaries. As a result, it's anticipated that the onboarding rate of non-random data may decrease. The extent to which data currently incentivized under this mechanism is fraudulent remains uncertain.
+The proposed change removes Fil+'s incentive for the onboarding of non-random data. As a result, it's anticipated that the onboarding rate of non-random data may decrease. It is still uncertain how much of the data currently incentivized by Fil+ is fake.
 
-With the removal of this restriction, effectively-empty sectors can now benefit from a multiplier. This adjustment allows Storage Providers (SPs) to onboard more Raw Byte Power (RPB) at a potential profit, potentially leading to an increase in such sectors being onboarded.
+With the removal of this restriction, effectively-empty sectors can now benefit from a multiplier. This adjustment allows Storage Providers (SPs) to onboard random data at a profit, potentially leading to an increase in such sectors being onboarded and growth in RBP.
 
-Following this amendment, the primary impetus for SPs to onboard data will originate from outside the core protocol. This could include direct payments from data clients or new incentive models implemented in user-defined smart contracts.
+Following this amendment, the primary impetus for SPs to onboard data will originate from outside the protocol itself. It could include direct payments from data clients or new incentive models implemented in FVM contracts.
 
-Because all sectors will have the same multiplier, we expect miners to charge more for storing user data. So users whose data is currently stored via Fil+ deals will have to pay more for storage after the sector containing their data expires. We suggest existing users discuss pricing changes with their SPs or the intermediary who handled deal-making for them. It is unlikely that user data will be dumped before sector expiry since a miner would have to pay a termination fee and re-seal a new sector. 
+Because all sectors will have the same multiplier, we expect miners to charge more for storing user data. So users whose data is currently stored via Fil+ deals will probably have to pay more for storage after the sector containing their data expires. We suggest existing users discuss pricing changes with their SPs or the intermediary who handled deal-making for them. It is unlikely that user data will be dumped before sector expiry since a miner would have to pay a termination fee and re-seal a new sector. 
 
-Data onboarded after the transition to equal multipliers for all sectors will not face any new risks.  
+Data onboarded after the transition to free multipliers will not face the risk of price hikes or dumping.  
 
 ## Product Considerations
 
@@ -75,9 +75,9 @@ Removing the notary system will streamline data onboarding for users as well as 
 
 The Fil+ team and ecosystem participants will be free to build deal markets on the FVM or Filecoin L2s. These can be either permissioned or permissionless, and they will have to compete with one another for users. 
 
-The proposed changes present SPs with a more flexible environment, allowing them to select a pledge-to-hardware ratio best aligned with their operational costs and deal-flow. This enhanced flexibility means SPs can make more rational decisions based on their individual circumstances.
+The proposed changes give SPs more flexibility, allowing them to select a pledge-to-hardware ratio best aligned with their operational costs and deal-flow. This enhanced flexibility means SPs can make more rational decisions based on their individual circumstances.
 
-The choices would largely depend on each SP’s comparative cost of obtaining hardware and pledge tokens, combined with their revenue mix between block rewards and storage payments. SPs with clients offering better pay rates may consistently opt for the minimum pledge. This decision could improve their unit economics, particularly when other providers choose to pledge higher amounts to increase their per-TiB rewards. In this landscape, the higher pledge by some becomes an advantage for those opting for a lower pledge.
+The choices SPs make would largely depend on their comparative cost of obtaining hardware and pledge tokens, combined with their revenue mix between block rewards and storage payments. SPs with clients offering better pay rates may consistently opt for the minimum pledge. This decision could improve their unit economics, particularly when other providers choose to pledge higher amounts to increase their per-TiB rewards. In this landscape, the higher pledge by some becomes an advantage for those opting for a lower pledge.
 
 It is expected that users will now have to pay to get their data stored on Filecoin, meaning the applications and services developed on Filecoin will cater to real demand, rather than the speculation and preferences of a small group of non-users. This should shorten the time it takes for Filecoin to find Product Market Fit.
 
