@@ -71,6 +71,8 @@ Because all sectors will have the same multiplier, we expect miners to charge mo
 
 Data onboarded after the transition to free multipliers will not face the risk of price hikes or dumping.  
 
+It is hard to estimate how much user demand Filecoin will lose in the short-run, (both demand for data already stored on the network, and data that potentially could have been onboarded in the future). There are two reasons for this: first, we don't know how much of the data stored via Fil+ deals has an actual user behind it, second, because Fil+ distorted price discovery, we don't know what users are willing to pay for Filecoin storage and what miners are willing to accept.  
+
 ## Product Considerations
 
 Removing the notary system will streamline data onboarding for users as well as lower costs and uncertainty for miners. 
