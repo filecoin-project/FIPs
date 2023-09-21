@@ -113,3 +113,5 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0073](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0073.md)   | Remove beneficiary from the self_destruct syscall | FIP  | @Stebalien | Last Call  |
 |[0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md)   | Remove cron-based automatic deal settlement  | FIP  | @anorth, @alexytsu| Draft  |
 |[0075](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0075.md)   | Improvements to the FVM randomness syscalls  | FIP  | @arajasek, @Stebalien  | Last Call  |
+|[0077](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0077.md)   | Add Cost Opportunity For New Miner Creation  | FIP  |Zac (@remakeZK), Mike Li (@hunjixin)| Draft  |
+
