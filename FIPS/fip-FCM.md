@@ -55,7 +55,7 @@ Such behavior would be equally likely if the distribution of DC and Fil+ deals w
 
 Substitution risk is also mitigated by the fact that the expiration of CC sectors is a well-established trend. Substitution may even help to retain some hardware that would otherwise completely drop off the network.
 
-In order to get 20% of QAP, an attacker who only has CC would need about 600 petabytes of RBP and about 4,000,000 FIL. To convert 600 PB of CC to 10x sectors via snap deals would take over 10,000 sealers working non-stop for a week. This is a worst-case analysis that assumes the attacker is the only one to substitute CC for 10x sectors; in reality, this is extremely unlikely.
+In order to get 20% of QAP, an attacker who only has CC would need about 600 petabytes of RBP and about 40,000,000 FIL. To convert 600 PB of CC to 10x sectors via snap deals would take over 10,000 sealers working non-stop for a week. This is a worst-case analysis that assumes the attacker is the only one to substitute CC for 10x sectors; in reality, this is extremely unlikely.
 
 The effects of this change on RBP, QAP and network security were also analyzed by CEL [in this report](https://hackmd.io/zp-40inqSny5HMqmTSOKxw?view)
 
