@@ -15,7 +15,14 @@ This proposal eliminates the 10X multiplier associated with Fil+ deals, effectiv
 
 ## Abstract
 
-This proposal aligns with Filecoin's mission to provide useful storage and maintains the network's core values of decentralization, objectivity, and permissionlessness. It aims to reduce complexity and friction in the ecosystem, encourage the onboarding of real data, and foster a healthier growth environment for the Filecoin network.
+This proposal aligns with Filecoin's mission to provide useful storage and maintains the network's core values of [decentralization](https://github.com/filecoin-project/FIPs/blob/master/mission.md) like... 
+
+> - The network is not dependent on any one party, e.g., not dependent on a company, foundation, or other organization to continue operating.
+> - No centralized parties can control, stop, or censor the network, its operation, or its participants.
+> - Users and providers are not controlled or governed by powerful intermediaries (unlike markets like Uber or Airbnb).
+> - Refers to the decentralization movement of 2015+, including IPFS, Bitcoin, Ethereum, and more.
+
+It aims to reduce complexity and friction in the ecosystem, encourage the onboarding of real data, and foster a healthier growth environment for the Filecoin network. We will achieve this by cutting down QAP multiplier to 1x for all so that the network is not dependent on a centralized intermediary to pick and choose what kind of data to onboard to the network and follow the best decentralization practices setup by both Bitcoin and Ethereum. 
 
 ## Change Motivation
 
