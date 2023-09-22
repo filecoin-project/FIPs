@@ -26,7 +26,7 @@ It aims to reduce complexity and friction in the ecosystem, encourage the onboar
 
 ## Change Motivation
 
-The Fil+ program's current implementation has created complexities and challenges that hinder the growth trajectory of the Filecoin network. By phasing out the Fil+ multiplier, this proposal seeks to restore the integrity of Filecoin blockchain and alleviate issues related to consensus overload, complexity, pledge availability, poor UX, loss of privacy/censorship resistance, and other problems outlined in the initial discussion[LINK].
+The Fil+ program's current implementation has created complexities and challenges that hinder the growth trajectory of the Filecoin network. By phasing out the Fil+ multiplier, this proposal seeks to restore the integrity of Filecoin blockchain and alleviate issues related to consensus overload, complexity, pledge availability, poor UX, loss of privacy/censorship resistance, and other problems. Much of the details are outlined in the initial [discussion](https://github.com/filecoin-project/FIPs/discussions/774). A tldr of the change motivation can be summarized as the following. By imposing a permissioned layer on top of an already cumbersome core protocol, the network is suffering from rapid decline of RBP as a result of skewed incentive, which in turn compounding the negative impact on network value and creating an environment that encourages SPs to collude and game the network incentives. 
 
 ## Specification
 
@@ -43,7 +43,7 @@ lazy_static! {
     pub static ref DEAL_WEIGHT_MULTIPLIER: BigInt = BigInt::from(10);
 
     /// Quality multiplier for verified deals in a sector
-    /// >>> This value <<<
+    /// >>> Target value <<<
     pub static ref VERIFIED_DEAL_WEIGHT_MULTIPLIER: BigInt = BigInt::from(100);
 }
 ```
