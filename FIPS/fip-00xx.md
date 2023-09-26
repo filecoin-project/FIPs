@@ -70,41 +70,45 @@ FIXME?
 
 #### Scale and limits
 
-The number of sectors that may be proven in a single aggregation
-is a minimum of 4 and a maximum of 819
+**TODO:** how should the maximum aggregation limit be determined? 
 
+The number of sectors that may be proven in a single aggregation is a minimum of 3 and a maximum of **TODO**.
 
 #### Gas calculations
 
-Similar to existing PoRep gas charges, gas values are determined from empirical measurements of aggregate proof validation on representative hardware. Each PoRep count corresponding to a power of two snark count will be assigned to a gas table. See the "Proof scheme changes" section for discussion on padding to the next power of two for motivation. The gas charged to verify an aggregate proof in `ProveCommitSectorAggregated` includes a minor linear component and a major logarithmic component. For the linear component a fixed gas cost is charged per sector being proven. For the logarithmic component the aggregate size is rounded up to the nearest number in the relevant gas table and added to the total. Because verification costs are slightly different there is one linear constant and gas table for each of 32 GiB and 64 GiB sectors.
+Similar to existing PoRep gas charges, gas values are determined from empirical measurements of aggregate proof validation on representative hardware.
+
+Aggregate proofs must be generated for a power of two number of Groth16 proofs; because each Sector Upgrade proof contains sixteen Groth16 proofs, aggregated Sector Upgrade proofs are padded to contain the nearest power of two number of Groth16 proofs. See the "Proof scheme changes" section in [FIP-0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#proof-scheme-changes) for a discussion on aggregate proof padding.
+
+The gas cost of aggregate proof verification grows both linearly and step-wise in the number of Sector Upgrade proofs aggregated (counted prior to proof padding). The linear growth occurring for each Sector Upgrade proof aggregated and the step-wise growth occurs when the number of Groth16 proofs aggregated exceeds a power of two.
+
+The gas table below associates ranges of aggregated Sector Upgrade proofs with their total step-wise gas cost. The total gas cost for verifying an aggregate proof of `n` Sector Upgrade proofs is the sum of `n`'s linear and step-wise gas costs: `n * gas_per_proof + gas_table(n)`.
 
 ##### 32 GiB Gas Cost
 
-Minor cost per sector: 449,900 gas
+Gas cost per Sector Upgrade proof aggregated: 80,000 gas
 
-Major cost by rounded aggregate size:
-- 4-6 PoReps (64 snarks): 103,994,170
-- 7-12 PoReps (128 snarks): 112,356,810
-- 13-25 PoReps (256 snarks): 122,912,610
-- 26-51 PoReps (512 snarks): 137,559,930
-- 52-102 PoReps (1024 snarks): 162,039,100
-- 103-204 PoReps (2048 snarks): 210,960,780
-- 205-409 PoReps (4096 snarks): 318,351,180
-- 410-819 PoReps (8192 snarks): 528,274,980
+Total step-wise gas cost for ranges of Sector Upgrade proofs aggregated:
+
+| SnapDeals Proofs | Groth16 Proofs |    Gas     |
+| -----------------|----------------|------------|
+|        3-8       |     48-128     | 86,500,000 |
+|       11-128     |    144-2048    | 91,300,000 |
+|      129-256     |   2064-4096    | 92,500,000 |
+|      257-512     |   4112-8192    | 99,000,000 |
 
 ##### 64 GiB Gas Cost
 
-Minor cost per sector: 359,272 gas
+Gas cost per Sector Upgrade proof aggregated: 80,000 gas
 
-Major cost by rounded aggregate size:
-- 4-6 PoReps (64 snarks): 102,581,240
-- 7-12 PoReps (128 snarks): 110,803,030
-- 13-25 PoReps (256 snarks): 120,803,700
-- 26-51 PoReps (512 snarks): 134,642,130
-- 52-102 PoReps (1024 snarks): 157,357,890
-- 103-204 PoReps (2048 snarks): 203,017,690
-- 205-409 PoReps (4096 snarks): 304,253,590
-- 410-819 PoReps (8192 snarks): 509,880,640
+Total step-wise gas cost for ranges of Sector Upgrade proofs aggregated:
+
+| SnapDeals Proofs | Groth16 Proofs |    Gas     |
+| -----------------|----------------|------------|
+|       3-8        |     48-128     | 86,500,000 |
+|       9-128      |    144-2048    | 92,500,000 |
+|     129-256      |   2064-4096    | 94,000,000 |
+|     257-512      |   4112-8192    | 99,500,000 |
 
 #### Batch Gas Charge
 
