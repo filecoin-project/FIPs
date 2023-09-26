@@ -61,9 +61,7 @@ struct ProveReplicaUpdateAggregateParams {
 
 #### Scale and limits
 
-**TODO:** how should the maximum aggregation limit be determined? 
-
-The number of sectors that may be proven in a single aggregation is a minimum of 3 and a maximum of **TODO**.
+The minimum of number of Sector Upgrade proofs that may be aggregated is 3 and maximum is 512.
 
 #### Gas calculations
 
@@ -82,11 +80,13 @@ Gas cost per Sector Upgrade proof aggregated: 80,000 gas
 Total step-wise gas cost for ranges of Sector Upgrade proofs aggregated:
 
 | SnapDeals Proofs | Groth16 Proofs |    Gas     |
-| -----------------|----------------|------------|
+|:----------------:|:--------------:|:----------:|
 |        3-8       |     48-128     | 86,500,000 |
 |       11-128     |    144-2048    | 91,300,000 |
 |      129-256     |   2064-4096    | 92,500,000 |
 |      257-512     |   4112-8192    | 99,000,000 |
+
+![Plot of observed and computed gas costs](../resources/fip-00XX/supersnap_gas_32gib.png)
 
 ##### 64 GiB Gas Cost
 
@@ -95,11 +95,13 @@ Gas cost per Sector Upgrade proof aggregated: 80,000 gas
 Total step-wise gas cost for ranges of Sector Upgrade proofs aggregated:
 
 | SnapDeals Proofs | Groth16 Proofs |    Gas     |
-| -----------------|----------------|------------|
+|:----------------:|:--------------:|:----------:|
 |       3-8        |     48-128     | 86,500,000 |
 |       9-128      |    144-2048    | 92,500,000 |
 |     129-256      |   2064-4096    | 94,000,000 |
 |     257-512      |   4112-8192    | 99,500,000 |
+
+![Plot of observed and computed gas costs](../resources/fip-00XX/supersnap_gas_64gib.png)
 
 #### Batch Gas Charge
 
