@@ -1,12 +1,12 @@
 ---
 fip: "00xx"
 title: Add ProveReplicaUpdatesAggregated method to reduce on-chain congestion
-author: nemo (@cryptonemo), Jake (@DrPeterVanNostrand), Nicola (@nicola), nikkolasg
-discussions-to: https://github.com/filecoin-project/FIPs/issues/???
+author: nemo (@cryptonemo), Jake (@DrPeterVanNostrand)
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/752
 status: draft
 type: Technical
 category: Core
-created: 2023-06-27
+created: 2023-09-26
 spec-sections: 
   - section-systems.filecoin_mining.sector.lifecycle
 
@@ -287,6 +287,12 @@ paper. The trusted setup used is the Filecoin Powers of Tau and the ZCash Powers
 of Tau: the full key is generated thanks to this
 [tool](https://github.com/nikkolasg/taupipp). The cryptographic implementation
 is being audited and a report will be made available soon.
+
+It should be noted that all use of SnarkPack aggregation referenced is
+limited to [SnarkPack
+V2](https://github.com/filecoin-project/core-devs/blob/master/Network%20Upgrades/v16.md)
+and not the initial implementation of SnarkPack.  SnarkPack V2 is the
+only version of SnarkPack still used in the protocol today.
 
 ## Incentive Considerations
 
