@@ -41,15 +41,13 @@ with the number of proofs being included.
 
 ## Specification
 
-<!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
-
 ### Actor changes
 
 Add a new method `ProveReplicaUpdatesAggregated` which supports a miner
 prove-committing a number of sector updates all at once.  The parameters for this
-method are ???:
+method are:
 
-```
+```rust
 struct ProveReplicaUpdateAggregateParams {
    Sectors:                     []UpdateManifest
    AggregateProof:              []byte // Before aggregation, concatenate proofs
@@ -60,13 +58,6 @@ struct ProveReplicaUpdateAggregateParams {
    RequireNotificationSuccess:  bool
 }
 ```
-
-#### Failure handling
-
-FIXME?
-
-- If any predicate on the parameters fails, the call aborts (no change is persisted).
-- If the miner has insufficient balance for all prove-commit pledge, the call aborts.
 
 #### Scale and limits
 
@@ -119,7 +110,7 @@ Currently, **GasUsed * BaseFee** is burned for every message. We can achieve the
 
 The following charge is calculated for each **BatchProveCommit** message.
 
-```
+```rust
 func PayBatchGasCharge(numProofsBatched, BaseFee) {
 // Cryptoecon Params (need to be updated if verification benchmarks change)
 BatchDiscount = 1/20 unitless
@@ -162,13 +153,18 @@ pub fn aggregate_empty_sector_update_proofs(
     registered_aggregation: RegisteredAggregationProof,
     sector_update_proofs: &[EmptySectorUpdateProof],
     sector_update_inputs: &[SectorUpdateProofInputs],
-    aggregate_version: groth16::aggregate::AggregateVersion,
 ) -> Result<AggregateSnarkProof>;
 ```
 
-The `sector_update_inputs` are a slice of structs logically appearing like this in the rust language.
+The `registered_aggregation` inputs is required to be
+`RegisteredAggregationProof::SnarkPackV2` at this time, as
+`RegisteredAggregationProof::SnarkPackV1` is not supported for this
+method.
 
-```
+The `sector_update_inputs` are a slice of structs logically appearing
+like this in the rust language.
+
+```rust
 pub struct SectorUpdateProofInputs {
     pub comm_r_old: Commitment,
     pub comm_r_new: Commitment,
@@ -182,19 +178,31 @@ The `comm_r_old` is the commitment to the sector's previous replica.
 The `comm_r_new` is the commitment to the sector's current replica.
 The `comm_d_new` is the commitment to the sector's current data.
 
-Since the `sector_update_inputs` are a slice, they are ordered to match the order of the proofs slice provided.  However, this does NOT mean that they are required to be vectors of the same length.  For test sector sizes, they may end up being the same length because they are proven in a single partition -- but for production sector sizes, the partition count will not be one.  Instead, the number of elements in the `sector_update_proofs` vector will be the number of partitions * the number of the proofs.
+Since the `sector_update_inputs` are a slice, they are ordered to
+match the order of the sector_update_proofs slice provided.  However,
+this does NOT mean that they are required to be vectors of the same
+length.  For test sector sizes, they may end up being the same length
+because they are proven in a single partition -- but for production
+sector sizes, the partition count will not be one.  Instead, the
+number of elements in the `sector_update_inputs` vector will be the
+number of partitions * the number of the proofs.
 
 **Requirements**: The scheme can only aggregate a power of two number of proofs
 currently. Although there might be some ways to alleviate that requirement, we
 currently pad the number of input proofs to match a power of two. Thanks to the
 logarithmic nature of the scheme, performance is still very much acceptable.
 
-Padding is currently _naive_ in the sense that if the passed in count of seal proofs is not a power of 2, we arbitrarily take the last proof and duplicate it until the count is the next power of 2.  The single exception is when the proof count is 1.  In this case, we duplicate it since the aggregation algorithm cannot work with a single proof.
+Padding is currently _naive_ in the sense that if the passed in count
+of seal proofs is not a power of 2, we arbitrarily take the last proof
+and duplicate it until the count is the next power of 2.  The single
+exception is when the proof count is 1.  In this case, we duplicate it
+since the aggregation algorithm cannot work with a single proof.
 
 ##### Verification
 
 The proofs verification procedure expects the following inputs:
 
+```rust
 pub fn verify_aggregate_sector_update_proofs(
     registered_proof: RegisteredEmptySectorUpdateProof,
     registered_aggregation: RegisteredAggregationProof,
@@ -205,9 +213,19 @@ pub fn verify_aggregate_sector_update_proofs(
 ) -> Result<bool>;
 ```
 
-The `inputs` are an ordered list of SectorUpdateProofInputs (described above)..
+The `registered_aggregation` inputs is required to be
+`RegisteredAggregationProof::SnarkPackV2` at this time, as
+`RegisteredAggregationProof::SnarkPackV1` is not supported for this
+method.
 
-The `sector_update_inputs` are an ordered list of inputs which *must* match the order of the `sector_update_inputs` passed into `aggregate_empty_sector_update_proofs`, but in a flattened manner.  First, to retrieve the `sector_update_inputs` for a single sector, you can call this:
+The `inputs` are an ordered list of SectorUpdateProofInputs (as
+described above).
+
+The `sector_update_inputs` are an ordered list of inputs which *must*
+match the order of the `sector_update_inputs` passed into
+`aggregate_empty_sector_update_proofs`, but in a flattened manner.
+First, to retrieve the `sector_update_inputs` for a single sector, you
+can call this:
 
 ```rust
 pub fn get_sector_update_inputs(
@@ -219,7 +237,11 @@ pub fn get_sector_update_inputs(
 ) -> Result<Vec<Vec<Fr>>> { 
 ```
 
-As an example, if `aggregate_empty_sector_update_proofs` is called with the `sector_update_inputs` of Sector 1 and Sector 2 (where that order is important), we would want to compile the `sector_update_inputs` for verification as follows (pseudo-code for readability):
+As an example, if `aggregate_empty_sector_update_proofs` is called
+with the `sector_update_inputs` of Sector 1 and Sector 2 (where that
+order is important), we would want to compile the
+`sector_update_inputs` for verification as follows (pseudo-code for
+readability):
 
 ```rust
 let sector_update_inputs: Vec<Vec<Fr>> = Vec::new();
@@ -227,9 +249,21 @@ sector_update_inputs.extend(get_sector_update_inputs(..., comm_r_old_sector_one,
 sector_update_inputs.extend(get_sector_update_inputs(..., comm_r_old_sector_two, ...));
 ```
 
-What this example code does is flattens all of the individual proof sector update inputs into a single list, while properly maintaining the exact ordering matching the `sector_update_inputs` order going into `aggregate_empty_sector_update_proofs`.  When compiled like this, the `sector_update_inputs` will be in the exact format required for the `verify_aggregate_sector_update_proofs` API call.
+What this example code does is flattens all of the individual proof
+sector update inputs into a single list, while properly maintaining
+the exact ordering matching the `sector_update_inputs` order going
+into `aggregate_empty_sector_update_proofs`.  When compiled like this,
+the `sector_update_inputs` will be in the exact format required for
+the `verify_aggregate_sector_update_proofs` API call.
 
-Similar to aggregation, padding for verification is currently also _naive_. If the passed in count of proof input sets (while noting that the inputs are a linear list of equally sized input sets) is not a power of 2, we arbitrarily take the last set of inputs and duplicate it until the count is the next power of 2.  Again, the single exception is when the input count is 1.  In this case, we duplicate it since the verification algorithm cannot work with a single proof or input.
+Similar to aggregation, padding for verification is currently also
+_naive_. If the passed in count of proof input sets (while noting that
+the inputs are a linear list of equally sized input sets) is not a
+power of 2, we arbitrarily take the last set of inputs and duplicate
+it until the count is the next power of 2.  Again, the single
+exception is when the input count is 1.  In this case, we duplicate it
+since the verification algorithm cannot work with a single proof or
+input.
 
 
 #### Proofs format 
@@ -238,20 +272,23 @@ See FIP-0013 for more details about the proofs format, as it is the same in this
 
 ## Design Rationale
 
-The existing `ProveReplicaUpdates` method will not become redundant, since
-aggregation of smaller batches may not be efficient in terms of gas cost (proofs
-too big or too expensive to verify).  The method is left intact to support
-smooth operation through the upgrade period.
+The existing `ProveReplicaUpdates` method will not become redundant,
+since aggregation of smaller batches may not be efficient in terms of
+gas cost (proofs too big or too expensive to verify).  The method is
+left intact to support smooth operation through the upgrade period.
 
 ### Failure handling
 
-Aborting on any precondition failure is chosen for simplicity. 
-Submitting an invalid prove commitment should never happen for correctly-functioning miners.  Aborting on failure will provide
-a clear indication that something is wrong, which might be overlooked by an operator otherwise.
+Aborting on any precondition failure is chosen for simplicity.
+Submitting an invalid prove commitment should never happen for
+correctly-functioning miners.  Aborting on failure will provide a
+clear indication that something is wrong, which might be overlooked by
+an operator otherwise.
 
 ### Scale and limits
 
-Each aggregated proof is bounded at 819 sector updates. The motivation for the bound on aggregation size is as follows:
+Each aggregated proof is bounded at 819 sector updates. The motivation
+for the bound on aggregation size is as follows:
 
 - to limit the impact of potentially mistaken or malicious behaviour.  
 - to gradually increase the scalability, to have time to observe how the network
@@ -262,15 +299,16 @@ A miner may submit multiple batches in a single epoch to grow faster.
 
 ## Backwards Compatibility
 
-This proposal introduces a new exported miner actor method, and thus changes the
-exported method API.  While addition of a method may seem logically backwards
-compatible, it is difficult to retain the precise behaviour of an invocation to
-the (unallocated) method number before the method existed.  Thus, such changes
-must be delivered through a major version upgrade to the actors.
+This proposal introduces a new exported miner actor method, and thus
+changes the exported method API.  While addition of a method may seem
+logically backwards compatible, it is difficult to retain the precise
+behaviour of an invocation to the (unallocated) method number before
+the method existed.  Thus, such changes must be delivered through a
+major version upgrade to the actors.
 
-This proposal retains the existing non-batch `ProveReplicaUpdates` method, so
-mining operations need not change workflows due to this proposal (but _should_
-in order to enjoy the reduced gas costs).
+This proposal retains the existing non-batch `ProveReplicaUpdates`
+method, so mining operations need not change workflows due to this
+proposal (but _should_ in order to enjoy the reduced gas costs).
 
 ## Test Cases
 
@@ -300,61 +338,15 @@ only version of SnarkPack still used in the protocol today.
 
 ## Incentive Considerations
 
-Requirements. The cryptoeconomics of this FIP are similar to that of FIP-0013 require balancing a number of different goals and constraints.  Please consult FIP-0013 for more information.
-
-### Batch Incentive Alignment
-
-FIXME:
-
-Given the implementation described in [Batch Gas Charge](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#batch-gas-charge), we achieve the following benefits:
-
-- **BatchDiscount** and **BatchBalancer** are set to balance the power between small and large miners, and align participants' incentives with the long term health and success of the network. 
-- By adding a **BatchGasCharge**, large players are paying proportional network transaction fees to the network based on the amount of storage that they are adding without affecting the underlying **GasUsage** or **BaseFee**. 
-- By using a separate gas lane, the gas savings are passed as a big cost reduction to other messages, likely reducing the **BaseFee**.
-- **BatchBalancer** establishes a regulating feedback process in the gas market to keep the **BaseFee** low for other operations but still meaningful in network transaction fees for batch commits. When the **BaseFee** is lower than **BatchBalancer * BatchDiscount**, some miners may find it more attractive to submit commit messages for individual proofs. When the **BaseFee** approaches **BatchBalancer * BatchDiscount**, miners may switch to batch commit messages to take advantage of the cost savings. In turn, this reduces load on the **BaseFee**.
-- **BaseFee** spiking attacks are not neutralized, but are more expensive to mount, as (a) most of the chain throughput will move into aggregation, making it much more expensive for an attacker to increase and sustain the base fee, and (b) it is even more expensive for large miners to mount such an attack while growing their own storage.
-
-**Rough Estimates.** (these are ballpark estimates and are likely wrong -- make your own models and measurements)
-
-- With **BatchDiscount = 1/20** and **BatchBalancer = 2 nFIL**, we hope **BaseFee** will reduce from current avg **(1-2 nFIL)** to ~ **0.15 nFIL** with present message distributions plus the increases in storage onboarding throughput.
-- With **BaseFee ~ 0.15 nFIL**, **PublishStorageDeals** could cost about **7 mFIL**. (down from 182 mFIL)
-- Amortized unit **ProveCommit** gas costs may drop below **5 - 10 mFIL** (down from **50 - 100 mFIL**).
-
-To illustrate the balancing dynamic of **BatchBalancer** and **BatchDiscount** at work, here are the unit network fees for a 32GiB sector at different BaseFee levels. Note that unit storage network fees may be halved when 64GiB sectors are used.
-
-At a network BaseFee of 0.01 nanoFIL, unit economics is in favor of adding single proofs to the network.
-
-<img width="681" alt="0.01nFIL" src="https://user-images.githubusercontent.com/16908497/119754607-5944f380-bed3-11eb-80c3-2082197efb3b.png">
-
-As BaseFee increases to 0.1 nFIL, unit sector network fee for a single proof catches up to that of aggregated proofs.
-
-<img width="680" alt="0.1nFIL" src="https://user-images.githubusercontent.com/16908497/119754633-6366f200-bed3-11eb-9a1c-ef86bfa57d92.png">
-
-A crossover in the unit economics happens at around 0.15nFIL where miners are incentivized to take advantage of proof aggregation to free up more chain capacity. This will thus create a damping force on the BaseFee. 
-
-<img width="685" alt="0.15nFIL" src="https://user-images.githubusercontent.com/16908497/119754760-7c6fa300-bed3-11eb-806a-c59f70941298.png">
-
-In the hypothetical event when the BaseFee continues to rise to 1 nFIL or 2 nFIL (which is considered low today), miners are strongly incentivized to aggregate and take advantage of the savings that proof aggregation brings.
-
-<img width="675" alt="1nFIL" src="https://user-images.githubusercontent.com/16908497/119754793-872a3800-bed3-11eb-9b0b-7e0fafe54d13.png">
-<img width="692" alt="2nFIL" src="https://user-images.githubusercontent.com/16908497/119754857-a1641600-bed3-11eb-910b-37dcfa1e4787.png">
-
-In aggregate, daily network fee spend grows as the network grows in size. With Single Proofs, it is impossible for the network to grow at >40PiB/day and maintain a 0.2nFIL BaseFee due to the constraint on chain capacity. Batch Proofs, however, enable the network to grow at > 800PiB/day.
+Requirements. The cryptoeconomics of this FIP are similar to that of
+FIP-0013 require balancing a number of different goals and
+constraints.  Please consult FIP-0013 for more information.
 
  
-## Product Considerations
-
-This proposal reduces the aggregate cost of committing new sector data to the
-Filecoin network. 
-
-This will reduce miner costs overall, as well as reduce contention for chain
-transaction bandwidth that can crowd out other messages. It unlocks a
-larger data update rate for the Filecoin network.
-
 ## Implementation
 
 * Cryptographic implementation is currently located on the `feat-ipp2` of the bellperson [repo](https://github.com/filecoin-project/bellperson/tree/feat-ipp2/src/groth16/aggregate)
-* Integration between Lotus and crypto-land can be found in [rust-fil-proofs](https://github.com/filecoin-project/rust-fil-proofs/tree/agg-snapdeals) and the FFI [here](TBD).
+* Integration between Lotus and crypto-land can be found in [rust-fil-proofs](https://github.com/filecoin-project/rust-fil-proofs/tree/supersnaps) and the FFI [here](TBD).
 * Actors changes are in progress here: TBD
 * Lotus integration putting everything together is in progress here: TBD
 
