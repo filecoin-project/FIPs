@@ -25,8 +25,7 @@ is currently limiting network growth.
 The miner `ProveReplicaUpdates` method only supports committing a single sector update at
 a time.  This proposal adds a way for miners to post multiple `ProveReplicaUpdates`s at once in an aggregated fashion
 using a `ProveReplicaUpdatesAggregated` method. This method amortizes some of the costs
-across multiple sector data updates, and similar to FIP-0013 (ProvedCommitSectorAggregated), verification times can take
-advantage of a novel cryptography result. This proposal allows many sectors to have data updates in them activated at once when the aggregated message is posted to the chain.
+across multiple sector data updates, and similar to [FIP-0013 (ProvedCommitSectorAggregated)](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md), aggregate proof verification runtime is incredibly fast due to SnarkPack. This proposal allows many sectors to have data updates in them activated at once when the aggregated message is posted to the chain.
 
 
 ## Change Motivation
@@ -61,23 +60,23 @@ struct ProveReplicaUpdateAggregateParams {
 
 #### Scale and limits
 
-The minimum of number of Sector Upgrade proofs that may be aggregated is 3 and maximum is 512.
+The minimum of number of Sector Update proofs that may be aggregated is 3, and the maximum is 512.
 
 #### Gas calculations
 
 Similar to existing PoRep gas charges, gas values are determined from empirical measurements of aggregate proof validation on representative hardware.
 
-Aggregate proofs must be generated for a power of two number of Groth16 proofs; because each Sector Upgrade proof contains sixteen Groth16 proofs, aggregated Sector Upgrade proofs are padded to contain the nearest power of two number of Groth16 proofs. See the "Proof scheme changes" section in [FIP-0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#proof-scheme-changes) for a discussion on aggregate proof padding.
+Aggregate proofs must be generated for a power of two number of Groth16 proofs; because each Sector Update proof contains sixteen Groth16 proofs, aggregated Sector Update proofs are padded to contain the nearest power of two number of Groth16 proofs. See the "Proof scheme changes" section in [FIP-0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#proof-scheme-changes) for a discussion on aggregate proof padding.
 
-The gas cost of aggregate proof verification grows both linearly and step-wise in the number of Sector Upgrade proofs aggregated (counted prior to proof padding). The linear growth occurring for each Sector Upgrade proof aggregated and the step-wise growth occurs when the number of Groth16 proofs aggregated exceeds a power of two.
+The gas cost of aggregate proof verification grows both linearly and step-wise in the number of Sector Update proofs aggregated (counted prior to proof padding). The linear growth occurring for each Sector Update proof aggregated and the step-wise growth occurs when the number of Groth16 proofs aggregated exceeds a power of two.
 
-The gas table below associates ranges of aggregated Sector Upgrade proofs with their total step-wise gas cost. The total gas cost for verifying an aggregate proof of `n` Sector Upgrade proofs is the sum of `n`'s linear and step-wise gas costs: `n * gas_per_proof + gas_table(n)`.
+The gas table below associates ranges of aggregated Sector Update proofs with their total step-wise gas cost. The total gas cost for verifying an aggregate proof of `n` Sector Update proofs is the sum of `n`'s linear and step-wise gas costs: `n * gas_per_proof + gas_table(n)`.
 
 ##### 32 GiB Gas Cost
 
-Gas cost per Sector Upgrade proof aggregated: 80,000 gas
+Gas cost per Sector Update proof aggregated: 80,000 gas
 
-Total step-wise gas cost for ranges of Sector Upgrade proofs aggregated:
+Total step-wise gas cost for ranges of Sector Update proofs aggregated:
 
 | SnapDeals Proofs | Groth16 Proofs |    Gas     |
 |:----------------:|:--------------:|:----------:|
@@ -90,9 +89,9 @@ Total step-wise gas cost for ranges of Sector Upgrade proofs aggregated:
 
 ##### 64 GiB Gas Cost
 
-Gas cost per Sector Upgrade proof aggregated: 80,000 gas
+Gas cost per Sector Update proof aggregated: 80,000 gas
 
-Total step-wise gas cost for ranges of Sector Upgrade proofs aggregated:
+Total step-wise gas cost for ranges of Sector Update proofs aggregated:
 
 | SnapDeals Proofs | Groth16 Proofs |    Gas     |
 |:----------------:|:--------------:|:----------:|
@@ -105,28 +104,23 @@ Total step-wise gas cost for ranges of Sector Upgrade proofs aggregated:
 
 #### Batch Gas Charge
 
-Currently, **GasUsed * BaseFee** is burned for every message. We can achieve the requirements described in [Incentive Considerations](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#incentive-considerations) by charging an additional proportional gas cost to an aggregated batch of proofs, and by balancing their gas costs with a minimum gas fee. Three concepts need to be introduced:
-- **BatchGasCharge** - the network fee for adding batched proofs
-- **BatchBalancer** - a minimum gas fee for BatchGasCharge
-- **BatchDiscount** - a heavy discount for aggregated proofs, which also benefits other messages
-
-The following charge is calculated for each **BatchProveCommit** message.
+Currently, **GasUsed * BaseFee** is burned for every message. We can achieve the requirements described in [Incentive Considerations](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#incentive-considerations) by charging an additional proportional gas cost to an aggregated batch of proofs, and by balancing their gas costs with a minimum gas fee. The gas charge for each aggregate Sector Update proof is computed in the same manner as that for aggregate seal proofs; see FIP-0013's [Batch Gas Charge](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#batch-gas-charge) for further discussion.
 
 ```rust
 func PayBatchGasCharge(numProofsBatched, BaseFee) {
-// Cryptoecon Params (need to be updated if verification benchmarks change)
-BatchDiscount = 1/20 unitless
-BatchBalancer = 2 nanoFIL
-SingleProofGasUsage = 65733296.73
+    // Cryptoecon Params (need to be updated if verification benchmarks change)
+    BatchDiscount = 1/20 unitless
+    BatchBalancer = 2 nanoFIL
+    SingleProofGasUsage = **TODO: should this be 36316136?**
 
-// Calculating BatchGasCharge
-numProofsBatched = <# of proofs in this batched operation>
-BatchGasFee = Max(BatchBalancer, BaseFee)
-BatchGasCharge = BatchGasFee * SingleProofGasUsage *  numProofsBatched * BatchDiscount
+    // Calculating BatchGasCharge
+    numProofsBatched = <# of proofs in this batched operation>
+    BatchGasFee = Max(BatchBalancer, BaseFee)
+    BatchGasCharge = BatchGasFee * SingleProofGasUsage *  numProofsBatched * BatchDiscount
 
-// Pay for the batch
-PayNetFee(BatchGasCharge) // this can be a msg.Send to f99. Does not affect BaseFee
-// normal gas for the verification computation is paid as usual (using & affecting BaseFee)
+    // Pay for the batch
+    PayNetFee(BatchGasCharge) // this can be a msg.Send to f99. Does not affect BaseFee
+    // normal gas for the verification computation is paid as usual (using & affecting BaseFee)
 }
 ```
 
@@ -139,8 +133,7 @@ Neither changes to the state schema of any actors nor changes to the fields of e
 
 ### Proof scheme changes
 
-See FIP-0013 for more details on the proof scheme changes.
-
+This FIP does not introduce new proof scheme changes, but utilizes those changes introduced in [FIP-0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#proof-scheme-changes) for aggregate seal proofs.
 
 #### Proofs API
 
@@ -163,7 +156,7 @@ The `registered_aggregation` inputs is required to be
 `RegisteredAggregationProof::SnarkPackV1` is not supported for this
 method.
 
-The `sector_update_inputs` are a slice of structs logically appearing
+The `sector_update_inputs` are a slice of `struct`s logically appearing
 like this in the rust language.
 
 ```rust
@@ -174,20 +167,20 @@ pub struct SectorUpdateProofInputs {
 }
 ```
 
-Within the SectorUpdateProofInputs struct, the elements are as follows:
+The fields within `struct SectorUpdateProofInputs` are:
 
 The `comm_r_old` is the commitment to the sector's previous replica.
 The `comm_r_new` is the commitment to the sector's current replica.
 The `comm_d_new` is the commitment to the sector's current data.
 
 Since the `sector_update_inputs` are a slice, they are ordered to
-match the order of the sector_update_proofs slice provided.  However,
+match the order of the `sector_update_proofs` slice provided.  However,
 this does NOT mean that they are required to be vectors of the same
 length.  For test sector sizes, they may end up being the same length
 because they are proven in a single partition -- but for production
 sector sizes, the partition count will not be one.  Instead, the
 number of elements in the `sector_update_inputs` vector will be the
-number of partitions * the number of the proofs.
+`partitions per sector update * the number of sector update proofs aggregated`.
 
 **Requirements**: The scheme can only aggregate a power of two number of proofs
 currently. Although there might be some ways to alleviate that requirement, we
@@ -195,10 +188,7 @@ currently pad the number of input proofs to match a power of two. Thanks to the
 logarithmic nature of the scheme, performance is still very much acceptable.
 
 Padding is currently _naive_ in the sense that if the passed in count
-of seal proofs is not a power of 2, we arbitrarily take the last proof
-and duplicate it until the count is the next power of 2.  The single
-exception is when the proof count is 1.  In this case, we duplicate it
-since the aggregation algorithm cannot work with a single proof.
+of Sector Update proofs aggregated is not a power of 2 (greater than 1), we pad the Sector Update proofs to the nearest power of two using a duplicate of the last Sector Update proof provided. The minimum number of Groth16 proofs that can be aggregated is 2, thus in the case where a single Groth16 proof is provided for aggregation, the single proof is duplicated in order to pad the number of Groth16 proofs to 2.
 
 ##### Verification
 
@@ -220,7 +210,7 @@ The `registered_aggregation` inputs is required to be
 `RegisteredAggregationProof::SnarkPackV1` is not supported for this
 method.
 
-The `inputs` are an ordered list of SectorUpdateProofInputs (as
+The `inputs` are an ordered list of `SectorUpdateProofInputs` (as
 described above).
 
 The `sector_update_inputs` are an ordered list of inputs which *must*
@@ -270,7 +260,7 @@ input.
 
 #### Proofs format 
 
-See FIP-0013 for more details about the proofs format, as it is the same in this case.
+This FIP uses the same aggregate proof format introduced in FIP-0013's [Proofs Format](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#proofs-format).
 
 ## Design Rationale
 
@@ -289,7 +279,7 @@ an operator otherwise.
 
 ### Scale and limits
 
-Each aggregated proof is bounded at 819 sector updates. The motivation
+Each aggregated proof is bounded at 512 sector updates. The motivation
 for the bound on aggregation size is as follows:
 
 - to limit the impact of potentially mistaken or malicious behaviour.  
@@ -340,14 +330,12 @@ only version of SnarkPack still used in the protocol today.
 
 ## Incentive Considerations
 
-Requirements. The cryptoeconomics of this FIP are similar to that of
-FIP-0013 require balancing a number of different goals and
-constraints.  Please consult FIP-0013 for more information.
+The cryptoeconomics of this FIP are similar to that of [FIP-0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#incentive-considerations).
 
  
 ## Implementation
 
-* Cryptographic implementation is currently located on the `feat-ipp2` of the bellperson [repo](https://github.com/filecoin-project/bellperson/tree/feat-ipp2/src/groth16/aggregate)
+* The cryptographic implementation for aggregate proving/verifying (i.e. SnarkPack) is currently located in the [`bellperson`](https://github.com/filecoin-project/bellperson/tree/feat-ipp2/src/groth16/aggregate) Rust crate.
 * Integration between Lotus and crypto-land can be found in [rust-fil-proofs](https://github.com/filecoin-project/rust-fil-proofs/tree/supersnaps) and the FFI [here](TBD).
 * Actors changes are in progress here: TBD
 * Lotus integration putting everything together is in progress here: TBD
