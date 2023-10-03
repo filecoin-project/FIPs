@@ -2,7 +2,7 @@
 fip: "FIP-XXXX"
 title: "Removing Restriction to Access to Multiplier and Allowing Unrestricted Minting of Datacap"
 author: Fatman13 (@Fatman13), flyworker (@flyworker), stuberman (@stuberman), Eliovp (@Eliovp), dcasem (@dcasem), and The-Wayvy (@The-Wayvy)
-Discussions-to: https://github.com/filecoin-project/FIPs/discussions/774
+Discussions-to: https://github.com/filecoin-project/FIPs/discussions/844
 status: Draft
 type: Technical
 category: Core
