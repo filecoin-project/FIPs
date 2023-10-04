@@ -114,6 +114,6 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md)   | Remove cron-based automatic deal settlement  | FIP  |@anorth, @alexytsu| Draft  |
 |[0075](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0075.md)   | Improvements to the FVM randomness syscalls  | FIP  |@arajasek, @Stebalien| Accepted  |
 |[0077](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0078.md)   | Add Cost Opportunity For New Miner Creation | FIP  |Zac (@remakeZK), Mike Li (@hunjixin)| Draft  |
-|[0078](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0078.md)   | Allow Unlimited Minting of Datacap  | FIP  |Fatman13 (@Fatman13), flyworker (@flyworker), stuberman (@stuberman), Eliovp (@Eliovp), dcasem (@dcasem), and The-Wayvy (@The-Wayvy)| Draft  |
+|[0078](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0078.md)   | Remove Restrictions on the Minting of Datacap  | FIP  |Fatman13 (@Fatman13), flyworker (@flyworker), stuberman (@stuberman), Eliovp (@Eliovp), dcasem (@dcasem), and The-Wayvy (@The-Wayvy)| Draft  |
 
 
