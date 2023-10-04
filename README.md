@@ -108,4 +108,12 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0068](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0068.md)   | Deal-Making Between SPs and FVM Smart Contracts | FRC  | @aashidham, @raulk, @skottie86, @jennijuju, @nonsense, @shrenujbansal  | Draft  |
 |[0069](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md)   | Piece Multihash and v2 Piece CID | FRC  | @aschmahmann, @ribasushi  | Draft  |
 |[0070](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0070.md)   | Allow SPs to move partitions between deadlines  | FIP  |Steven Li (@steven004), Alan Xu (@zhiqiangxu), Mike Li (@hunjixin), Alex North (@anorth), Nicola (@nicola)| Draft  |
+|[0071](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0071.md)   | Deterministic State Access (IPLD Reachability)  | FIP  |	@stebalien| Accepted  |
+|[0072](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0072.md)   | Improved event syscall API | FIP  |@fridrik01, @Stebalien| Accepted  |
+|[0073](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0073.md)   | Remove beneficiary from the self_destruct syscall  | FIP  |@Stebalien| Accepted  |
+|[0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md)   | Remove cron-based automatic deal settlement  | FIP  |@anorth, @alexytsu| Draft  |
+|[0075](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0075.md)   | Improvements to the FVM randomness syscalls  | FIP  |@arajasek, @Stebalien| Accepted  |
+|[0077](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0078.md)   | Add Cost Opportunity For New Miner Creation | FIP  |Zac (@remakeZK), Mike Li (@hunjixin)| Draft  |
+|[0078](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0078.md)   | Allow Unlimited Minting of Datacap  | FIP  |Fatman13 (@Fatman13), flyworker (@flyworker), stuberman (@stuberman), Eliovp (@Eliovp), dcasem (@dcasem), and The-Wayvy (@The-Wayvy)| Draft  |
+
 
