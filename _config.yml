@@ -34,7 +34,7 @@ kramdown:
   auto_id_stripping: true
   syntax_highlighter: rouge
 
-permalink: /:path/:basename
+permalink: /:path/:basename.html
 
 defaults:
   -
@@ -42,7 +42,7 @@ defaults:
       path: "FIPS"
     values:
       layout: "fip"
-      permalink: /:path/:basename
+      permalink: /:path/:basename.html
 
 exclude:
   - .github
