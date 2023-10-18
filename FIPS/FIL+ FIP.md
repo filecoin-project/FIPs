@@ -58,12 +58,24 @@ There are many ways to achieve the stated goal of the FIP discussion. After filt
 
 ## Incentive & Product Considerations
 
-The FIP would likely not detour the already downward decline of RBP in short term but would highly likely allow L1 to [capture much more value](https://filecoinproject.slack.com/archives/CEHTVSEG6/p1692722289461299) in the long term. The FIP may increase the likelyhood of reduction in onboarding, consequent loss of RBP meaning further reduced blockrewards due to baseline minting model, the supply inflation resulting from expiring sectors with no onboarding and increasing initial pledge requirements (further compounding unprofitability) until the market finds equilibrium price again with new readjusted mining cost. The CEL report [here](https://medium.com/cryptoeconlab/resilience-of-the-filecoin-network-d7861ee9986a) shows the resilience properties of the Filecoin network in such case. Though we would like to point out that of course all such models have limitations.
+The proposed change would likely not detour the already downward decline of RBP in short term but would highly likely allow L1 to capture much more value in the long term in terms of tangible resources like hardwares and talents being employed to support RBP of the network. 
+
+The FIP may increase the likelyhood of reduction in power onboarding, consequent loss of RBP meaning further reduced blockrewards due to baseline minting model, the supply inflation resulting from expiring sectors with no onboarding and **significantly** lower initial pledge requirements due to [QAP crossing baseline](https://github.com/filecoin-project/FIPs/discussions/847) until the market finds equilibrium price again with new readjusted mining cost. The CEL report [here](https://medium.com/cryptoeconlab/resilience-of-the-filecoin-network-d7861ee9986a) shows the resilience properties of the Filecoin network in such case. Though we would like to point out that of course all such models have limitations.
 
 - **Storage Providers (SPs)**: SPs need to adjust to the new multiplier rules and consider their strategies for attracting non-Fil+ deals.
 - **Data Clients**: The transition may affect existing clients using Fil+. New mechanisms that are not embedded in Filecoin’s core protocol to promote real data storage can be developed.
 - **Existing Deals**: Existing Fil+ deals will remain unaffected until their expiration.The extra pledge will be returned once the sector is terminated or expires. 
 - **Network Stability**: Care must be taken to ensure network stability during the transition, especially when handling existing deals.
+
+Some of the incentive considerations are very similar to [FIP0078](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0078.md) as the proposed change rooted from same core decentralization value they share. 
+
+The proposed change removes Fil+'s incentive for the onboarding of non-random data. As a result, it's anticipated that the onboarding rate of non-random data may decrease. It remains unclear how much of the data currently incentivized by Fil+ is not in compliance with the program's goals.
+
+Following this proposed change, the primary impetus for SPs to onboard data will originate from outside the protocol itself. It could include direct payments from storage clients or new incentive models implemented in FVM contracts.
+
+Because all sectors will have the same multiplier (1x), we expect miners to charge more for storing user data. So users whose data is currently stored via Fil+ deals will probably have to pay more for storage after the sector containing their data expires. We suggest existing users discuss pricing changes with their SPs or the intermediary who handled deal-making for them. It is unlikely that user data will be dumped before sector expiry since a miner would have to pay a termination fee and re-seal a new sector.
+
+It is hard to estimate how much user demand Filecoin will lose in the short run, (both demand for data already stored on the network and for data that potentially could have been onboarded in the future). There are two reasons for this: first, we don't know how much of the data stored via Fil+ deals has an actual user behind it; second, because Fil+ distorted price discovery, we don't know what users are willing to pay for Filecoin storage and what miners are willing to accept.
 
 ## Security Considerations
 
