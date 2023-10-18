@@ -74,17 +74,23 @@ It is hard to estimate how much user demand Filecoin will lose in the short run,
 
 ## Security Considerations
 
-This FIP does not introduce new security concerns. From the same [CEL report](https://medium.com/cryptoeconlab/resilience-of-the-filecoin-network-d7861ee9986a) above Filecoin is resilient to power shocks...
+Depending on which school of thoughts you think blockchain security works for Filecoin network, one may reach different security consideration.
+
+If your views on network consensus seurity aligns with the explorations released [here](https://pl-strflt.notion.site/2023Q3-Cost-of-Consensus-Security-Hardware-bda873f0c8a74387abeccd8c722abd59?pvs=4) and [here](https://pl-strflt.notion.site/2023Q3-Cost-of-Consensus-Security-Pledge-d9374ec5b68244c6b50fcb8c16ec113c?pvs=4). The proposed change may be viewed as lowering network consensus security because lowered pledge cost in the network attack strategy model of HDDCost + StoragePledge + FutureEarnings. However, the risks will likely be mitigated by the fact that **significantly** lowered initial pledge requirements will likely to incentive more hardwares to be onboarded to secure the network, which previously peaked at 17 Eib as opposed to 8 Eib right now increasing the cost to attack. 
+
+There are also views that shared by some who see consensus seurity is POS agnostic as there are already large token holders like Protocol Labs, Filecoin Foundation, big whales that may become single point of failure to attacks. By that token, attack model is reduced to HDDCost + SealingCost + GasCost which the proposed change will likely to boost the network security as explained in the [QAP crossing baseline](https://github.com/filecoin-project/FIPs/discussions/847) scenario.
+
+In the worst case of substantial power dropping, from the same [CEL report](https://medium.com/cryptoeconlab/resilience-of-the-filecoin-network-d7861ee9986a) above Filecoin will likely be resilient to power shocks...
 
 > What does resilience mean? Merriam-Webster defines resilience as the ability to recover from or adjust easily to misfortune or change. Resilience is relevant to many aspects of a cryptoeconomy like Filecoin; examples include 51% attacks, Sybil attacks, and Finney attacks, to name a few. 
 
 However, it is critical to ensure that the transition is handled securely, particularly when dealing with existing sectors.
 
 ## Afterwards
+
 Fil+ team and many more customized deal markets will be developed on L2 of Filecoin in either permissioned or permissionless manners in an open and fair market competition. 
+
 By way of example. If the community consensus determined the end of multipliers in NFV21 (proposed Nov 2023) upgrade,  then sectors with multipliers would conclude at the end of May 2025.
-
-
 
 ## References
 
