@@ -72,6 +72,10 @@ Because all sectors will have the same multiplier (1x), we expect miners to char
 
 It is hard to estimate how much user demand Filecoin will lose in the short run, (both demand for data already stored on the network and for data that potentially could have been onboarded in the future). There are two reasons for this: first, we don't know how much of the data stored via Fil+ deals has an actual user behind it; second, because Fil+ distorted price discovery, we don't know what users are willing to pay for Filecoin storage and what miners are willing to accept.
 
+Fil+ team and many more customized deal markets will be developed on L2 of Filecoin in either permissioned or permissionless manners in an open and fair market competition. 
+
+By way of example. If the network continues to grow in the current trajectory, it will inevitably become a mostly DC network (70%+ DC). Then the proposed changes could be used to clamp down QAP to restore everthing back to 1x.
+
 ## Security Considerations
 
 Depending on which school of thoughts you think blockchain security works for Filecoin network, one may reach different security consideration.
@@ -87,12 +91,6 @@ CryptoEconLab, in an August 2023 [report](https://medium.com/cryptoeconlab/resil
 > What does resilience mean? Merriam-Webster defines resilience as the ability to recover from or adjust easily to misfortune or change. Resilience is relevant to many aspects of a cryptoeconomy like Filecoin; examples include 51% attacks, Sybil attacks, and Finney attacks, to name a few. 
 
 However, it is critical to ensure that the transition is handled securely, particularly when dealing with existing sectors.
-
-## Afterwards
-
-Fil+ team and many more customized deal markets will be developed on L2 of Filecoin in either permissioned or permissionless manners in an open and fair market competition. 
-
-By way of example. If the community consensus determined the end of multipliers in NFV21 (proposed Nov 2023) upgrade,  then sectors with multipliers would conclude at the end of May 2025.
 
 ## References
 
