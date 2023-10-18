@@ -95,7 +95,7 @@ By way of example. If the community consensus determined the end of multipliers 
 ## References
 
 * [Initial Discussion](https://github.com/filecoin-project/FIPs/discussions/774)
-* [FIP-003](link_to_FIP-003)
+* [FIP-003](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0003.md)
 
 Why pick option1 over option2:<br> 
 -https://github.com/filecoin-project/FIPs/discussions/774#discussioncomment-6656805<br>
