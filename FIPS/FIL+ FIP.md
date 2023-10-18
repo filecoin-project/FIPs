@@ -58,7 +58,7 @@ There are many ways to achieve the stated goal of the FIP discussion. After filt
 
 ## Incentive & Product Considerations
 
-The proposed change would likely not detour the already downward decline of RBP in short term but would highly likely allow L1 to capture much more value in the long term in terms of tangible resources like hardwares and talents being employed to support RBP of the network. 
+The proposed change would likely not detour the already downward decline of RBP in short term but would highly likely allow L1 to capture much more value in the long run in terms of tangible resources like hardwares and talents being employed to support RBP of the network. 
 
 The FIP may increase the likelyhood of reduction in power onboarding, consequent loss of RBP meaning further reduced blockrewards due to baseline minting model, the supply inflation resulting from expiring sectors with no onboarding and **significantly** lower initial pledge requirements due to [QAP crossing baseline](https://github.com/filecoin-project/FIPs/discussions/847) until the market finds equilibrium price again with new readjusted mining cost. Before then miners will likely be able to enjoy a higher Fil on Fil return to incentivize the return of RBP to catch up the baseline. The CEL report [here](https://medium.com/cryptoeconlab/resilience-of-the-filecoin-network-d7861ee9986a) shows the resilience properties of the Filecoin network in such case. Though we would like to point out that of course all such models have limitations.
 
