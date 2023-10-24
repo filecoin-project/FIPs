@@ -1,7 +1,7 @@
 ---
 fip: "00xx"
-title: Add ProveReplicaUpdatesAggregated method to reduce on-chain congestion
-author: nemo (@cryptonemo), Jake (@DrPeterVanNostrand)
+title: Add support for aggregated replica update proofs
+author: nemo (@cryptonemo), Jake (@DrPeterVanNostrand), @anorth
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/752
 status: draft
 type: Technical
@@ -18,20 +18,18 @@ Add a method for a miner to submit several sector prove replica updates messages
 
 ## Abstract
 
-On-chain proofs scale linearly with network growth. This leads to (1) blockchain
-being at capacity most of the time leading to high base fee, (2) chain capacity
-is currently limiting network growth.
-
-The miner `ProveReplicaUpdates` method only supports committing a single sector update at
+The miner `ProveReplicaUpdates` method only supports updating a single sector update at
 a time.  This proposal adds a way for miners to post multiple `ProveReplicaUpdates`s at once in an aggregated fashion
-using a `ProveReplicaUpdatesAggregated` method. This method amortizes some of the costs
-across multiple sector data updates, and similar to [FIP-0013 (ProvedCommitSectorAggregated)](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md), aggregate proof verification runtime is incredibly fast due to SnarkPack. This proposal allows many sectors to have data updates in them activated at once when the aggregated message is posted to the chain.
-
+using a `ProveReplicaUpdatesAggregated` method (or the `ProveReplicaUpdates2` method in [FIP-0076](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md), an alternative proposal that could
+be used instead). This method amortizes some of the costs across multiple sector data updates, and similar to [FIP-0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md)
+(ProvedCommitSectorAggregated), verification times can take advantage of a novel cryptography result. This proposal allows
+many sectors to have data updates in them activated at once when the aggregated message is posted to the chain.
 
 ## Change Motivation
 
-The miner `ProveReplicaUpdates` method only supports committing a single sector at
-a time.  While it's not one of the most frequent messages on the chain, it is believed to be the case that it is too expensive in the current form to use.
+The miner `ProveReplicaUpdates` method only supports updating a single sector at
+a time.  While it's not one of the most frequent messages on the chain, it is believed to be the case that it is too
+expensive in the current form to use.
 
 Aggregated proof verification allows for more sector update commitments to be proven in
 less time which will reduce processing time and therefore gas cost per prove
@@ -104,14 +102,14 @@ Total step-wise gas cost for ranges of Sector Update proofs aggregated:
 
 #### Batch Gas Charge
 
-Currently, **GasUsed * BaseFee** is burned for every message. We can achieve the requirements described in [Incentive Considerations](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#incentive-considerations) by charging an additional proportional gas cost to an aggregated batch of proofs, and by balancing their gas costs with a minimum gas fee. The gas charge for each aggregate Sector Update proof is computed in the same manner as that for aggregate seal proofs; see FIP-0013's [Batch Gas Charge](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#batch-gas-charge) for further discussion.
+Currently, **GasUsed * BaseFee** is burned for every message. We can achieve the requirements described in [Incentive Considerations](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#incentive-considerations) by charging an additional proportional fee to an aggregated batch of proofs, and by balancing their gas costs with a minimum fee. The additional charge for each aggregate replica update proof (an aggregate Groth16 proof) is computed in the same manner as that for aggregate seal proofs; see FIP-0013's [Batch Gas Charge](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#batch-gas-charge) for further discussion.
 
 ```rust
 func PayBatchGasCharge(numProofsBatched, BaseFee) {
     // Cryptoecon Params (need to be updated if verification benchmarks change)
     BatchDiscount = 1/20 unitless
     BatchBalancer = 2 nanoFIL
-    SingleProofGasUsage = **TODO: should this be 36316136?**
+    SingleProofGasUsage = 36316136
 
     // Calculating BatchGasCharge
     numProofsBatched = <# of proofs in this batched operation>
@@ -125,6 +123,8 @@ func PayBatchGasCharge(numProofsBatched, BaseFee) {
 ```
 
 Implications and rough estimates for this function are described in [Batch Incentive Alignment](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#batch-incentive-alignment).
+
+The SingleProofGasUsage estimate above is based on FVM's (value)[https://github.com/filecoin-project/ref-fvm/blob/4f2c73e96346cfa7364a51e133ffa906807df7c1/fvm/src/gas/price_list.rs#L193] for verifying a single replica update proof.
 
 #### State Migrations
 
@@ -269,13 +269,11 @@ since aggregation of smaller batches may not be efficient in terms of
 gas cost (proofs too big or too expensive to verify).  The method is
 left intact to support smooth operation through the upgrade period.
 
+However, it should be noted that if this FIP ends up coordinating with (FIP-0076)[https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md], a single replacement method (`ProveReplicaUpdates2`)[https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md#provereplicaupdates2] should instead be used and that would in fact render `ProveReplicaUpdates` as redundant.
+
 ### Failure handling
 
 Aborting on any precondition failure is chosen for simplicity.
-Submitting an invalid prove commitment should never happen for
-correctly-functioning miners.  Aborting on failure will provide a
-clear indication that something is wrong, which might be overlooked by
-an operator otherwise.
 
 ### Scale and limits
 
