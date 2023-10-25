@@ -1,15 +1,12 @@
 ## Are you drafting a new FIP?
-Please follow these guidelines to help ensure that your proposal is set up for success in the governance process,
-and ease the burden on the FIP editors.
+Please follow these guidelines to help ensure that your proposal is set up for success in the governance process.
 
-### Start a discussion first
-Changes to the Filecoin core protocol start with open discussion.
-Please open a new discussion topic in the FIPs repository discussion board and outline you motivation and proposal,
-then come back in a few days or weeks to submit your draft FIP.
+### Open a discussion topic
+Changes to the Filecoin core protocol proceed through open discussion.
+Please open a new discussion topic in the FIPs repository discussion board and outline you motivation and proposal.
 
-Don't just paste your FIP draft into a discussion topic.
 The FIP format is suitable for specifying a concrete protocol change for implementation, 
-but your discussion post should describe the background and problem to be solved,
+but your discussion post should describe more of the background and problem to be solved,
 outline a range of approaches and their tradeoffs, and invite participants to explore other solutions.
 
 Historically, failing to gain some community buy-in before submitting a FIP has often resulted in 
@@ -34,6 +31,6 @@ Please add yours there in the same PR that adds the FIP draft itself.
 Use XXXX for the FIP number until it is assigned by an editor.
 
 ### Delete this guidance and describe your FIP
-If you've followed the guidance above and are ready to submit your FIP draft,
+Once you've followed the guidance above and are ready to submit your FIP draft,
 please delete this text and replace it with a copy of the _Abstract_ from your draft, 
 and a link to the relevant discussion forum topic.
