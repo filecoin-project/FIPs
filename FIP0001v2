@@ -84,7 +84,7 @@ FIP statuses include:
   * :x: Last Call -- A request for Last Call status will be denied if material changes are still expected to be made to the draft. We hope that FIPs only enter Last Call once, so as to avoid unnecessary noise.
 * **Accepted** -- This FIP is in the hands of the Filecoin implementation developers.  Their process for deciding whether to encode it into their clients as part of a consensus upgrade is not part of the FIP process.
   * :arrow_right: Final -- Standards Track Core FIPs must be implemented in at least two viable Filecoin clients before they can be considered Final. A Pull Request to the [Filecoin Specification repository](https://github.com/filecoin-project/specs) updating the text of the spec to describe the protocol changes should also be submitted before the FIP can proceed to the Final status. When the implementation is complete and adopted by the community, the status will be changed to “Final”.
-* **Final/Active** -- This FIP represents current network policy. Accepted FIPs with technical specifications that have been implemented are considered 'Final'.  Accepted Community FIPs often exist without technical specifications and should be updated without being superseded; as such, they are refered to as 'Active'.  In either case, the Final/Active status indicates the state-of-the-art.  These FIPs comprise current network policy. 
+* **Final** -- This FIP represents current network policy. 
 
 As FRCs do not go through a consensus process, FRCs are statused as follows: 
 * **Work in progress (WIP)** - An FRC that exists as a PR and has not yet been reviewed or approved by FIP Editors. 
@@ -189,7 +189,7 @@ As you begin scoping your FIP, please be sure to do some research. Vet your idea
 Your role as the FIP Author is to write the FIP using the style and format described below, shepherd the discussions in the appropriate forums, and build community consensus around the idea. Following is the process that a successful FIP will move along:
 
 ```
-[ DISCUSSION FORUM] -> [ WIP ] -> [ DRAFT ] -> [ LAST CALL ] -> [ ACCEPTED ] -> [ FINAL/ACTIVE ]
+[ DISCUSSION FORUM] -> [ WIP ] -> [ DRAFT ] -> [ LAST CALL ] -> [ ACCEPTED ] -> [ FINAL ]
 ```
 
 Each status change is requested by the FIP author and reviewed by the FIP editors. Use a pull request to update the status. Please include a link to where people should continue discussing your FIP. The FIP Editors will process these requests as per the conditions below.
@@ -228,7 +228,7 @@ Each FIP must begin with an RFC 822 style header preamble, preceded and followed
 
 ` * discussions-to:` \<a url pointing to the official Discussion thread\>
 
-` status:` \<Draft | Last Call | Accepted | Final | Active | Deferred | Rejected | Superseded\>
+` status:` \<Draft | Last Call | Accepted | Final | Deferred | Rejected | Superseded\>
 
 `* consensus-period-end:` \<date consensus period ends\>
 
@@ -294,7 +294,7 @@ spec-sections:
 
 #### `updated` header
 
-The `updated` header records the date(s) when the FIP was updated with "substantional" changes. This header is only valid for FIPs of Draft and Active status.
+The `updated` header records the date(s) when the FIP was updated with "substantional" changes.
 
 #### `requires` header
 
@@ -315,10 +315,6 @@ It occasionally becomes necessary to transfer ownership of FIPs to a new Author.
 A bad reason to transfer ownership is because you don't agree with the direction of the FIP. We try to build consensus around a FIP, but if that's not possible, you can always submit a competing FIP.
 
 If you are interested in assuming ownership of a FIP, send a message asking to take over, addressed to both the original author and the FIP editor. If the original author doesn't respond to email in a timely manner, the FIP editor will make a unilateral decision (which can be reversed).
-
-## FIP Authorship for 'Active' FIPs
-
-In instances where FIPs with Active status are substantially changed, it is important that listed authors are those who either contributed to or else support the current active version of the document. If an Active FIP is being updated and the prior Author(s) cannot be reached or do not agree with the changes being proposed, they should be removed from authorship.  In instances where a previous Author is not contributing to updates but generally supports the changes being made, it is recommended that they remain on the document. 
 
 ## FIP Editors
 
