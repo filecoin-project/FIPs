@@ -44,7 +44,7 @@ lazy_static! {
 
     /// Quality multiplier for verified deals in a sector
     /// >>> Target value <<<
-    pub static ref VERIFIED_DEAL_WEIGHT_MULTIPLIER: BigInt = BigInt::from(100);
+    pub static ref VERIFIED_DEAL_WEIGHT_MULTIPLIER: BigInt = BigInt::from(10);
 }
 ```
 
