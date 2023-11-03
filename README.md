@@ -108,4 +108,5 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0068](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0068.md)   | Deal-Making Between SPs and FVM Smart Contracts | FRC  | @aashidham, @raulk, @skottie86, @jennijuju, @nonsense, @shrenujbansal  | Draft  |
 |[0069](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md)   | Piece Multihash and v2 Piece CID | FRC  | @aschmahmann, @ribasushi  | Draft  |
 |[0070](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0070.md)   | Allow SPs to move partitions between deadlines  | FIP  |Steven Li (@steven004), Alan Xu (@zhiqiangxu), Mike Li (@hunjixin), Alex North (@anorth), Nicola (@nicola)| Draft  |
+|[0080](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0080.md) | Phasing Out Fil+ and Restoring Deal Quality Multiplier to 1x | FIP | @Fatman13, @ArthurWang1255, @stuberman, @Eliovp, @dcasem, @The-Wayvy | Draft |
 
