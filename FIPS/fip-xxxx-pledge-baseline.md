@@ -23,7 +23,7 @@ drives sector pledge requirements and total network collateral to zero,
 unless the network maintains an exponential rate of growth indefinitely. 
 Tending toward zero network collateral would undermine both network consensus security and
 circulating supply stability and hence SP operational returns. 
-Decreasing pledge requirements with slow growth is a desirable property, but decreasing all the way to zero isn’t.
+Decreasing pledge requirements with slow growth is a desirable property, but decreasing all the way to zero is not.
 
 This proposal splits the sector initial consensus pledge function into two parts, following the two part minting model.
 A “simple” 30% of the pledge requirement is independent of the baseline function, 
