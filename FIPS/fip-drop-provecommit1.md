@@ -8,7 +8,7 @@ status: Draft
 type: Technical 
 category (*only required for Standard Track): Core
 created: 2023-09-03
-requires (*optional):  (currently in Draft https://github.com/filecoin-project/FIPs/pull/804)
+requires (*optional):  [FIP-0076](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md)
 
 ---
 
@@ -16,16 +16,16 @@ requires (*optional):  (currently in Draft https://github.com/filecoin-project/F
 
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 
-Deprecate *`ProveCommitSectors` (method 7)*  in favour of `ProveCommitSectors2` and `ProveCommitAggregate`  to enforce single PoRep validations and single sector activations are  synchronously executed and billed to the caller, rather than executed asynchronously via a cron call to the actor.
+Deprecate *`ProveCommitSectors` (method 7)* in favour of `ProveCommitSectors2` and `ProveCommitAggregate` to enforce single PoRep validations and single sector activations are synchronously executed and billed to the caller, rather than executed asynchronously via a cron call to the actori.
 
 ## Abstract
 
 <!--A short (~200 word) description of the technical issue being addressed.-->
 A short (~200 word) description of the technical issue being addressed.
 
-Currently, `ProveCommitSectors` takes single PoRep proof for individual sectors, validates the proof and activate the sectors along with the deals inside of the sectors via a cron call to the power actor. By contrast, when submitting an aggregated PoRep, all of the proof validation and sector activation is executed synchronously and billed to the caller. We want to resolve this imbalance in the improper sector activation gas subsidy available to the different onboarding methods, and also removes unnecessary work from unpaid network cron jobs.
+Currently, `ProveCommitSectors` takes single PoRep proof for individual sectors, validates the proof and activate the sectors along with the deals inside of the sectors via a cron call to the power actor. By contrast, when submitting an aggregated PoRep, all of the proof validation and sector activation are executed synchronously and billed to the caller. We want to resolve this imbalance in the improper sector activation gas subsidy available to the different onboarding methods, and also removes unnecessary work from unpaid network cron jobs.
 
-To address this issue, we propose to drop `ProveCommitSectors` method the upgrade after `ProveComitSectors2` ’s inclusion.
+To address this issue, we propose to drop `ProveCommitSectors` method after the upgrade that introduces `ProveComitSectors2` ’s inclusion.
 
 ## Change Motivation
 
@@ -33,9 +33,9 @@ To address this issue, we propose to drop `ProveCommitSectors` method the upgrad
 
 Since FVM launch, all computation are properly charged and storage providers started to realize that even below the batch balancer base fee threshold, per sector commit cost via  `ProveCommitAggregate`  is still much higher than `ProveCommitSectors` .
 
-As mentioned by @anorth laid out [here](https://github.com/filecoin-project/FIPs/discussions/689#discussioncomment-5680517),”We explicitly charge gas (discounted) for the single proof validation when it is submitted, so it’s both bounded and paid for. However, the **state updates associated with sector activation are not metered**, because they execute in cron. The execution cost of this activation varies significantly with the deal content of the sector, but the storage provider doesn’t pay gas for this. On the other hand, aggregated proof validation also activates the sector synchronously, for which the SP pays the gas cost. Thus single-sector onboarding is subsidised relative to aggregation, but aggregation would otherwise efficiently support much higher onboarding rates.”
+As @anorth laid out [here](https://github.com/filecoin-project/FIPs/discussions/689#discussioncomment-5680517),”We explicitly charge gas (discounted) for the single proof validation when it is submitted, so it’s both bounded and paid for. However, the **state updates associated with sector activation are not metered**, because they execute in cron. The execution cost of this activation varies significantly with the deal content of the sector, but the storage provider doesn’t pay gas for this. On the other hand, aggregated proof validation also activates the sector synchronously, for which the SP pays the gas cost. Thus single-sector onboarding is subsidised relative to aggregation, but aggregation would otherwise efficiently support much higher onboarding rates.”
 
-Thus, we would like to resolves the imbalance in the sector activation and make proof aggregation financially make sense again.
+Thus, we would like to resolve the imbalance in the sector activation and make proof aggregation financially make sense again.
 
 This change also removes unnecessary yet expensive sector and deal activation work out of the network cron, in which prevent the network from potential cron blowup in the long term. 
 
