@@ -28,12 +28,12 @@ Decreasing pledge requirements with slow growth is a desirable property, but dec
 This proposal splits the sector initial consensus pledge function into two parts, following the two part minting model.
 A “simple” 30% of the pledge requirement is independent of the baseline function, 
 while “baseline” 70% retains the current calculation.
-This results in sector initial consensus pledge requirements falling towards 30% of the amount they would have been 
-when network QAP is larger than the baseline function, instead of toward zero.
+This results in sector initial consensus pledge requirements falling towards 30% of prior amounts,
+instead of toward zero.
 
 ## Change Motivation
 This sector initial pledge is intended to “incentivize the fulfillment of a sector's promised lifetime 
-and provide sufficient network  consensus security”.
+and provide sufficient network consensus security”.
 It is divided into two parts:
 - Storage pledge: provides collateral for some amount of potential penalties;
   depends only on share of projected block rewards and so decreases over time with the block reward decay.
@@ -59,13 +59,12 @@ thus increasing the potential returns to onboarding more QAP.
 This reduction in pledge requirements is a desirable property.
 
 However, because the network baseline function is an exponential, it eventually dominates the calculation.
-As the denominator, it drives consensus pledge requirements and thus total collateral locked on the network to zero,
+As the denominator, it drives consensus pledge requirements (and thus total collateral locked on the network) to zero,
 unless network QAP follows a similar or faster exponential.
-Zero pledge collateral securing the network is clearly not an outcome that was intended nor a property that is 
-compatible with a secure network or stable token supply.
-
-Pledge requirements and total network collateral tending towards zero 
-(or the minimal level that would remain as sector storage pledge) would likely:
+Having no pledge collateral (or only the minimal level that would remain as sector storage pledge) 
+securing the network is clearly not an outcome that was intended 
+nor a property that is compatible with a secure network or stable token supply.
+This situation would likely:
 1. severely undermine network consensus security, which depends in large part on the economic stake of participants;
 2. significantly expand the token circulating supply, impacting the exchange rate,
    storage provider operational returns, and token-holder behaviour.
@@ -74,7 +73,7 @@ In summary, the sector initial pledge construction has a desirable property of e
 as network QAP lags behind the baseline function,
 but an undesirable property of tending network collateral to zero as the baseline function grows.
 This proposal aims to maintain the desirable property of exponential pledge decrease but introduces
-a reasonable non-zero floor on network collateral.
+a reasonable lower bound on network collateral.
 
 ## Specification
 Factor the per-sector initial consensus pledge into two parts: a 70% share which divides by the baseline function like today,
@@ -91,22 +90,22 @@ PledgeLockTarget = 0.3 * CirculatingSupply
 Note that the implemented calculation should be re-arranged to defer division until the final operations,
 to avoid loss of precision in rounding.
 
-The practical effect of this is that the sector initial pledge calculation has a floor at
-30% of the current calculation if the baseline function were ignored.
+The practical effect of this is that the sector initial pledge calculation will not tend to zero
+as the network baseline grows, 
+but toward the SectorSimpleShare (30% of the pre-baseline-crossing total).
 When/if the baseline function exceeds network QAP, the per-sector initial pledge value will still decrease exponentially,
 but to this floor rather than toward zero.
-
 
 ## Design Rationale
 
 The baseline function primarily exists to mediate the minting of rewards.
 It sets a target for network power, and mints more block rewards as the target is approached.
 If the baseline function exceeds the raw byte power, those rewards are deferred into the future to incentivize future growth.
-The minting function splits the total block reward allocation 30/70 into simple and “baseline” minting,
+The minting function splits the total block reward allocation 30/70 into "simple" and “baseline” minting,
 where baseline minting is that part that depends on network growth.
 
 This 30/70 split seems to have been forgotten in the pledge calculation.
-A 30% floor provide a reasonable minimum level of minting despite an exponential halving due to baseline function growth.
+A 30% floor provides a reasonable minimum level of minting despite an exponential halving due to baseline function growth.
 Similarly, a 30% floor can provide a reasonable minimum level of initial consensus pledge.
 The parameter value of 30% is motivated by matching the split in the minting function.
 
@@ -145,8 +144,8 @@ To be provided with implementation.
 One of the primary motivations for this proposal is to maintain that part of consensus security that is supported by pledge amounts.
 Without this or a similar proposal, the consensus security provided by total network collateral will be eroded to near-zero 
 unless the network’s QAP growth maintains an exponential increase.
-Projections based on historical onboarding rate and SP behaviour suggest the network locked amount would fall to near zero
-over 4 to 5 years (or longer if onboarding rate continually increases).
+Projections based on historical onboarding rate and SP behaviour suggest the network locked token amount would fall
+to near zero over 4 to 5 years (or longer if onboarding rate continually increases).
 The practical security value of locked tokens would deteriorate faster if an expanding supply also caused exchange rate deterioration.
 
 This proposal introduces a floor to per-sector initial pledge requirements.
@@ -159,7 +158,7 @@ The practical security value of this locking would be supported by a stable or i
 ![macro.png](../resources/fip-xxx-pledge-baseline/macro.png)
 
 _Onboarding scenarios for the above Figure are based on historical onboarding trends over a 60-day lookback period.
-The pessimistic and status_quo onboarding rates  are 3.5 PiB/day and 5 PiB/day respectively.
+The pessimistic and status_quo onboarding rates are 3.5 PiB/day and 5 PiB/day respectively.
 The optimistic onboarding rate is initially 5.8 PiBs/day, ramping up to 17 PiB/Day over the 5 year simulation duration. 
 For all scenarios, the Fil-Plus Rate and Renewal Rate are 91% and 52% respectively._
 
@@ -184,8 +183,8 @@ but a higher floor value.
 
 With this proposal, initial pledge requirements still fall exponentially: quickly to start,
 and then more slowly in absolute terms over time.
-At current onboarding rates, the difference between locked amounts with or without this proposal is negligible over the first year,
-and increases over subsequent years until the “without” counterfactual reaches zero.
+At current onboarding rates, the difference between locked token amounts with or without this proposal is
+negligible over the first year, and increases over subsequent years until the “without” counterfactual reaches zero.
 In the event that network growth does not increase, 
 this proposal results in a higher eventual initial pledge requirement than the current protocol.
 This means the raw FIL-on-FIL ROI incentive is bounded, rather than growing indefinitely.
