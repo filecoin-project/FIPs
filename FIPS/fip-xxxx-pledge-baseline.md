@@ -149,7 +149,8 @@ to near zero over 4 to 5 years (or longer if onboarding rate continually increas
 The practical security value of locked tokens would deteriorate faster if an expanding supply also caused exchange rate deterioration.
 
 This proposal introduces a floor to per-sector initial pledge requirements.
-This in turn provides support for the network’s total locked token amount, and the ratio of locked to circulating supply.
+This in turn provides support for the network’s total locked token amount, 
+and the ratio of locked tokens to the circulating supply.
 This support is still far below current levels of locking, but high enough to provide more meaningful security.
 Projections for this proposal indicate locked amounts falling toward one third of current values over 
 the same 4 to 5 year period under moderate assumptions, and maintaining current values under optimistic growth assumptions.
@@ -159,7 +160,7 @@ The practical security value of this locking would be supported by a stable or i
 
 _Onboarding scenarios for the above Figure are based on historical onboarding trends over a 60-day lookback period.
 The pessimistic and status_quo onboarding rates are 3.5 PiB/day and 5 PiB/day respectively.
-The optimistic onboarding rate is initially 5.8 PiBs/day, ramping up to 17 PiB/Day over the 5 year simulation duration. 
+The optimistic onboarding rate is initially 5.8 PiB/day, ramping up to 17 PiB/day over the 5 year simulation duration. 
 For all scenarios, the Fil-Plus Rate and Renewal Rate are 91% and 52% respectively._
 
 Note that per-sector pledge requirements will also tend toward zero even if the network does experience exponential growth in QAP,
@@ -208,8 +209,8 @@ The impact on sector ROI incentives of this proposal depends on SPs’ collectiv
 This is ultimately a trade-off between individual incentives, and network security and economic health.
 
 ### Activation timing
-This proposal may be activated after the baseline function has already crossed above network QAP.
-So long as the duration between these events is relatively short (a few months), 
+This proposal may be activated either before or after the baseline function has already crossed above network QAP.
+So long as the duration between the crossing and this change activation is relatively short (a few months), 
 the difference between the pledge requirements before or after the change will be small,
 and the impact on consensus security negligible.
 
