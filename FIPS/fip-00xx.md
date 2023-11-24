@@ -4,7 +4,7 @@ title: On-chain Retrieval Expectations
 author: "Will Scott (@willscott)"
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/
 status: draft
-type: Technical (Core)
+type: Technical
 category: Core
 created: 2023-10-10
 ---
