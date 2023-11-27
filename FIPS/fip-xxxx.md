@@ -34,18 +34,23 @@ Filecoin network observability tools, Block explorers, SP monitoring dashboards,
 
 ## Specification
 ```
-Please see FIP-0049 for a detailed explanation of the FVM event schema and the possible values each field in the event schema can take. The interpretation of the flags field in each event entry is as follows:
+ Please see FIP-0049 for a detailed explanation of the FVM event schema and the possible values each field 
+ in the event schema can take. The interpretation of the flags field in each event entry is as follows:
 
-1. {"flags": "0x03”} ⇒ Index both key and value of the event entry
-2. {"flags": "0x02”} ⇒ Index only the value of the event entry
-3. {"flags": "0x01”} ⇒ Index only the key of the event entry
+ 1. {"flags": "0x03”} ⇒ Index both key and value of the event entry
+ 2. {"flags": "0x02”} ⇒ Index only the value of the event entry
+ 3. {"flags": "0x01”} ⇒ Index only the key of the event entry
+```
 
 ```
+ All values in the event payloads defined below are encoded with CBOR and so the codec field for each event 
+ entry will be set to 0x51.  The codec field is left empty in the payloads defined below only for the 
+ sake of brevity.
 ```
-All values in the event payloads defined below are encoded with CBOR and so the codec field for each event entry will be set to 0x51.  The codec field is left empty in the payloads defined below only for the sake of brevity.
+
 ```
-```
-As specified in FIP-0049, events emitted by Actor methods are not persisted to message receipts and rolled back if the Actor method emitting the event itself aborts and rolls back.
+ As specified in FIP-0049, events emitted by Actor methods are not persisted to message receipts and 
+ rolled back if the Actor method emitting the event itself aborts and rolls back.
 ```
 
 ### FVM should support CBOR encoding
