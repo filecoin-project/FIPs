@@ -53,8 +53,6 @@ To review current FIPs and FIP drafts, please view the [FIPs repo](https://githu
 
 We intend FIPs to be the primary mechanisms for proposing new features, for collecting community technical input on an issue, and for documenting the design decisions that have gone into Filecoin. Because the FIPs are maintained as text files in a versioned repository, their revision history is the historical record of the proposal.
 
-However, we also require that, where appropriate, Technical FIPs are also reflected in the protocol's specification, which is the primary source of reference for other developers. The [Filecoin Spec site](https://spec.filecoin.io/) will in turn point back to the FIPs that have changed some part of the protocol, as well as the FIP's revision history.
-
 For Filecoin implementers, FIPs are a convenient way to track the progress of their implementation. Ideally, each implementation maintainer would list the FIPs that they have implemented. This will give end users a convenient way to know the current status of a given implementation or library.
 
 ## FIP Types
@@ -117,17 +115,19 @@ The following consensus mechanisms exist to address this requirement.
     * The Filecoin Foundation is responsible for maintaining the polling tool used for hard consensus. 
     * The reference tool and polling specification accepted by the Filecoin community can be found [HERE](https://github.com/black-domain/power-voting). 
         * This specification[TODO] is an addenda to FIP0001 and can only be changed via FIP.
-* **Hybrid Consensus (Filecoin Community Guild)** -- The Filecoin Community Guild is an expert council that provides guidance, coordinates debate, and executes decision-making on behalf of key Filecoin community stakeholder groups.  The Guild seeks to decentralize the decision-making authority previously held by the Core Developers group, incorporating new stakeholder perspectives and domain knowledge. Guild consensus is used to review and approve Security FIPs, as well as to provide additional scrutiny on cryptoeconomic and community FIPs. 
+* **Hybrid Consensus (Filecoin Community Guild)** -- The Filecoin Community Guild is a representative expert council that provides guidance, coordinates debate, and executes decision-making on behalf of key Filecoin community stakeholder groups.  The Guild seeks to decentralize the decision-making authority previously held by the Core Developers group, incorporating new stakeholder perspectives and domain knowledge. Guild consensus is used to review and approve Security FIPs, as well as to provide additional scrutiny on cryptoeconomic and community FIPs. 
     * The Guild maintains seven seats: one for each [Filecoin community stakeholder group](https://filecoin.io/blog/posts/filecoin-s-island-economy/), and one seat each for Filecoin founding institutions (Filecoin Foundation and Protocol Labs). 
+        * Groups or organizations within the Filecoin community will be selected to fill each seat.  For example, there is one seat reserved for Storage Providers; the Storage Provider Working Group may be identified as the group that best represents this seat.  It would thus be their obligation to provide a representative or representative(s) to represent the interests of Storage Providers and surface insight and expertise from within the SP community. 
     * The Filecoin Foundation acts as the Chair of the Filecoin Community Guild.  The Foundation is thus obligated to 1) appoint representative groups to the Guild, 2) provide material support to ensure the continuation of these groups, and to 3) ensure fair and open access to all Guild decisions.
         * Though the Filecoin Foundation maintains the ability to appoint representative groups to join the Guild, the community can vote to remove representative groups.  In these instances, a "supermajority" of >66% must vote to remove the selected representative.  Importantly, however, it does not change the composition of the Guild seat; only an amendment to FIP0001 can do that. 
         * As the Chair of the Guild, the Filecoin Foundation cannot be removed by vote. It can only be removed by amending FIP0001. 
         * Representative groups appointed to Guild seats are empowered to define their own structure and rules. However, in order to remain in the Guild, they must: 
             1) Maintain an open membership policy; 
             2) Maintain representation in the Guild; and,
-            3) Openly document and reasonably justify all Guild votes.
+            3) Openly document and reasonably justify their vote.
         * Guild votes currently occur off-chain, either via a scheudled meeting or async communication with the Filecoin Foundation.  
-            * Guild members can vote to Accept, Reject, or Abstain.  Votes cast in abstention will automatically count towards the majority preference. In instances of a 3/3 split with one abstention, the favor is to Reject the FIP. 
+            * Guild members can vote to Accept, Reject, or Abstain.  Votes cast in abstention will automatically count towards the majority preference. In instances of an equal vote split (e.g., 3/3 or 2/2), the favor is to Reject the FIP.  
+            * Any seat that fails to cast a vote during designated voting periods will be considered an abstention.
             * All Guild votes must be documented and supported. 
         * The information documented here sets forth a bare minimum set of obligations for the Filecoin Community Guild.  However, the group is empowered to self-govern, making and documenting any other rules, procedures, or operating needs that it may have. 
 
@@ -164,7 +164,7 @@ Security FIPs represent a tiered ranking of threats which may affect the Filecoi
 Typically, security issues will be privately flagged for Core Devs.  It is the responsibility of Core Devs to assess the threat and coordinate a response. 
 
 **Consensus for Security FIPs is largely relegated to decision making amongst Core Devs.**
-1. For **Level 1 security threats**, a FIP should be written for review and approval by the Filecoin Community Guild. Guild members will be asked to accept or reject the FIP; they may not abstain. They must also supply documentation explaining the resulting outcome. If the FIP is approved, Core Devs are responsible for determining whether or not an emergency network upgrade is needed, and when the accepted FIP can be publicly disclosed (with a bias towards ASAP). 
+1. For **Level 1 security threats**, a FIP should be written for review and approval by the Filecoin Community Guild. Guild members will be asked to accept or reject the FIP; they may not abstain. They must also supply documentation explaining the resulting outcome. If the FIP is approved, Core Devs are responsible for determining an appropriate timeline for publicly revealing the details of the change (with a priority towards ASAP).  Level 1 security risks should not require an emergency upgrade; instead, security FIPs may be approved by the Guild and scheduled for inclusion in the next standard network upgrade.
 2. For **Level 2 security threats**, Core Devs are asked to inform the Filecoin Community Guild about the existence and scope of the threat, but are not obligated to disclose details or provide a FIP draft. With a bias towards open information, Core Devs are asked to collectively decide how much to disclose to the Community Guild.  If disclosed, the Guild is welcome to ask questions and raise concerns, but is not empowered to vote. Core Devs should collectively produce a completed FIP prior to executing a mainnet upgrade/fork, with a bias towards public disclosure ASAP. 
 3. For **Level 3 security threats**, Core Devs are fully empowered to coordinate and address network threats.  Furthermore, decisions should be coordinated, but do not need to reflect full collective consensus.  During Level 3 security threats, the only bias is towards securing the network. If possible, individual Core Devs are empowered to act unilaterally. Once the threat has been mitigated, Core Devs are expected to write a FIP ex post facto. 
 
