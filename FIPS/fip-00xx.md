@@ -14,45 +14,63 @@ spec-sections:
 
 ## Simple Summary
 
-Add a method for a miner to submit several sector prove replica updates messages in a single one.
+This FIP proposes adding functionality for submitting several sector update proofs (as a
+single Groth16 aggregate proof) using a single message, thus allowing many sectors to have
+data updates in them activated simultaneously when the message is posted to the chain.
 
 ## Abstract
 
-The miner `ProveReplicaUpdates` method only supports updating a single sector update at
-a time.  This proposal adds a way for miners to post multiple `ProveReplicaUpdates`s at once in an aggregated fashion
-using a `ProveReplicaUpdatesAggregated` method (or the `ProveReplicaUpdates2` method in [FIP-0076](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md), an alternative proposal that could
-be used instead). This method amortizes some of the costs across multiple sector data updates, and similar to [FIP-0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md)
-(ProvedCommitSectorAggregated), verification times can take advantage of a novel cryptography result. This proposal allows
-many sectors to have data updates in them activated at once when the aggregated message is posted to the chain.
+This proposal adds a way for miners to post multiple `ProveReplicaUpdates`s at once, in the form of
+an aggregate Groth16 proof, using the `ProveReplicaUpdates2` method described in
+[FIP-0076](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md). The miner actor
+method `ProveReplicaUpdates2` currently provisions an interface for, but does not implement, aggregate
+sector update proof verification. This FIP proposes `ProveReplicaUpdates2` be modified to handle aggregate
+proof verification.
 
 ## Change Motivation
 
-The miner `ProveReplicaUpdates` method only supports updating a single sector at
-a time.  While it's not one of the most frequent messages on the chain, it is believed to be the case that it is too
-expensive in the current form to use.
+Adding aggregate proof verification to the method `ProveReplicaUpdates2` amortizes some of the costs associated with
+multiple sector updates, in the same way that [FIP-0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md)'s
+`ProveCommitAggregate` method has done for sealing proofs. While `ProveReplicaUpdate` is not one of the most frequent message
+on chain, it is believed to be too expensive to use in its current form.
 
-Aggregated proof verification allows for more sector update commitments to be proven in
-less time which will reduce processing time and therefore gas cost per prove
-replica update. Verification time and size of an aggregated proof scales logarithmically
-with the number of proofs being included.
+Aggregate proof verification allows for more sector update commitments to be proven in
+less time which will reduce the processing time, and thus the gas cost, per proven
+sector update. Verification time and size of an aggregated proof scales logarithmically
+with the number of proofs included in the aggregate proof.
 
 ## Specification
 
 ### Actor changes
 
-Add a new method `ProveReplicaUpdatesAggregated` which supports a miner
-prove-committing a number of sector updates all at once.  The parameters for this
-method are:
+This change reuses the miner actor method `ProveReplicaUpdates2` (method 34) introduced in
+[FIP-0076](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md) and the method's
+existing call parameters `ProveReplicaUpdates2Params`. The `ProveReplicaUpdates2` method and parameters already
+provision for aggregate proof handling, however the method currently
+[returns an error](https://github.com/filecoin-project/builtin-actors/blob/5b2e99b1bb355e73082d80ce5e25a86725d34363/actors/miner/src/lib.rs#L1116-L1122)
+when an aggregate replica update proof is provided for verification. This FIP proposes replacing the
+method's current aggregate proof handling (i.e. an error) with proper aggregate proof verification
+functionality.
+
+The following shows how the method's existing call parameters `ProveReplicaUpdates2Params`
+accommodate for aggregate proof verification.
 
 ```rust
-struct ProveReplicaUpdateAggregateParams {
-   Sectors:                     []UpdateManifest
-   AggregateProof:              []byte // Before aggregation, concatenate proofs
-   UpdateProofType:             RegisteredUpdateProof
-   AggregateProofType:          RegisteredAggregateProof
-   VerifiedAllocationClaims:    []{} // Must be empty
-   RequireActivationSuccess:    bool
-   RequireNotificationSuccess:  bool
+pub struct ProveReplicaUpdates2Params {
+    // A list of identifiers for the sector's updated in the aggregate proof.
+    pub sector_updates: Vec<SectorUpdateManifest>,
+    // An empty vector.
+    pub sector_proofs: Vec<RawBytes>,
+    // A non-empty vector of bytes representing the aggregate replica update proof (for all updated sectors).
+    pub aggregate_proof: RawBytes,
+    // The replica update proof type; this is the same for all sector updates included in the aggregate proof.
+    pub update_proofs_type: RegisteredUpdateProof,
+    // The aggregate proof type.
+    pub aggregate_proof_type: RegisteredAggregateProof,
+    // Whether to abort if any sector update activation fails.
+    pub require_activation_success: bool,
+    // Whether to abort if any notification returns a non-zero exit code.
+    pub require_notification_success: bool,
 }
 ```
 
@@ -108,13 +126,13 @@ Currently, **GasUsed * BaseFee** is burned for every message. We can achieve the
 func PayBatchGasCharge(numProofsBatched, BaseFee) {
     // Cryptoecon Params (need to be updated if verification benchmarks change)
     BatchDiscount = 1/20 unitless
-    BatchBalancer = 2 nanoFIL
+    BatchBalancer = 5 nanoFIL
     SingleProofGasUsage = 36316136
 
     // Calculating BatchGasCharge
     numProofsBatched = <# of proofs in this batched operation>
     BatchGasFee = Max(BatchBalancer, BaseFee)
-    BatchGasCharge = BatchGasFee * SingleProofGasUsage *  numProofsBatched * BatchDiscount
+    BatchGasCharge = BatchGasFee * SingleProofGasUsage * numProofsBatched * BatchDiscount
 
     // Pay for the batch
     PayNetFee(BatchGasCharge) // this can be a msg.Send to f99. Does not affect BaseFee
@@ -124,7 +142,7 @@ func PayBatchGasCharge(numProofsBatched, BaseFee) {
 
 Implications and rough estimates for this function are described in [Batch Incentive Alignment](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md#batch-incentive-alignment).
 
-The SingleProofGasUsage estimate above is based on FVM's (value)[https://github.com/filecoin-project/ref-fvm/blob/4f2c73e96346cfa7364a51e133ffa906807df7c1/fvm/src/gas/price_list.rs#L193] for verifying a single replica update proof.
+The `SingleProofGasUsage` estimate above is based on FVM's (value)[https://github.com/filecoin-project/ref-fvm/blob/4f2c73e96346cfa7364a51e133ffa906807df7c1/fvm/src/gas/price_list.rs#L193] for verifying a single replica update proof.
 
 #### State Migrations
 
@@ -226,7 +244,7 @@ pub fn get_sector_update_inputs(
     comm_r_old: Commitment,
     comm_r_new: Commitment,
     comm_d_new: Commitment,
-) -> Result<Vec<Vec<Fr>>> { 
+) -> Result<Vec<Vec<Fr>>> {
 ```
 
 As an example, if `aggregate_empty_sector_update_proofs` is called
@@ -264,12 +282,10 @@ This FIP uses the same aggregate proof format introduced in FIP-0013's [Proofs F
 
 ## Design Rationale
 
-The existing `ProveReplicaUpdates` method will not become redundant,
+The existing `ProveReplicaUpdates` method (method 27) will not become redundant,
 since aggregation of smaller batches may not be efficient in terms of
-gas cost (proofs too big or too expensive to verify).  The method is
+gas cost (proofs may be too big or too expensive to verify).  The method is
 left intact to support smooth operation through the upgrade period.
-
-However, it should be noted that if this FIP ends up coordinating with (FIP-0076)[https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md], a single replacement method (`ProveReplicaUpdates2`)[https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md#provereplicaupdates2] should instead be used and that would in fact render `ProveReplicaUpdates` as redundant.
 
 ### Failure handling
 
@@ -289,14 +305,12 @@ A miner may submit multiple batches in a single epoch to grow faster.
 
 ## Backwards Compatibility
 
-This proposal introduces a new exported miner actor method, and thus
-changes the exported method API.  While addition of a method may seem
-logically backwards compatible, it is difficult to retain the precise
-behaviour of an invocation to the (unallocated) method number before
-the method existed.  Thus, such changes must be delivered through a
-major version upgrade to the actors.
+This FIP reuses the miner actor interface proposed and accepted in
+[FIP-0076](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md), however this FIP
+does change the actor's currently implemented behavior (from erroring on aggregate proof
+verification to proper handling of an aggregate proof), thus will require a network upgrade.
 
-This proposal retains the existing non-batch `ProveReplicaUpdates`
+This proposal retains the existing non-batch `ProveReplicaUpdates` (method 27)
 method, so mining operations need not change workflows due to this
 proposal (but _should_ in order to enjoy the reduced gas costs).
 
@@ -335,7 +349,7 @@ The cryptoeconomics of this FIP are similar to that of [FIP-0013](https://github
 
 * The cryptographic implementation for aggregate proving/verifying (i.e. SnarkPack) is currently located in the [`bellperson`](https://github.com/filecoin-project/bellperson/tree/feat-ipp2/src/groth16/aggregate) Rust crate.
 * Integration between Lotus and crypto-land can be found in [rust-fil-proofs](https://github.com/filecoin-project/rust-fil-proofs/tree/supersnaps) and the FFI [here](TBD).
-* Actors changes are in progress here: TBD
+* Actors changes are in progress [here](https://github.com/filecoin-project/builtin-actors/blob/5b2e99b1bb355e73082d80ce5e25a86725d34363/actors/miner/src/lib.rs#L1116-L1122)
 * Lotus integration putting everything together is in progress here: TBD
 
 ## Copyright
