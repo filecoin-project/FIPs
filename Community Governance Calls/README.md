@@ -52,3 +52,14 @@ The call will also be recorded and uploaded to YouTube.
 **Access**
 Details about the call including all resources, notes, agenda etc are openly recorded and maintained in the GovCall folder within the FIPs repo. 
 
+
+
+**Meeting recordings** 
+
+| No    | Date   | Recording | Passcode |
+| ---   | ----   | --------- | -------- |
+|   1   | March 27, 2023     | [Recording](https://fil-org.zoom.us/rec/share/fLp_p8KlbvasrWEK795BTjJ0_sy5qwNhtKsf0sOq973zVEnbW39TbT3KWbK0wuWn.Ai4lNDLBsMJbonWs)      | 90wr.#wh     |
+|   2   | April 24, 2023     | [Recording](https://fil-org.zoom.us/rec/share/JFGDiDU1By9kFTZuT3eFecFX0bk_-VdTaNZdjSf-8TRzbEilYbuvrguAM3sSKGM2.vPf4KlhScZVd1Qko)      | pg.7@M5s   |
+|   3   | June 5  , 2023     | [Recording](https://fil-org.zoom.us/rec/share/2ta_8RrWFMs8gagcTDWKZ0Za9-Ahrtj_kgc7Cvvk7vFiUC3IA8fuZUHiYwx-UVCJ.oD1vBqZAMW1U3Wap)      | =Tq40#GV  |
+|   4   | June 26  ,2023     | [Recording](https://fil-org.zoom.us/rec/share/aBjaGcQml6w1OKC92ffDi15lJT_bqPUx--_8b4BhqWBNBy0r2YsYPfHOB4tTcT_Y.T2d2Ag85CasVWZXy?startTime=1687806180000) | !T2??aUV  |
+|   5   | July 31  ,2023     | [Recording](https://fil-org.zoom.us/rec/share/TMZ1-rz-qpYKE-i169QBIpFRcnEaMNQJR9b-WD0eWxeSJJLV7WXGtvoqoCQg5HL1.sRPAURxzIA01sKPP?startTime=1690830085000) | y9RX?iE!  |

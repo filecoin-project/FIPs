@@ -5,3 +5,5 @@ _site
 vendor/
 fission.yaml
 .sass-cache
+__pycache__
+.venv
