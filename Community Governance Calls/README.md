@@ -37,17 +37,13 @@ Please note that the agenda is flexible.  If community members would like to pro
 All community members are welcome to attend the monthly community governance meeting. 
 
 **Meeting Registration**
-GovCalll is held virtually on the video conferencing platform, Zoom. Meeting  information captured below: 
+GovCall is held virtually on Zoom. Please download the Governance Call calendar below so you can be updated when there are changes to dates or times for the calls.  
 
-https://fil-org.zoom.us/j/87984289089?pwd=S0VaSzh3M2xPRzFXeTIxVERiZSsyQT09
+https://calendar.google.com/calendar/embed?src=c_909343f97c15e8f23dda6e2612e62fcdee14bceabd8869abe4a52d793bf42b98%40group.calendar.google.com&ctz=America%2FToronto 
 
-Meeting ID: 879 8428 9089
-Passcode: 583179
 
 **Notetaking and Recording:** 
-Notes from each monthly community governance call will be taken and shared with community members via email within one week of the call. The minutes will include a summary of the discussion. 
-
-The call will also be recorded and uploaded to YouTube. 
+Monthly calls are recorded and recording shared with community members as well as recorded below. 
 
 **Access**
 Details about the call including all resources, notes, agenda etc are openly recorded and maintained in the GovCall folder within the FIPs repo. 
@@ -60,6 +56,10 @@ Details about the call including all resources, notes, agenda etc are openly rec
 | ---   | ----   | --------- | -------- |
 |   1   | March 27, 2023     | [Recording](https://fil-org.zoom.us/rec/share/fLp_p8KlbvasrWEK795BTjJ0_sy5qwNhtKsf0sOq973zVEnbW39TbT3KWbK0wuWn.Ai4lNDLBsMJbonWs)      | 90wr.#wh     |
 |   2   | April 24, 2023     | [Recording](https://fil-org.zoom.us/rec/share/JFGDiDU1By9kFTZuT3eFecFX0bk_-VdTaNZdjSf-8TRzbEilYbuvrguAM3sSKGM2.vPf4KlhScZVd1Qko)      | pg.7@M5s   |
-|   3   | June 5  , 2023     | [Recording](https://fil-org.zoom.us/rec/share/2ta_8RrWFMs8gagcTDWKZ0Za9-Ahrtj_kgc7Cvvk7vFiUC3IA8fuZUHiYwx-UVCJ.oD1vBqZAMW1U3Wap)      | =Tq40#GV  |
-|   4   | June 26  ,2023     | [Recording](https://fil-org.zoom.us/rec/share/aBjaGcQml6w1OKC92ffDi15lJT_bqPUx--_8b4BhqWBNBy0r2YsYPfHOB4tTcT_Y.T2d2Ag85CasVWZXy?startTime=1687806180000) | !T2??aUV  |
-|   5   | July 31  ,2023     | [Recording](https://fil-org.zoom.us/rec/share/TMZ1-rz-qpYKE-i169QBIpFRcnEaMNQJR9b-WD0eWxeSJJLV7WXGtvoqoCQg5HL1.sRPAURxzIA01sKPP?startTime=1690830085000) | y9RX?iE!  |
+|   3   | June 5, 2023     | [Recording](https://fil-org.zoom.us/rec/share/2ta_8RrWFMs8gagcTDWKZ0Za9-Ahrtj_kgc7Cvvk7vFiUC3IA8fuZUHiYwx-UVCJ.oD1vBqZAMW1U3Wap)      | =Tq40#GV  |
+|   4   | June 26, 2023     | [Recording](https://fil-org.zoom.us/rec/share/aBjaGcQml6w1OKC92ffDi15lJT_bqPUx--_8b4BhqWBNBy0r2YsYPfHOB4tTcT_Y.T2d2Ag85CasVWZXy?startTime=1687806180000) | !T2??aUV  |
+|   5   | July 31, 2023     | [Recording](https://fil-org.zoom.us/rec/share/TMZ1-rz-qpYKE-i169QBIpFRcnEaMNQJR9b-WD0eWxeSJJLV7WXGtvoqoCQg5HL1.sRPAURxzIA01sKPP?startTime=1690830085000) | y9RX?iE!  |
+|   6   | October 2, 2023     | [Recording](https://fil-org.zoom.us/rec/share/R7bdb6GrAxieFk6ZR9Ucpj3VQthVdMKj_IX99fS16rlAcnyeOW38aemDk-IHlnqF.AwDB7c6tMF3HsLZ9) | w0ednU=#  |
+|   7   | October 30, 2023     | [Recording](https://fil-org.zoom.us/rec/share/X2IG863y947Zq51kngOkv87rr-KyFKak8T0a346NAY87VvIv8eb5ruOXOl2_QZlW.fI1BXVJyCXfMVcPt) | B8TP#gF.  |
+|   8  | December 5, 2023     | [Recording](https://fil-org.zoom.us/rec/share/I-XooIurZcsKqvQf_XWtiaAMooLNffCPdUx1DaWBvSyybc7omHbTX7FLTda6dEme.92JfPEgoelAQDpYo) | uzy5!Z6R  |
+
