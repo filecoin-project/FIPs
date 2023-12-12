@@ -15,7 +15,7 @@ This FIP defines and proposes the implementation of a meaningful subset of fire-
 While this FIP explicitly delineates the implementation of events tied to specific transitions, it does not encompass the full spectrum of potential built-in actor events. The introduction and integration of additional built-in actor events will be addressed in subsequent FIPs.
 
 ## Abstract
-[#FIP 0049](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md) introduced and implemented the ability for actors to emit fire-and-forget externally observable events during execution.
+[FIP 0049](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md) introduced and implemented the ability for actors to emit fire-and-forget externally observable events during execution.
 
 This FIP aims to be the first of many for implementing events in the built-in Actors. This specific FIP enumerates, defines and proposes the implementation of a subset of events for data-cap allocation/claims, deal lifecycle and sector life cycle transitions in the Verified Registry, Market and Miner Actors.
 
@@ -33,7 +33,7 @@ While FEVM smart contracts can already emit events, built-in actors are still ev
 Filecoin network observability tools, Block explorers, SP monitoring dashboards, deal brokering software etc need to rely on complex low-level techniques such as State tree diffs to source information about on-chain activity and state transitions. Emitting the select subset of built-in  actor events defined in this FIP will make it easy for these clients to source the information they need by simply subscribing to the events and querying chain state.
 
 ## Specification
- _Please see [#FIP-0049](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md) for a detailed explanation of the FVM event schema and the possible values each field_ 
+ _Please see [FIP-0049](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md) for a detailed explanation of the FVM event schema and the possible values each field_ 
  in the event schema can take. The interpretation of the flags field in each event entry is as follows:
 
  1. {"flags": "0x03”} ⇒ Index both key and value of the event entry
@@ -151,7 +151,7 @@ The event payload is defined as:
 | Index Key + Value | “id” | <DEAL_ID> (int)           |
 
 #### Deal Terminated
-_FIP-0074 ensures that terminated deals are processed immediately in the OnMinerSectorsTerminate method_ 
+[FIP-0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md) ensures that terminated deals are processed immediately in the OnMinerSectorsTerminate method_ 
 rather than being submitted for deferred processing to the market actor cron job. That change will make 
 this event available to clients.
 
@@ -171,7 +171,7 @@ This event is emitted when a deal is marked as successfully complete by the Mark
 The cron job will deem a deal to be successfully completed if it is past it’s end epoch without being slashed.
 
 This event is not usable as it is emitted from a cron job. However, we still emit the event here for 
-completeness. FIP-0074  ensures that the processing of completed deals is done as part of a method called by the Storage Provider thus making this event available to clients and also to ensure that SPs pay the gas costs of processing deal completion and event emission.
+completeness. [FIP-0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md)  ensures that the processing of completed deals is done as part of a method called by the Storage Provider thus making this event available to clients and also to ensure that SPs pay the gas costs of processing deal completion and event emission.
 This applies to new deals made post landing FIP-0074. For deals made before FIP-0074 lands, this event is not usable.
 
 The event payload is defined as:
@@ -254,13 +254,13 @@ interested in.
 Note that cron jobs do not return message receipts containing the emitted events back to the user. 
 Therefore, the Market Actor  `deal-terminated` event will not be usable as it stands today as the deals 
 are terminated by the cron job and so the event is also emitted from the cron job. 
-However, once FIP-0074 is implemented as mentioned in the call out above, this event will be emitted from 
+However, once [FIP-0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md) is implemented as mentioned in the call out above, this event will be emitted from 
 the `OnMinerSectorsTerminate` method itself. This will make the event available to clients and the 
 gas cost for this event will then be paid by the `OnMinerSectorsTerminate` method.
 
 The above is also true for the `deal-completed` event.  Deal completion is currently processed by a 
-cron job and so the event will not be usable by clients. 
-FIP-0074 will ensure that the processing of completed deals is done as part of a method called by the 
+cron job and so the event will not be usable by clients.
+[FIP-0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md) will ensure that the processing of completed deals is done as part of a method called by the 
 Storage Provider thus making this event available to clients
 
 ### Miner Actor Events
@@ -273,7 +273,7 @@ An SP can activate a single sector by using the `ProveCommitSector` method. As o
 schedules a cron job to actually activate the sector which means that the sector activation event will be 
 emitted by the cron job. This makes the event un-usable as events emitted by a cron job are not included 
 in the message receipt. However, we still emit the sector activation event in the Miner Actor for 
-completeness. [#FIP-0076](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md) will ensure that sector activation is actually done as part of the 
+completeness. [FIP-0076](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md) will ensure that sector activation is actually done as part of the 
 `ProveCommitSector` method thus making this event available to clients and also to ensure that SPs 
 actually pay the cost of sector activation and event emission.
 
