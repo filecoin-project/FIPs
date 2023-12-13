@@ -119,3 +119,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0079](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0079.md)   | Add BLS Aggregate Signatures to FVM  | FIP  | Jake (@drpetervannostrand) | Accepted  |
 |[0080](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0080.md)   | Phasing Out Fil+ and Restoring Deal Quality Multiplier to 1x | FIP | @Fatman13, @ArthurWang1255, @stuberman, @Eliovp, @dcasem, @The-Wayvy | Draft |
 |[0081](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0081.md)   | Introduce lower bound for sector initial pledge | FIP | @anorth, @vkalghatgi | Draft |
+|[0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md)   | Add support for aggregated replica update proofs | FIP | nemo (@cryptonemo), Jake (@drpetervannostrand), @anorth | Draft |
