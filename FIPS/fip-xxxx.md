@@ -1,7 +1,7 @@
 ---
-fip: "FIP-xxx"
-title: Add built-in Actor events
-author: "Aarsh Shah"
+fip: "xxx"
+title: Add built-in actor events
+author: "Aarsh Shah (@aarshkshah1992)"
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/754
 status: Draft
 type: Technical (Core)
@@ -17,7 +17,7 @@ While this FIP explicitly delineates the implementation of events tied to specif
 ## Abstract
 [FIP 0049](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md) introduced and implemented the ability for actors to emit fire-and-forget externally observable events during execution.
 
-This FIP aims to be the first of many for implementing events in the built-in Actors. This specific FIP enumerates, defines and proposes the implementation of a subset of events for data-cap allocation/claims, deal lifecycle and sector life cycle transitions in the Verified Registry, Market and Miner Actors.
+This FIP aims to be the first of many for implementing events in the built-in actors. This specific FIP enumerates, defines and proposes the implementation of a subset of events for data-cap allocation/claims, deal lifecycle and sector life cycle transitions in the Verified Registry, Market and Miner Actors.
 
 The events introduced in this FIP will enable *clients* such as network monitoring tools, block explorers, SP <> client deal brokering systems, browser clients, filecoin blockchain oracles etc. to rely on these events as a source of truth for sourcing information about the specific subset of on-chain activity and transitions captured by these events.
 
@@ -30,7 +30,7 @@ Events are emitted by the Miner Actor for each sector that is precommitted, acti
 ## Change Motivation
 While FEVM smart contracts can already emit events, built-in actors are still eventless. This FIP is the first step towards fixing the external observability of built-in actors.
 
-Filecoin network observability tools, Block explorers, SP monitoring dashboards, deal brokering software etc need to rely on complex low-level techniques such as State tree diffs to source information about on-chain activity and state transitions. Emitting the select subset of built-in  actor events defined in this FIP will make it easy for these clients to source the information they need by simply subscribing to the events and querying chain state.
+Filecoin network observability tools, block explorers, SP monitoring dashboards, deal brokering software, etc. need to rely on complex low-level techniques such as state tree diffs to source information about on-chain activity and state transitions. Emitting the select subset of built-in actor events defined in this FIP will make it easy for these clients to source the information they need by simply subscribing to the events and querying chain state.
 
 ## Specification
  _Please see [FIP-0049](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md) for a detailed explanation of the FVM event schema and the possible values each field_ 
@@ -47,8 +47,8 @@ Filecoin network observability tools, Block explorers, SP monitoring dashboards,
  sake of brevity.
 
 ### FVM support for CBOR encoding
-The FVM currently only supports event values encoded with the `raw` encoding. It will now have
-to support CBOR encoding (0x51) as well as built-in actor event values will be encoded with CBOR.
+The FVM currently only supports event values encoded with the `raw` encoding. This FIP adds
+support for CBOR encoding (0x51), and built-in actor event values will be encoded with CBOR.
 
 ### Verified Registry Actor Events
 
@@ -61,7 +61,7 @@ The event payload is defined as:
 |----------------------| --- |--------------------------------------|
 | Index Key + Value    | “$type” | “verifier-balance” (string)          |
 | Index Key + Value    | “verifier” | <VERIFIER_ACTOR_ID> (int)            |
-| Index Key            | “balance” | <VERIFIER_DATACAP_BALANCE> (big int) |
+| Index Key            | “balance” | <VERIFIER_DATACAP_BALANCE> (bigint) |
 
 #### Datacap Allocated
 This event is emitted when a verified client allocates datacap to a specific data set and storage provider.  
@@ -76,7 +76,7 @@ The event payload is defined as:
 | Index Key + Value | “provider” | <SP_ACTOR_ID> (int)     |
 
 #### Datacap Allocation Removed
-This event is emitted when an expired datacap allocation that is past it’s expiration epoch is removed.
+This event is emitted when a datacap allocation that is past its expiration epoch is removed.
 
 The event payload is defined as:
 
@@ -101,7 +101,7 @@ The event payload is defined as:
 | Index Key + Value | “client” | <CLIENT_ACTOR_ID> (int) |
 | Index Key + Value | “provider” | <SP_ACTOR_ID> (int)   |
 
-### Claim Updated
+#### Claim Updated
 This event is emitted when the term of an existing allocation is extended by the client.
 
 The event payload is defined as:
@@ -151,7 +151,7 @@ The event payload is defined as:
 | Index Key + Value | “id” | <DEAL_ID> (int)           |
 
 #### Deal Terminated
-[FIP-0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md) ensures that terminated deals are processed immediately in the OnMinerSectorsTerminate method_ 
+[FIP-0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md) ensures that terminated deals are processed immediately in the `OnMinerSectorsTerminate` method
 rather than being submitted for deferred processing to the market actor cron job. That change will make 
 this event available to clients.
 
@@ -227,13 +227,10 @@ The event payload is defined as:
 
 ## Design Rationale
 Richer and more detailed payloads for the events were initially considered. However, a large event payload 
-increases the event emission gas costs and the gas costs are borne by the users of the built-in actor 
-methods. If clients want more information after receiving an event, they can query the state to do so.
-
-The payload of an event should be as minimal as possible to minimise the event emission gas costs to users 
-of built-in Actor methods. However, the event payloads should still have enough information for most 
-clients consuming the events to determine if they are interested in reacting to the event 
-(e.g. by querying chain state to obtain extra information about the transition).
+increases the event emission gas costs are borne by users of the built-in actor methods. The payload of 
+an event should, therefore, be as minimal as possible to reduce costs. However, the event payloads 
+should still have enough information for clients consuming the events to determine if they are interested in 
+reacting to the event (e.g. by querying chain state to obtain additional information about the transition).
 
 ### Verified Registry Events
 The Verified Registry Event payloads have the allocation/claim IDs and client and provider Actor IDs. 
@@ -242,11 +239,11 @@ in and then query the chain state with the corresponding allocation/claim ID to 
 
 ### Market Actor Events
 Once a deal is published, clients have access to the `dealId` of the deal. All Market Actor events except 
-for the “deal published” event have the dealId in their payload which clients can use to filter for events
+for the “deal published” event have the `dealId` in their payload, which clients can use to filter for events
 they are interested in and then query the chain state for more information.
 
 The `dealId` is not known to the storage client before the deal is actually published as it is generated by 
-the storage provider during the call to `PublishStorageDeals`. Therefore, to make the `deal published` 
+the storage provider during the call to `PublishStorageDeals`. Therefore, to make the `deal-published` 
 event useful to subscribers and storage clients, the payload for that event also includes the `client` 
 and `provider` Actors IDs so that listeners can filter this event by specific deal making parties they are
 interested in.
@@ -254,9 +251,9 @@ interested in.
 Note that cron jobs do not return message receipts containing the emitted events back to the user. 
 Therefore, the Market Actor  `deal-terminated` event will not be usable as it stands today as the deals 
 are terminated by the cron job and so the event is also emitted from the cron job. 
-However, once [FIP-0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md) is implemented as mentioned in the call out above, this event will be emitted from 
-the `OnMinerSectorsTerminate` method itself. This will make the event available to clients and the 
-gas cost for this event will then be paid by the `OnMinerSectorsTerminate` method.
+However, once [FIP-0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md) is implemented, 
+this event will be emitted from the `OnMinerSectorsTerminate` method itself. This will make the event available to 
+clients and the gas cost for this event will be paid by the `OnMinerSectorsTerminate` method.
 
 The above is also true for the `deal-completed` event.  Deal completion is currently processed by a 
 cron job and so the event will not be usable by clients.
@@ -288,15 +285,15 @@ This proposal does not remove or change any exported APIs, nor change any state 
 It is backwards compatible for all callers. Since it requires a change to actor code, a network upgrade is 
 required to deploy it.
 
-The actor events introduced in this FIP are fire and forget. No event is persisted in the Actor state and 
+The actor events introduced in this FIP are fire and forget. No event is persisted in the actor state and 
 clients can choose not to consume any/all of the events.
 
-Events emitted by built-in Actors do form a part of the `MessageReceipt` chain data structure  via 
+Events emitted by built-in actors do form a part of the `MessageReceipt` chain data structure  via 
 the existing `events_root` field on `MessageReceipt`. While this field is set to empty today for 
 built-in actor method calls, this field will contain a value once built-in actors start emitting events.
 
-This FIP proposes adding CBOR encoding for encoding event values and clients that are interested in 
-built-in Actor events will have to upgrade to understand CBOR.
+This FIP proposes adding CBOR encoding for event values. Clients that are interested in 
+built-in actor events will need to upgrade to understand CBOR.
 
 However, this FIP does not propose changing the existing event schema or changing any of the chain 
 data structures including the `MessageReceipt` structure. So, this change should be completely backward 
@@ -305,7 +302,7 @@ compatible.
 ## Test Cases
 All pre-existing unit tests in the Verified Registry, Market and Miner Actors should expect and observe the emission of the events defined in this proposal wherever applicable.
 
-Existing Integration tests should also expect and observe the emission of events defined in this proposal wherever applicable.
+Existing integration tests should also expect and observe the emission of events defined in this proposal wherever applicable.
 
 ## Security Considerations
 This proposal does not introduce any reductions in security.
@@ -317,8 +314,8 @@ emit the events defined in this FIP.
 
 While this increased gas cost is borne by the users of the methods, the benefit of the emitted events 
 is enjoyed by networking monitoring tools, network accounting tools, block explorer tools and other 
-external agents that provide some sort of value added service to the Filecoin network.  However, 
-improved implementation of these tools should indirectly benefit the network users.
+external agents that provide some value-added services to the Filecoin network.  Improved 
+implementation of these tools should indirectly benefit the network users.
 
 ## Product Considerations
 This FIP will enable tools dedicated to network observability, monitoring, and accounting, as well as 
