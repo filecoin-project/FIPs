@@ -20,14 +20,16 @@ Upgradable actors provide a framework for seamlessly replacing deployed actor co
 
 ## Change Motivation
 
-Currently, all actors on the Filecoin Network are immutable once deployed. To modify the underlying actor code, such as fixing a security bug, the following steps are required:
+Currently, the code associated with all actors on the Filecoin Network are immutable once deployed. To modify the actor code, such as fixing a security bug, the following steps are required:
 1. Deploy a new actor with the corrected code.
 2. Migrate all state from the previous actor to the new one.
 3. Update all other actors interacting with the old actor to use the new actor.
 
 By adding support for upgradable actors, deployed actors can easily upgrade their code and no longer need to go through the series of steps mentioned above.
 
-This also simplifies the upgrade process for builtin actors. Currently, any changes made to the builtin actors require a network upgrade, a new Lotus version, and collaboration with the network to push the new version to production. This is a time consuming and manual process. However, with upgradable actors, we can instead deploy a new code to the builtin actors allowing the changes to be pushed to production almost instantly and does not require a new network upgrade or new Lotus version.
+This FIP is also motivated by the `f4` extensible address class which was introduced in [FIP-0048] and required special "placeholder" actors to support interactions with addresses that do not yet exist on-chain. With upgradable actors we can simplify this address class and remove these placeholder actors completely and instead deploy real actors and upgrade their code on first send.
+
+Furthermore, this FIP paves the way for moving more network upgrade logic on-chain in the future, enabling a more seamless process for implementing critical updates and ensuring the continuous improvement of the Filecoin Network.
 
 ## Specification
 
@@ -66,18 +68,28 @@ When a target actor's `upgrade` WASM entrypoint is called, it can make necessary
 
 ### New upgrade_actor syscall
 
-We introduce a new `upgrade_actor` syscall which calls the `upgrade` wasm entrypoint of the calling actor and then atomically replaces the code CID of the calling actor with the provided code CID. It is defined as follows:
+We introduce a new `upgrade_actor` syscall which calls the `upgrade` wasm entrypoint of the calling actor and then atomically replaces the code CID of the calling actor with the provided code CID, and returns the exit code and block ID of the return. It is defined as follows:
 
 ```rust
 pub fn upgrade_actor(
     new_code_cid_off: *const u8,
     params: u32,
-) -> Result<Send>;
+) -> Result<CallResult>;
 ```
 
 Parameters:
 - `new_code_cid_off`: The code CID the calling actor should be replaced with.
 - `params`: The IPLD block handle passed, or `0` for none.
+
+The `CallResult` struct is defined as follows:
+
+```rust
+pub struct CallResult {
+    pub block_id: BlockId,
+    pub block_stat: BlockStat,
+    pub exit_code: ExitCode,
+}
+```
 
 On successful upgrade, this syscall will not return. Instead, the current invocation will "complete" and the return value will be the block returned by the new code's `upgrade` endpoint. If the new code rejects the upgrade (calls `sdk::vm::exit()`) or performs an illegal operation, this syscall will return the exit code plus the error returned by the upgrade endpoint.
 
@@ -85,13 +97,13 @@ This syscall will:
 1. Validate that the pointers passed to the syscall are in-bounds.
 2. Validate that `new_code_cid_off` is a valid code CID.
 3. Validate that the calling actor is not currently executing in "read-only" mode. If so, the syscall fails with a "ReadOnly" (13) syscall error.
-4. Checks whether the calling actor is already on the call stack where it has previously been called on its `invoke` entrypoint (note that we allow calling `upgrade` recursively). If so, the syscall fails with a "Forbidden" (11) syscall error.
+4. Checks whether the calling actor is already on the call stack where it has previously been called on its `invoke` entrypoint (note that we allow calling `upgrade` recursively). If so, the syscall fails with a "Forbidden" (11) syscall error. For example if an actor A has a call stack `A (upgrade -> upgrade -> upgrade)` then that is allowed, while call stack `A -> B -> A (upgrade)` would be rejected.
 5. Checks that we have space for storing the return block. If not, the syscall fails with a "LimitExceeded" (3) syscall error.
 6. Start a new Call Manager transaction:
     1. Validate that the calling actor has not been deleted. If so, the syscall fails with a "IllegalOperation" (2) syscall error.
     2. Update the actor in the state tree with the new `new_code_cid` keeping the same `state`, `sequence` and `balance`.
     3. Invoke the target actor's `upgrade` entrypoint.
-    4. If the target actor does not implement the `upgrade` entrypoint, then return the syscall fails with a `ExitCode::SYS_INVALID_RECEIVER` exit code.
+    4. If the target actor does not implement the `upgrade` entrypoint, the syscall fails with a `ExitCode::SYS_INVALID_RECEIVER` exit code.
     5. If the target actor aborts the `upgrade` entrypoint by calling `sdk::vm::exit()`, the syscall fails with the provided exit code.
 7. Apply transaction, committing changes.
 8. Abort the calling actor and return the IPLD block from the `upgrade` entrypoint.
@@ -100,7 +112,7 @@ This syscall will:
 
 ### Additional metadata syscall
 
-We considered adding a new `get_old_code_cid` syscall to get the calling actors code CID. That has the benefit of keeping the `upgrade` entrypoint signature consistent with the `invoke` signature. We however rejected that as we felt the benefit didn't outweight the overhead of adding a new syscall. Furthermore, it did not provide the flexibility of passing in a IPLD handle for a `UpgradeInfo` struct where we can easily add more fields if required.
+We considered adding a new `get_old_code_cid` syscall to get the calling actors code CID. That has the benefit of keeping the `upgrade` entrypoint signature consistent with the `invoke` signature. We however rejected that as we felt the benefit didn't outweigh the overhead of adding a new syscall. Furthermore, it did not provide the flexibility of passing in an IPLD handle for a `UpgradeInfo` struct where we can easily add more fields if required.
 
 ## Backwards Compatibility
 
@@ -126,7 +138,7 @@ This FIP does not materially impact incentives in any way.
 
 ## Product Considerations
 
-This FIP makes it possible to upgrade deployed actors, for example in cases where a bug or security concern was identified in the deployed code, allowing a simple safe way to addres such issues which significantly improves the user experience from how it is today.
+This FIP makes it possible to upgrade deployed actors, for example in cases where a bug or security concern was identified in the deployed code, allowing a simple safe way to address such issues which significantly improves the user experience from how it is today.
 
 ## Implementation
 
