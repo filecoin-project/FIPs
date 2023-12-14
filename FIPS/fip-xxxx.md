@@ -149,6 +149,8 @@ The event payload is defined as:
 | --- | --- |---------------------------|
 | Index Key + Value | “$type” | "deal-activated" (string) |
 | Index Key + Value | “id” | <DEAL_ID> (int)           |
+| Index Key + Value | "client" | <STORAGE_CLIENT_ACTOR_ID> (int)   |
+| Index Key + Value | "provider" | <STORAGE_PROVIDER_ACTOR_ID> (int) |
 
 #### Deal Terminated
 [FIP-0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md) ensures that terminated deals are processed immediately in the `OnMinerSectorsTerminate` method
@@ -165,6 +167,8 @@ The event payload is defined as:
 | --- | --- |----------------------------|
 | Index Key + Value | “$type” | "deal-terminated" (string) |
 | Index Key + Value | “id” | <DEAL_ID> (int)            |
+| Index Key + Value | "client" | <STORAGE_CLIENT_ACTOR_ID> (int)   |
+| Index Key + Value | "provider" | <STORAGE_PROVIDER_ACTOR_ID> (int) |
 
 #### Deal Completed Successfully 
 This event is emitted when a deal is marked as successfully complete by the Market Actor cron job. 
@@ -180,6 +184,8 @@ The event payload is defined as:
 | --- | --- |---------------------------|
 | Index Key + Value | “$type” | "deal-completed" (string) |
 | Index Key + Value | “id” | <DEAL_ID> (int)           |
+| Index Key + Value | "client" | <STORAGE_CLIENT_ACTOR_ID> (int)   |
+| Index Key + Value | "provider" | <STORAGE_PROVIDER_ACTOR_ID> (int) |
 
 ### Miner Actor Events
 The Miner Actor emits the following sector lifecycle events:
