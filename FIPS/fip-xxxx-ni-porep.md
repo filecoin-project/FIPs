@@ -1,8 +1,14 @@
-# FIP NI PoRep draft
-
-| fip | title | author | discussion-to | status | type | category | created |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-|  | NI-PoRep |  | https://github.com/filecoin-project/FIPs/discussions/854 | Draft | Technical | Core |  |
+---
+fip: "0059"
+title: NI-Porep
+author: "@Luca @Kubuxu @Nicola @nemo @vmx"
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/854 
+status: Draft
+type: Technical
+category: Core
+created: 18 dec 2023
+---
+# NI-PoRep 
 
 ## Simple Summary
 
