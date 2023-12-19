@@ -101,17 +101,17 @@ With this in mind, the F3 component interface and properties are given below.
 >
 > **Properties:**
 >
-> **Agreement.** If two honest participants finalize $(i,h,*)$ and $(i,h',*)$, then $h = h'$.
+> **Agreement.** If two honest participants finalize $(i,h,\ast)$ and $(i,h',\ast)$, then $h = h'$.
 >
-> **Validity.** If an honest participant finalizes $(i,h,*)$, then $h$ is a prefix of the canonical input chain of some honest participant $p'$ in instance $i$.
+> **Validity.** If an honest participant finalizes $(i,h,\ast)$, then $h$ is a prefix of the canonical input chain of some honest participant $p'$ in instance $i$.
 >
 > **Proof of Finality.** If an honest participant finalizes $(i,h,PoF)$, then $PoF$ is signed by ⅔ QAP majority corresponding to the $\texttt{PowerTable}(baseChain)'$ input in instance $i$ of some honest participant $p'$.
 >
 > **Progress.** If the system is $\Delta$-synchronous, i.e.,
 > * All honest participants can communicate within a known time bound $\Delta$, and
-> * no honest participants invokes $\texttt{F3}(i, *, *)$ later than $\Delta$ after another participant invokes $\texttt{F3}(i, *, *)$,
+> * no honest participants invokes $\texttt{F3}(i, \ast, \ast)$ later than $\Delta$ after another participant invokes $\texttt{F3}(i, \ast, \ast)$,
 >
-> Let c be the heaviest common prefix of the inputs of all honest participants in instance $i$. Then, if an honest participant finalizes $(i,c',*)$, $c$ is a prefix of $c'$ with probability > 0.5.
+> Let c be the heaviest common prefix of the inputs of all honest participants in instance $i$. Then, if an honest participant finalizes $(i,c',\ast)$, $c$ is a prefix of $c'$ with probability > 0.5.
 >
 > **Termination.** If the system is $\Delta$-synchronous, every call to F3 eventually returns with probability 1.
 >
