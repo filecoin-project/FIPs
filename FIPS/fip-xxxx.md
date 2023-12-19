@@ -34,7 +34,7 @@ We specify a mechanism for fast finality with the F3 component. F3 is expected t
 ## Specification
 
 
-### Background 
+### Background
 
 [Expected Consensus (EC)](https://spec.filecoin.io/algorithms/expected_consensus/) is the current mechanism by which participants in the Filecoin network reach an agreement on tipsets. A tipset is a set of blocks with the same epoch and the same set of parents. EC is a longest-chain protocol (more accurately, a heaviest-chain protocol) in which each participant independently builds the chain as it receives blocks from the network. Time is divided into slots of 30 seconds, called _epochs_. In each epoch, the protocol elects a set of network participants (i.e., storage providers) to become proposers. Each proposer can construct a new block and broadcast it to the network. On reception, each participant appends the block to its local view of the blockchain. Each tipset has a _weight_ corresponding to the total number of blocks in the path between the genesis and the tipset (the actual weight function is slightly more complex in reality, but this approximation is sufficient for this document). An example blockchain data structure is shown below, indicating the weight of each tipset in parentheses.
 
@@ -42,7 +42,7 @@ We specify a mechanism for fast finality with the F3 component. F3 is expected t
 
 Two or more tipsets of the same epoch with different parent tipsets (like tipsets _C_ and _C'_ above) form a _fork_ in the chain. Forks are resolved using a _fork choice rule_, a deterministic algorithm that, given a blockchain data structure, returns the heaviest tipset, called the _head_. We refer to the path from genesis to the head as the _canonical chain_. Participants may have different views of the blockchain, resulting in other canonical chains. For example, if a participant _p<sub>1</sub>_ is not (yet) aware of tipset _D_, it would consider _C_ the heaviest tipset with the canonical chain _[G A B C]_. Another participant _p<sub>2</sub>_ aware of tipset _D_ will consider _[G A C’ D]_ to be the canonical chain. Once _p<sub>1</sub>_ becomes aware of tipset _D_, it will update its canonical chain to _[G A C’ D]_ - this is called _reorganization_. We say a tipset is _finalized_ when a reorganization involving that tipset is impossible, i.e., when a different path that does not contain the tipset cannot become the canonical chain.
 
-In EC and, generally, longest-chain protocols, the probability of a path from some tipset _h_ to the genesis tipset becoming finalized increases with the number of descendant tipsets of _h_. This happens because the weight of the heaviest chain increases the fastest, as the tipsets with the most new blocks are appended to it (assuming that honest participants form a majority). In the particular case of EC, in each epoch, most created blocks are expected to come from honest participants and thus extend the heaviest chain. Consequently, it becomes progressively harder for a different path to overcome that weight. Over time, the probability of a tipset never undergoing a reorganization becomes high enough that the tipset is considered final for all practical purposes. In the Filecoin network, a tipset that is part of the heaviest chain is considered final after 900 epochs (or, equivalently, 7.5 hours) from its proposal. 
+In EC and, generally, longest-chain protocols, the probability of a path from some tipset _h_ to the genesis tipset becoming finalized increases with the number of descendant tipsets of _h_. This happens because the weight of the heaviest chain increases the fastest, as the tipsets with the most new blocks are appended to it (assuming that honest participants form a majority). In the particular case of EC, in each epoch, most created blocks are expected to come from honest participants and thus extend the heaviest chain. Consequently, it becomes progressively harder for a different path to overcome that weight. Over time, the probability of a tipset never undergoing a reorganization becomes high enough that the tipset is considered final for all practical purposes. In the Filecoin network, a tipset that is part of the heaviest chain is considered final after 900 epochs (or, equivalently, 7.5 hours) from its proposal.
 
 
 ### F3 Overview and Interaction with EC
@@ -68,7 +68,7 @@ We further adapt our protocols to align the actions of honest and rational parti
 
 F3 and its implementation GossiPBFT provide additional robustness for strong adversaries that control more than ⅓ QAP, such as:
 
-* Censorship resistance against a coalition of rational participants trying to leak power, without providing firm guarantees. 
+* Censorship resistance against a coalition of rational participants trying to leak power, without providing firm guarantees.
 * Resilience to long-range attacks by an adversary controlling up to less than ⅔ QAP of any old power table.
 
 
@@ -77,7 +77,7 @@ F3 and its implementation GossiPBFT provide additional robustness for strong adv
 F3 uses GossipSub (like Filecoin EC) to disseminate protocol messages, implementing a broadcast channel among participants. We assume and model GossipSub to satisfy the following properties of the _best-effort broadcast primitive_ (denoted _BEBroadcast_ hereafter):
 
 * If _p_ and _p’_ are honest, then every message broadcast by _p_ is eventually delivered by _p’_.
-* No message with sender _p_ is delivered unless it was previously broadcast by _p_. 
+* No message with sender _p_ is delivered unless it was previously broadcast by _p_.
 
 
 ### Partially Synchronous Model and Δ-Synchrony
@@ -89,34 +89,34 @@ In practice, if GossipSub is used for _BEBroadcast_, _Δ_ is effectively the ass
 For termination, we assume a classical partially synchronous model with an unknown bound on communication delays among non-Byzantine participants.
 
 
-### Properties of F3 
+### Properties of F3
 
 F3 is not identical to classical consensus, however similar to it. In a nutshell, the reasons why EC and Filecoin should not rely on classical consensus properties (implemented by existing off-the-shelf BFT consensus protocol) for fast finality are twofold: EC incentive compatibility and resilience to Filecoin power leakage attacks in case of a strong adversary. We refer to the accompanying document [Appendix A: F3 requirements specific to Filecoin and EC](https://docs.google.com/document/d/17FBkZzrVWZg2zmq3JJcSZdn7MfbAPC9Lv2FgG42omxo/edit#heading=h.jg4hdeovc1zg) for more details.
 
-With this in mind, the F3 component interface and properties are given below. 
+With this in mind, the F3 component interface and properties are given below.
 
 > **Interface and properties of F3 at participant p:**
-> 
-> `F3.invoke (int i, chain canonical, chain baseChain)` **returns** (we say finalizes) `(int i, chain h, proof_of_finality PoF)` 
-> 
+>
+> `F3.invoke (int i, chain canonical, chain baseChain)` **returns** (we say finalizes) `(int i, chain h, proof_of_finality PoF)`
+>
 > **Properties:**
-> 
+>
 > **Agreement.** If two honest participants finalize _(i,h,*)_ and _(i,h’,*)_, then _h_ = _h_’.
-> 
-> **Validity.** If an honest participant finalizes _(i,h,*)_, then _h_ is a prefix of the canonical input chain of some honest participant _p’_ in instance _i_. 
-> 
-> **Proof of Finality.** If an honest participant finalizes _(i,h,PoF)_, then _PoF_ is signed by ⅔ QAP majority corresponding to the _PowerTable(baseChain)’_ input in instance _i_ of some honest participant _p’_. 
-> 
-> **Progress.** If the system is _Δ_-synchronous, i.e., 
+>
+> **Validity.** If an honest participant finalizes _(i,h,*)_, then _h_ is a prefix of the canonical input chain of some honest participant _p’_ in instance _i_.
+>
+> **Proof of Finality.** If an honest participant finalizes _(i,h,PoF)_, then _PoF_ is signed by ⅔ QAP majority corresponding to the _PowerTable(baseChain)’_ input in instance _i_ of some honest participant _p’_.
+>
+> **Progress.** If the system is _Δ_-synchronous, i.e.,
 > * All honest participants can communicate within a known time bound _Δ_, and
-> * no honest participants invokes _F3(i, *, *)_ later than _Δ_ after another participant invokes _F3(i, *, *)_, 
-> 
+> * no honest participants invokes _F3(i, *, *)_ later than _Δ_ after another participant invokes _F3(i, *, *)_,
+>
 > Let c be the heaviest common prefix of the inputs of all honest participants in instance _i_. Then, if an honest participant finalizes _(i,c’,*)_, _c is a prefix of c_’ with probability > 0.5.
-> 
+>
 > **Termination.** If the system is _Δ_-synchronous, every call to F3 eventually returns with probability _1_.
-> 
-> **EC Incentive compatibility.** An honest participant never contributes to gathering ⅔ QAP (super-majority) of votes for a chain _c_ which its local EC instance did not already deliver unless it already observes evidence of such a super-majority for chain _c_. 
-> 
+>
+> **EC Incentive compatibility.** An honest participant never contributes to gathering ⅔ QAP (super-majority) of votes for a chain _c_ which its local EC instance did not already deliver unless it already observes evidence of such a super-majority for chain _c_.
+>
 > `F3.ECupdate (int i, chain c)`: Participant _p_ updates F3 instance _i_ with chain _c_, which its EC instance locally delivered (relevant to EC incentive compatibility)
 
 We later show the specific estimate chosen for _Δ_ to optimize termination (See [here](#Synchronization-of-Participants-in-the-Current-Instance)).
@@ -138,7 +138,7 @@ A participant that invokes the _GossiPBFT()_ function starts a consensus instanc
 Verify(PoF, decision, participants) → boolean
 ```
 
-This function uses the _PoF_ to verify that _decision_ was the output of some instance of consensus executed among the _participants_. 
+This function uses the _PoF_ to verify that _decision_ was the output of some instance of consensus executed among the _participants_.
 
 
 ### Power Table and Consensus Participants
@@ -165,12 +165,12 @@ while True:
 participants ← PowerTable(finalizedTipsets[i-1].tipset)
 proposal ← ChainHead()
 finalizedTipset, PoF ← GossiPBFT(i, proposal, participants)
-	finalizedTipsets[i].tipset ← finalizedTipset
-	finalizedTipsets[i].PoF ← PoF
-	i ← i + 1
+  finalizedTipsets[i].tipset ← finalizedTipset
+  finalizedTipsets[i].PoF ← PoF
+  i ← i + 1
 ```
 
-Each participant keeps track of the finalized tipsets and respective proofs of finality in a data structure named _finalizedTipsets_. It contains one _finalizedTipsets[i]_ entry per consensus instance where _finalizedTipsets[i].tipset_ and _finalizedTipsets[i].PoF_ denote, respectively, the tipset and PoF output by consensus instance _i_. A participant considers a tipset finalized if it is included in _finalizedTipsets_ or is an ancestor of some tipset included in _finalizedTipsets_. 
+Each participant keeps track of the finalized tipsets and respective proofs of finality in a data structure named _finalizedTipsets_. It contains one _finalizedTipsets[i]_ entry per consensus instance where _finalizedTipsets[i].tipset_ and _finalizedTipsets[i].PoF_ denote, respectively, the tipset and PoF output by consensus instance _i_. A participant considers a tipset finalized if it is included in _finalizedTipsets_ or is an ancestor of some tipset included in _finalizedTipsets_.
 
 The algorithm starts by initializing _finalizedTipsets[0]_ with the genesis tipset. This tipset is pre-defined as finalized and does not require a PoF. Then, in each iteration _i_ of the loop, it takes the following steps (see [this document](https://docs.google.com/document/d/1FzTNGG0N00RP80X0ARSmdUQLwe2iCS-EwxMrhAhqCbw/edit) for details):
 
@@ -186,27 +186,27 @@ To prevent useless instances of GossiPBFT deciding on the same _baseChain_ becau
 
 EC needs to be modified to accommodate the finalization of tipsets by F3. **This is the only change to EC this FIP introduces.**
 
-The current EC fork-choice rule selects, from all the known tipsets, the tipset backed by the most weight. As the F3 component finalizes tipsets, the fork-choice rule must ensure that the heaviest finalized chain is always a prefix of the heaviest chain, preventing reorganizations of the already finalized chain. 
+The current EC fork-choice rule selects, from all the known tipsets, the tipset backed by the most weight. As the F3 component finalizes tipsets, the fork-choice rule must ensure that the heaviest finalized chain is always a prefix of the heaviest chain, preventing reorganizations of the already finalized chain.
 
-We achieve this by adjusting the definition of weight for a finalized prefix: the heaviest finalized chain is the one that **matches exactly the tipsets finalized by F3**, in that a tipset _T’_ that is a superset of finalized tipset _T_ in the same epoch is not heavier than _T_ itself, despite it being backed by more EC power. 
+We achieve this by adjusting the definition of weight for a finalized prefix: the heaviest finalized chain is the one that **matches exactly the tipsets finalized by F3**, in that a tipset _T’_ that is a superset of finalized tipset _T_ in the same epoch is not heavier than _T_ itself, despite it being backed by more EC power.
 
 This redefinition of the heaviest chain is consistent with the abstract notion of the heaviest chain being backed by the most power because a finalized tipset has been backed by a super-majority of participants in GossiPBFT. In contrast, any non-finalized block in the same epoch is only backed in that epoch by the EC proposer.
 
-We illustrate the updated rule in the following figure, where blocks in blue are finalized blocks, and all blocks are assumed to be proposed by a proposer holding only one EC ticket (the weight of a chain is the number of blocks): 
+We illustrate the updated rule in the following figure, where blocks in blue are finalized blocks, and all blocks are assumed to be proposed by a proposer holding only one EC ticket (the weight of a chain is the number of blocks):
 
 ![](https://hackmd.io/_uploads/SJumBiT8p.png)
 
-The current EC fork-choice rule would select the tipset _{D<sub>0</sub>, D<sub>1</sub>}_ as the head of the heaviest chain. However, the heaviest finalized tipset is _{C<sub>3</sub>}_, which is not an ancestor of _{D<sub>0</sub>, D<sub>1</sub>}_. Therefore, the new fork choice rule selects _{D<sub>3</sub>}_ as the head of the heaviest chain. The reason why _D<sub>4</sub>_ is not selected is that its parent tipset does not exactly match the finalized tipset _{C<sub>3</sub>}_, but a superset of it, i.e. _{C<sub>3</sub>, C<sub>4</sub>}_. 
+The current EC fork-choice rule would select the tipset _{D<sub>0</sub>, D<sub>1</sub>}_ as the head of the heaviest chain. However, the heaviest finalized tipset is _{C<sub>3</sub>}_, which is not an ancestor of _{D<sub>0</sub>, D<sub>1</sub>}_. Therefore, the new fork choice rule selects _{D<sub>3</sub>}_ as the head of the heaviest chain. The reason why _D<sub>4</sub>_ is not selected is that its parent tipset does not exactly match the finalized tipset _{C<sub>3</sub>}_, but a superset of it, i.e. _{C<sub>3</sub>, C<sub>4</sub>}_.
 
 
-### Bootstrapping 
+### Bootstrapping
 
-Integrating F3 into Filecoin follows the usual path for Filecoin upgrades. One epoch, _upgradeEpoch_, will be defined as the target epoch upon which participants upgrade Filecoin. Then, every participant starts the first instance with the tipset at the _upgradeEpoch_ minus the 900-epoch lookback as the head tipset of the first _baseChain_, which is assumed by design to be common to all participants. 
+Integrating F3 into Filecoin follows the usual path for Filecoin upgrades. One epoch, _upgradeEpoch_, will be defined as the target epoch upon which participants upgrade Filecoin. Then, every participant starts the first instance with the tipset at the _upgradeEpoch_ minus the 900-epoch lookback as the head tipset of the first _baseChain_, which is assumed by design to be common to all participants.
 
 
 ### GossiPBFT Consensus
 
-This section provides the specification of GossiPBFT, the consensus protocol that is iteratively instantiated by the F3 loop and returns a decision (in the form of an F3-finalized chain) and a PoF per instance. 
+This section provides the specification of GossiPBFT, the consensus protocol that is iteratively instantiated by the F3 loop and returns a decision (in the form of an F3-finalized chain) and a PoF per instance.
 
 GossiPBFT is a Byzantine fault-tolerant consensus protocol that is resilient optimal, i.e., it tolerates up to less than ⅓ QAP being controlled by a Byzantine adversary. Each instance of the protocol has a known set of participants. Each participant inputs a proposal value, and the protocol outputs one of the input values as the **final** decision value. We emphasize _final_ because, unlike a longest-chain protocol, the output of GossiPBFT is permanent (see [main design document](https://docs.google.com/document/d/17FBkZzrVWZg2zmq3JJcSZdn7MfbAPC9Lv2FgG42omxo/edit) for details).
 
@@ -217,8 +217,8 @@ GossiPBFT was designed with the Filecoin network in mind and presents a set of f
 * Unlike PBFT, HotStuff, Tendermint, and many other protocols in this space, GossiPBFT is a leaderless protocol. This property makes it resistant to denial of service attacks because no designated participant represents the weakest link.
 * Low latency. During periods of synchrony and honest proposers, GossiPBFT will finish in three communication steps. We expect this to happen within tens of seconds.
 * GossiPBFT has been tailored with Filecoin and open blockchains in mind, with strong resilience against censorship attacks and incentive compatibility for rational participants.
-* GossiPBFT is tailored to using a broadcast communication primitive, GossipSub, which Filecoin already uses. 
-* GossipPBFT internal invariants, on which the protocol correctness is based, are very similar to those of the seminal PBFT protocol, making protocol correctness easier to establish. 
+* GossiPBFT is tailored to using a broadcast communication primitive, GossipSub, which Filecoin already uses.
+* GossipPBFT internal invariants, on which the protocol correctness is based, are very similar to those of the seminal PBFT protocol, making protocol correctness easier to establish.
 
 
 #### Message format, signatures, and equivocation
@@ -227,60 +227,60 @@ Messages include the following fields: _<Sender, Signature, MsgType, Value, Inst
 
 ```
 type GossiPBFTMessage struct {
-	// ID of the sender/signer of this message (a miner actor)
-	Sender ActorID
-	// BLS Signature
-	Signature []bytes
-        // Enumeration of QUALITY, PREPARE, COMMIT, CONVERGE, DECIDE
-	MsgType int
-        // Chain of tipsets proposed/voted for finalization in this instance.
-        // Non-empty: the first entry is the base tipset finalized in instance-1
-	Value []ECTipset	
-	// GossiPBFT instance number
-	Instance int
-	// GossiPBFT round for this message
-	Round int
-	// Aggregated GossiPBFTMessages that justify this message
-	Evidence AggregatedEvidence
-        // GossiPBFT ticket (only for CONVERGE)
-	Ticket []byte 
+  // ID of the sender/signer of this message (a miner actor)
+  Sender ActorID
+  // BLS Signature
+  Signature []bytes
+  // Enumeration of QUALITY, PREPARE, COMMIT, CONVERGE, DECIDE
+  MsgType int
+  // Chain of tipsets proposed/voted for finalization in this instance.
+  // Non-empty: the first entry is the base tipset finalized in instance-1
+  Value []ECTipset
+  // GossiPBFT instance number
+  Instance int
+  // GossiPBFT round for this message
+  Round int
+  // Aggregated GossiPBFTMessages that justify this message
+  Evidence AggregatedEvidence
+  // GossiPBFT ticket (only for CONVERGE)
+  Ticket []byte
 }
 
 type ECTipset struct {
-	Epoch int
-	Tipset CID // Or TipsetKey (concat of block header CIDs)
-	Weight BigInt
-	PowerTable CID // CID of a PowerTable
+  Epoch int
+  Tipset CID // Or TipsetKey (concat of block header CIDs)
+  Weight BigInt
+  PowerTable CID // CID of a PowerTable
 }
 
 // Table of nodes with power >0 and their public keys.
 // This is expected to be calculated from the EC chain state and provided to GossiPBFT.
 // In descending order to provide unique representation.
 type PowerTable {
-	Entries []PowerTableEntry
+  Entries []PowerTableEntry
 }
 
 type PowerTableEntry {
-	ParticipantID ActorID
-	Power BigInt
-	Key BLSPublicKey
+  ParticipantID ActorID
+  Power BigInt
+  Key BLSPublicKey
 }
 
 // Aggregated list of GossiPBFT messages with the same instance, round and value. Used as evidence for justification of messages
 type AggregatedEvidence {
-	// Enumeration of QUALITY, PREPARE, COMMIT, CONVERGE, DECIDE
-	MsgType int
-        // Chain of tipsets proposed/voted for finalisation in this instance.
-        // Non-empty: the first entry is the base tipset finalised in instance-1
-	Value []ECTipset	
-	// GossiPBFT instance number
-	Instance int
-	// GossiPBFT round
-	Round int
-	// Indexes in the base power table of the signers (bitset)
-	Signers []bytes
-	// BLS aggregate signature of signers
-        Signature []bytes
+  // Enumeration of QUALITY, PREPARE, COMMIT, CONVERGE, DECIDE
+  MsgType int
+  // Chain of tipsets proposed/voted for finalisation in this instance.
+  // Non-empty: the first entry is the base tipset finalised in instance-1
+  Value []ECTipset
+  // GossiPBFT instance number
+  Instance int
+  // GossiPBFT round
+  Round int
+  // Indexes in the base power table of the signers (bitset)
+  Signers []bytes
+  // BLS aggregate signature of signers
+  Signature []bytes
 }
 
 ```
@@ -303,18 +303,24 @@ A set of messages _M_ that does not contain equivocating messages is called _cle
 * `StrongQuorum(prefix,M)`
     * Where _M_ is a clean set of messages of the same type and the same round.
     * Let _P_ be the set of participants who are senders of messages in _M_ such that their message contains a value with _prefix_ as a prefix. More precisely:
-        `Let P={p : ∃ m∈ M: m.sender=p AND isPrefix(prefix,m.value)}`
-        then the predicate returns _True_ iff _Power( P )>2/3_
+      ```
+      Let P={p : ∃ m∈ M: m.sender=p AND isPrefix(prefix,m.value)}
+      ```
+      then the predicate returns _True_ iff _Power( P )>2/3_
 * `HasStrongQuorumValue(M)`
     * Where _M_ is a clean set of messages of the same type and the same round
     * The predicate returns True iff there is a value _v_, such that there is a set _P_ of participants who are senders of messages in _M_ such that their message value is exactly _v_ and _Power( P )>2/3_. More precisely:
-    `HasStrongQuorumValue(M) = ∃ v: Power({p : ∃ m∈ M: m.sender=p AND m.value=v})>2/3`
+      ```
+      HasStrongQuorumValue(M) = ∃ v: Power({p : ∃ m∈ M: m.sender=p AND m.value=v})>2/3
+      ```
 * `StrongQuorumValue(M)`
     * Returns _v_ if _HasStrongQuorumValue(M)_ holds, nil otherwise.
 * `HasWeakQuorumValue(M)`
     * Where _M_ is a clean set of messages of the same type and the same round
     * The predicate returns True iff there is a value _v_, such that there is a set _P_ of participants who are senders of messages in _M_ such that their message value is exactly _v_ and _Power( P )>1/3_. More precisely:
-    `HasWeakQuorumValue(M) = ∃ v: Power({p : ∃ m∈ M: m.sender=p AND m.value=v})>1/3`
+      ```
+      HasWeakQuorumValue(M) = ∃ v: Power({p : ∃ m∈ M: m.sender=p AND m.value=v})>1/3
+      ```
 * `WeakQuorumValue(M)`
     * Returns _v_ if _HasWeakQuorumValue(M)_ holds, nil otherwise.
 * `LowestTicketProposal(M)`
@@ -323,7 +329,9 @@ A set of messages _M_ that does not contain equivocating messages is called _cle
     * If _M ≠ ∅_, the predicate returns _m.value_, such that _m_ is the message in _M_ with the lowest ticket (_m.ticket_).
 * `Aggregate(M)`
     * Where _M_ is a clean set of messages of the same type _T_, round _r_, and instance _i_, with _v=StrongQuorumValue(M)≠nil_.
-    `Let M' ← {m ∈ M : m.value = StrongQuorumValue(M)}`
+      ```
+      Let M' ← {m ∈ M : m.value = StrongQuorumValue(M)}
+      ```
     * Returns a tuple _<participants, agg-sig>_ where _participants_ are all participants such that _m.sender ∈ M'_ (in some compact/compressed representation, i.e. a bitmask with optional run-length encoding) and _agg-sig_ is an aggregate signature (BLS) across all of those participants on _m.i||m.T||m.r||m.v_ for some _m ∈ M'_.
 
 
@@ -333,148 +341,148 @@ We illustrate the pseudocode for GossiPBFT below, consisting of 3 steps per roun
 
 ```
 F3(inputChain, baseChain) returns (chain, PoF):
-1:	round ← 0; 
-2:	decideSent ← False; 
-3: 	proposal ← inputChain;  \* holds what the participant locally believes should be a decision
-4:	timeout ← 2*Δ 		
-5:	ECCompatibleChains ← all prefixes of proposal, not lighter than baseChain 
-6:	value ← proposal \* used to communicate the voted value to others (proposal or 丄)
-7:	evidence ← nil 	\* used to communicate optional evidence for the voted value 
 
-8: while (not decideSent)  {
-9:	if (round = 0)
-10:		BEBroadcast <QUALITY, value>; trigger (timeout)
-11:		collect a clean set M of valid QUALITY messages 
-    until StrongQuorum(proposal, M) OR timeout expires
-12:		let C={prefix : IsPrefix(prefix,proposal) and StrongQuorum(prefix,M)}
-13:		if (C = ∅) 
-14:			proposal ← baseChain \* no proposals of high-enough quality
-15:		else	
-16:			proposal ← heaviest prefix ∈ C \* this becomes baseChain or sth heavier
-17:		value ← proposal
+1:    round ← 0;
+2:    decideSent ← False;
+3:    proposal ← inputChain;  \* holds what the participant locally believes should be a decision
+4:    timeout ← 2*Δ
+5:    ECCompatibleChains ← all prefixes of proposal, not lighter than baseChain
+6:    value ← proposal \* used to communicate the voted value to others (proposal or 丄)
+7:    evidence ← nil   \* used to communicate optional evidence for the voted value
 
-18:	if (round > 0):    								\* CONVERGE
-19:		ticket ← VRF(Randomness(baseChain) || round)
-20:		value ← proposal \* set local proposal as value in CONVERGE message
-21:		BEBroadcast <CONVERGE, value, round, evidence, ticket>; trigger(timeout)
-22:		collect a clean set M of valid CONVERGE msgs from this round 
-    until timeout expires
-23:		value ← LowestTicketProposal(M)	\* leader election
-24:	if value ∈ ECCompatibleChains 	\* see also lines 54-57
-25:			proposal ← value \* we sway proposal if the value is EC compatible
-26:		else 
-27:			value ← 丄 \* vote for not deciding in this round
+8:    while (not decideSent)  {
+9:      if (round = 0)
+10:     BEBroadcast <QUALITY, value>; trigger (timeout)
+11:     collect a clean set M of valid QUALITY messages
+          until StrongQuorum(proposal, M) OR timeout expires
+12:     let C={prefix : IsPrefix(prefix,proposal) and StrongQuorum(prefix,M)}
+13:     if (C = ∅)
+14:       proposal ← baseChain \* no proposals of high-enough quality
+15:     else
+16:       proposal ← heaviest prefix ∈ C \* this becomes baseChain or sth heavier
+17:     value ← proposal
 
-28:	BEBroadcast <PREPARE, value, round>; trigger(timeout)				
-29:	collect a clean set M of valid <PREPARE, proposal, round> msgs \* match PREPARE value against local proposal
-until Power(M) > ⅔ OR timeout expires
-30:	if (Power(M)>⅔)	\* strong quorum of PREPAREs for local proposal
-31:		value ← proposal \* vote for deciding proposal (COMMIT)
-32:		evidence ← Aggregate(M) \* strong quorum of PREPAREs is evidence
-33:	else	
-34:		value ← 丄 \* vote for not deciding in this round
-35:		evidence ← nil
+18:     if (round > 0):     \* CONVERGE
+19:       ticket ← VRF(Randomness(baseChain) || round)
+20:       value ← proposal \* set local proposal as value in CONVERGE message
+21:       BEBroadcast <CONVERGE, value, round, evidence, ticket>; trigger(timeout)
+22:       collect a clean set M of valid CONVERGE msgs from this round
+            until timeout expires
+23:       value ← LowestTicketProposal(M)  \* leader election
+24:       if value ∈ ECCompatibleChains   \* see also lines 54-57
+25:         proposal ← value \* we sway proposal if the value is EC compatible
+26:       else
+27:         value ← 丄 \* vote for not deciding in this round
 
-36:	BEBroadcast <COMMIT, value, evidence, round>; trigger(timeout)				
-37:	collect a clean set M of valid COMMIT messages from this round 
-until 	      (HasStrongQuorumValue(M) AND StrongQuorumValue(M) ≠ 丄) 
-    OR (timeout expires AND Power(M)>2/3)
-38:	if (HasStrongQuorumValue(M) AND StrongQuorumValue(M) ≠ 丄)		\* decide
-39:		BEBroadcast <DECIDE, StrongQuorumValue(M))
-40:		decideSent ← True
-40:	if (∃ m ∈ M: m.value ≠ 丄) \* m.value was possibly decided by others
-41:		proposal ← m.value; \* sway local proposal to possibly decided value
-42:		evidence ← m.evidence \* strong PREPARE quorum is inherited evidence 
-43:	else \* no participant decided in this round
-44:		evidence ← Aggregate(M) \* strong quorum of COMMITs for 丄 is evidence 
-45:	round ← round + 1; 
-46:	timeout ← updateTimeout(timeout, round)
-47: }  \*end while
+28:     BEBroadcast <PREPARE, value, round>; trigger(timeout)
+29:     collect a clean set M of valid <PREPARE, proposal, round> msgs \* match PREPARE value against local proposal
+          until Power(M) > ⅔ OR timeout expires
+30:     if (Power(M)>⅔)  \* strong quorum of PREPAREs for local proposal
+31:       value ← proposal \* vote for deciding proposal (COMMIT)
+32:       evidence ← Aggregate(M) \* strong quorum of PREPAREs is evidence
+33:     else
+34:       value ← 丄 \* vote for not deciding in this round
+35:       evidence ← nil
 
-48: collect a clean set M of DECIDE messages 
-    until (HasStrongQuorumValue(M)) \* Collect a strong quorum of decide outside the round loop
-49: return (StrongQuorumValue(M))
+36:     BEBroadcast <COMMIT, value, evidence, round>; trigger(timeout)
+37:     collect a clean set M of valid COMMIT messages from this round
+          until (HasStrongQuorumValue(M) AND StrongQuorumValue(M) ≠ 丄)
+            OR (timeout expires AND Power(M)>2/3)
+38:     if (HasStrongQuorumValue(M) AND StrongQuorumValue(M) ≠ 丄)    \* decide
+39:       BEBroadcast <DECIDE, StrongQuorumValue(M))
+40:       decideSent ← True
+40:     if (∃ m ∈ M: m.value ≠ 丄) \* m.value was possibly decided by others
+41:       proposal ← m.value; \* sway local proposal to possibly decided value
+42:       evidence ← m.evidence \* strong PREPARE quorum is inherited evidence
+43:     else \* no participant decided in this round
+44:       evidence ← Aggregate(M) \* strong quorum of COMMITs for 丄 is evidence
+45:     round ← round + 1;
+46:     timeout ← updateTimeout(timeout, round)
+47:   }  \*end while
 
-50: upon reception of clean set M of DECIDE messages such that HasWeakQuorumValue(M) and not decideSent
-51:	decideSent ← True
-52:	BEBroadcast <DECIDE, WeakQuorumValue(M))
-53:	go to line 48.
+48:   collect a clean set M of DECIDE messages
+        until (HasStrongQuorumValue(M)) \* Collect a strong quorum of decide outside the round loop
+49:   return (StrongQuorumValue(M))
+
+50:   upon reception of clean set M of DECIDE messages such that HasWeakQuorumValue(M) and not decideSent
+51:     decideSent ← True
+52:     BEBroadcast <DECIDE, WeakQuorumValue(M))
+53:   go to line 48.
 ```
 
-Also, concurrently, we expect that the participant feeds to GossiPBFT chains that are incentive-compatible with EC. To this end, GossiPBFT has a separate invocation called _ECUpdate()_, which is called by an external process at a participant once EC delivers a _chain_ such that _inputChain_ is a prefix of _chain_ (i.e., EC at a participant delivers an extension of _inputChain_). This part is critical to ensuring the progress property in conjunction with lines 24-25. 
+Also, concurrently, we expect that the participant feeds to GossiPBFT chains that are incentive-compatible with EC. To this end, GossiPBFT has a separate invocation called _ECUpdate()_, which is called by an external process at a participant once EC delivers a _chain_ such that _inputChain_ is a prefix of _chain_ (i.e., EC at a participant delivers an extension of _inputChain_). This part is critical to ensuring the progress property in conjunction with lines 24-25.
 
 ```
-54: ECupdate(chain)
-55:	If (IsPrefix(proposal, chain))	\* sanity check 
-56:	 	ECCompatibleChains ← 
-57:			ECCompatibleChains ∪ all prefixes of chain, not lighter than baseChain
+ECupdate(chain):
+
+54:   If (IsPrefix(proposal, chain))  \* sanity check
+55:     ECCompatibleChains ← ECCompatibleChains ∪ all prefixes of chain, not lighter than baseChain
 ```
 
-#### Valid messages and evidence 
+#### Valid messages and evidence
 
 The _Valid()_ predicate (referred to in lines 11, 22, 29, 37, and 48) is defined below.
 
 ```
-Valid(m) returns bool:		                | For a message m to be valid,
+Valid(m):                                   | For a message m to be valid,
 
-If m is not properly signed:	                | m must be properly signed.
-        return False
-If m.step = QUALITY AND			        | A QUALITY message must
-    NOT IsPrefix(baseChain, m.proposal)         | contain a proposal prefixed
-        return Fals                             | with baseChain.
-If m.step = CONVERGE AN                         | A CONVERGE message
-    (m.ticket does not pass VRF validation      | must have a valid VRF ticket
-     OR m.round = 0)			        | and round > 0.
-        return False
-If m.step ∈ {CONVERGE, COMMIT} AND              | CONVERGE, COMMIT 
-        NOT ValidEvidence(m)                    | must contain valid evidence.
-        return False
+If m is not properly signed:                | m must be properly signed.
+  return False
+If m.step = QUALITY AND                     | A QUALITY message must
+  NOT IsPrefix(baseChain, m.proposal)       | contain a proposal prefixed
+    return Fals                             | with baseChain.
+If m.step = CONVERGE AND                    | A CONVERGE message
+  (m.ticket does not pass VRF validation    | must have a valid VRF ticket
+    OR m.round = 0)                         | and round > 0.
+      return False
+If m.step ∈ {CONVERGE, COMMIT} AND          | CONVERGE, COMMIT
+  NOT ValidEvidence(m)                      | must contain valid evidence.
+    return False
 return True
 ```
 
 The _ValidEvidence()_ predicate is defined below (for other definitions used below, see [Preliminaries](https://docs.google.com/document/d/17FBkZzrVWZg2zmq3JJcSZdn7MfbAPC9Lv2FgG42omxo/edit#heading=h.ygq5svj4e7ap)). Note that _QUALITY_, _PREPARE_ and _DECIDE_ messages do not need evidence. In fact, _DECIDE_ does not need any protocol-specific validation, since a weak quorum of _DECIDE_ with the same value is required to trigger any  execution of the protocol.
 
 ```
-ValidEvidence(m):					
+ValidEvidence(m):
+
+(m = <CONVERGE, value, round, evidence, ticket>         | valid CONVERGE
+AND (∃ M: Power(M)>⅔ AND m.evidence=Aggregate(M)        | evidence is a strong quorum
+  AND ((∀ m' ∈ M: m'.step = COMMIT AND m'.value = 丄)   | of COMMIT msgs for 丄
+    OR (∀ m' ∈ M: m'.step = PREPARE AND                 | or PREPARE msgs for
+      m'.value = m.value))                              | CONVERGE value
+      AND (∀ m' ∈ M: m'.round = m.round-1)              | from previous round
 
 
-(m = <CONVERGE, value, round, evidence, ticket>         | valid CONVERGE 	
-AND (∃ M: Power(M)>⅔ AND m.evidence=Aggregate(M)        | evidence is a strong quorum 
-    AND ((∀ m' ∈ M: m'.step = COMMIT AND m'.value = 丄) | of COMMIT msgs for 丄
-    OR (∀ m' ∈ M: m'.step = PREPARE AND                 | or PREPARE msgs for 
-        m'.value = m.value))                            | CONVERGE value	
-AND (∀ m' ∈ M: m'.round = m.round-1)                    | from previous round 
-
-
-OR (m = <COMMIT, value, round, evidence>                | valid COMMIT 
-      AND ((∃ M: Power(M)>⅔ AND m.evidence=Aggregate(M)	| evidence is a strong quorum 
+OR (m = <COMMIT, value, round, evidence>                | valid COMMIT
+  AND ((∃ M: Power(M)>⅔ AND m.evidence=Aggregate(M)     | evidence is a strong quorum
     AND ∀ m' ∈ M: m'.step = PREPAR                      | of PREPARE messages
-    AND ∀ m' ∈ M: m'.round = m.round			| from the same round 
-    AND ∀ m' ∈ M: m'.value = m.value)		        | for the same value, or
-         OR (m.value = 丄))			        | COMMIT is for 丄 with
-							                            | no evidence
+      AND ∀ m' ∈ M: m'.round = m.round                  | from the same round
+        AND ∀ m' ∈ M: m'.value = m.value)               | for the same value, or
+          OR (m.value = 丄))                            | COMMIT is for 丄 with
+                                                        | no evidence
 ```
 
 ### Evidence verification complexity
 Note that during the validation of each CONVERGE and COMMIT message, two signatures need to be verified: (1) the signature of the message contents, produced by the sender of the message (first check above) and (2) the aggregate signature in _m.evidence_ (_ValidEvidence(m)_ above). The former can be verified using the sender’s public key (stored in the power table). The latter, being an aggregated signature, requires aggregating public keys of all the participants whose signatures it combines. Notice that the evidence of each message can be signed by a different set of participants, which requires aggregating a linear number of public BLS keys (in system size) per evidence verification.
 
-However, a participant only needs to verify the evidence once for each *unique* message (in terms of (step, round, value)) received. Moreover, verification can further be reduced to those messages a participant uses to make progress (such as advancing to the next step or deciding), ignoring the rest as they are not needed for progress. This reduces the number of evidence verifications in each step to at most one. 
+However, a participant only needs to verify the evidence once for each *unique* message (in terms of (step, round, value)) received. Moreover, verification can further be reduced to those messages a participant uses to make progress (such as advancing to the next step or deciding), ignoring the rest as they are not needed for progress. This reduces the number of evidence verifications in each step to at most one.
 
 #### Randomness
 
 An instance of GossiPBFT requires a seed σ that must be common among all participants due to the dependency on a VRF in the _CONVERGE_ step. As only one random seed is required per GossiPBFT instance, and there is only one GossiPBFT instance per epoch (see below), the random seed for GossiPBFT can be sourced from drand’s output for that epoch in EC.
 
 
-### Synchronization of Participants in the Current Instance 
+### Synchronization of Participants in the Current Instance
 
 GossiPBFT ensures termination provided that (i) all participants start the instance at most _Δ_ apart, and (ii) the estimate on Δ is large enough for _Δ_-synchrony in some round (either because of the real network delay recovering from asynchrony or because of the estimate increasing).
 
-[Given prior tests performed on GossipSub](https://research.protocol.ai/publications/gossipsub-v1.1-evaluation-report/vyzovitis2020.pdf) (see also [here](https://gist.github.com/jsoares/9ce4c0ba6ebcfd2afa8f8993890e2d98)), we expect that almost all participants will reach sent messages within _Δ=3s_, with a huge majority receiving them even after _Δ=2s_. However, if several participants start the instance _Δ + ε_ after some other participants, termination is not guaranteed for the selected timeouts of _2*Δ_. Thus, we do not rely on an explicit synchrony bound for correctness. Instead, we (i) use drand as a beacon to synchronize participants within an instance and (ii) increase the estimate of Δ locally within an instance as rounds progress without decision. 
+[Given prior tests performed on GossipSub](https://research.protocol.ai/publications/gossipsub-v1.1-evaluation-report/vyzovitis2020.pdf) (see also [here](https://gist.github.com/jsoares/9ce4c0ba6ebcfd2afa8f8993890e2d98)), we expect that almost all participants will reach sent messages within _Δ=3s_, with a huge majority receiving them even after _Δ=2s_. However, if several participants start the instance _Δ + ε_ after some other participants, termination is not guaranteed for the selected timeouts of _2*Δ_. Thus, we do not rely on an explicit synchrony bound for correctness. Instead, we (i) use drand as a beacon to synchronize participants within an instance and (ii) increase the estimate of Δ locally within an instance as rounds progress without decision.
 
 The synchronization of participants is performed in the call to updateTimeout(timeout, round) (line 46), and works as follows:
 
 * Participants start an instance with Δ=2s.
-* If the first and second rounds fail to reach termination, participants start the 3rd round with Δ=3s. 
+* If the first and second rounds fail to reach termination, participants start the 3rd round with Δ=3s.
 * If 5 rounds fail to reach termination (rounds from 0 to 4), participants wait to receive the next drand epoch value to start round 5. This ensures that a potential ε delay between when participants started the instance is not carried over beyond round 4.
 * If round 5 fails to reach a decision, participants set exponential timeout increase Δ= 1.3*Δ for every failed round. This ensures termination even if the real network delay increases arbitrarily.
 
@@ -495,24 +503,24 @@ A finality certificate brings them together.
 
 ```
 type FinalityCertificate struct {
-	// Instance, Value as for GossiPBFTMessage (DECIDE)
-	Instance int
-	Value []ECTipset
-	// Indexes in the base power table of the certifiers (bitset)
-	Signers []bytes
-	// Aggregated signature of the certifiers
-	Signature []bytes
-	// Changes to the base power table implied by the certified tipset
-	PowerTableDelta []PowerTableDelta
+  // Instance, Value as for GossiPBFTMessage (DECIDE)
+  Instance int
+  Value []ECTipset
+  // Indexes in the base power table of the certifiers (bitset)
+  Signers []bytes
+  // Aggregated signature of the certifiers
+  Signature []bytes
+  // Changes to the base power table implied by the certified tipset
+  PowerTableDelta []PowerTableDelta
 }
 
 type PowerTableDelta struct {
-	// Participant with changed power
-	ParticipantID ActorID
-	// Change in power from base (signed)
-	PowerDelta BigInt
-	// New signing key if relevant (else empty)
-	SigningKey Key
+  // Participant with changed power
+  ParticipantID ActorID
+  // Change in power from base (signed)
+  PowerDelta BigInt
+  // New signing key if relevant (else empty)
+  SigningKey Key
 }
 ```
 
@@ -521,21 +529,21 @@ A finality certificate is analogous to a full block in the EC block exchange pro
 
 #### Exchange protocol
 
-Like with EC block exchange, participants follow **a simple request/response protocol to provide a contiguous sequence of finality certificates**. Note that the sequence of certificates is traversed backward, matching block exchange. A finality certificate contains the tipset and the PoF of the tipset (_Signature_). PoFs may vary across participants, but all PoFs must be for the same tipset at the same instance number _i_. 
+Like with EC block exchange, participants follow **a simple request/response protocol to provide a contiguous sequence of finality certificates**. Note that the sequence of certificates is traversed backward, matching block exchange. A finality certificate contains the tipset and the PoF of the tipset (_Signature_). PoFs may vary across participants, but all PoFs must be for the same tipset at the same instance number _i_.
 
 ```
 type Request struct {
-	// Highest GossiPBFT instance number, to fetch first.
-	LastInstance int
-	// Number of certificates to fetch backward from LastInstance, inclusive.
-	Length int
+  // Highest GossiPBFT instance number, to fetch first.
+  LastInstance int
+  // Number of certificates to fetch backward from LastInstance, inclusive.
+  Length int
 }
 
 type Response struct {
-	// OK, or some error code
-	Status int
-	// Sequence of certificates, in reverse order, beginning last requested.
-	Certificates []FinalityCertificate
+  // OK, or some error code
+  Status int
+  // Sequence of certificates, in reverse order, beginning last requested.
+  Certificates []FinalityCertificate
 }
 ```
 
@@ -560,7 +568,7 @@ Certificate verification must bottom out in some genesis certificate, which is a
 
 #### Power table deltas
 
-**A verifier needs each signer's power and public key** (GossiPBFT also needs these for its execution). These are provided by the power table associated with each finalized tipset. 
+**A verifier needs each signer's power and public key** (GossiPBFT also needs these for its execution). These are provided by the power table associated with each finalized tipset.
 
 Assuming some genesis tipset with a known power table, a _GossiPBFTMessage_ can provide a commitment to (CID of) the resulting power table but doesn’t provide the actual entries. A finality certificate includes these as a delta from the previous power table. A verifier can compute the power table for the subsequent certificate by applying these deltas to its base power table.
 
@@ -591,15 +599,15 @@ The finality certificates can be submitted (in order) to a smart contract. The s
 
 A smart contract will never accept a finality certificate earlier than those it has already validated. It will be safe from long-range attacks as long as it is kept reasonably up-to-date with finality decisions as F3 progresses. Like a new client, a new smart contract must be carefully initialized to ensure it follows the right certificate chain.
 
-Only one such smart contract is needed on a single blockchain execution environment, which can provide the resulting final tipset information to others. 
+Only one such smart contract is needed on a single blockchain execution environment, which can provide the resulting final tipset information to others.
 
 
 ## Design Rationale
 
 Many possibilities were considered for faster finality. We justify the architecture of F3 as the best candidate to achieve fast finality in Filecoin by comparing it with other options:
 
-* _Improvements to Filecoin's EC_: Longest chain protocols rely on the increasing probability over time that some state is consistent across all participants. In all existing implementations of longest-chain protocols, finalization thus incurs at least tens of minutes. 
-* _Best-effort finality gadgets_: Ethereum's approach to faster finality involves the introduction of a novel finality gadget. However, this finality gadget requires at least two epochs for finalization, translating to at least more than 30 seconds in Filecoin. In contrast, GossiPBFT can achieve sub-epoch finalization and is only limited by the network speed. Moreover, Ethereum's protocol is yet to be proven correct. In fact, multiple attacks have been described in the literature that show how an adversary can keep the system from ever finalizing blocks, even after fixes. 
+* _Improvements to Filecoin's EC_: Longest chain protocols rely on the increasing probability over time that some state is consistent across all participants. In all existing implementations of longest-chain protocols, finalization thus incurs at least tens of minutes.
+* _Best-effort finality gadgets_: Ethereum's approach to faster finality involves the introduction of a novel finality gadget. However, this finality gadget requires at least two epochs for finalization, translating to at least more than 30 seconds in Filecoin. In contrast, GossiPBFT can achieve sub-epoch finalization and is only limited by the network speed. Moreover, Ethereum's protocol is yet to be proven correct. In fact, multiple attacks have been described in the literature that show how an adversary can keep the system from ever finalizing blocks, even after fixes.
 * _Sub-sample voting_: Avalanche’s sub-sample voting copes with arbitrarily large groups of participants by repeatedly sub-sampling constant-size subsets. Unfortunately, Avalanche's strong network assumptions make the protocol vulnerable to an adversary exploiting network delays. Moreover, Avalanche ensures correctness against an adversary controlling at most ⅕ of participants, versus ⅓ targeted by GossiPBFT. Even when GossiPBFT becomes amenable to committees, for reasonable committees of 600 participants, GossiPBFT already tolerates Avalanche’s ⅕ of total participants with significantly weaker network assumptions.
 * _Replacing EC with BFT_: Replacing EC with a BFT protocol (like GossiPBFT) would imply a huge code refactoring, leading to more bugs and significantly more time to develop and productionize the Filecoin upgrade. Furthermore, the combination of EC and F3 is more redundant, ensuring that the system continues operating in the unlikely case that F3 halts.
 
@@ -709,14 +717,14 @@ The modifications proposed in this FIP have far-reaching implications for the se
 
 ## Incentive Considerations
 
-Participating in GossiPBFT only entails verifying O(n) and generating O(1) signatures per participant. If not enough participants follow the protocol, the liveness of F3 will be affected. This means that the service offered is affected, but also that participants do not receive rewards from block proposals for the period in which they do not participate. Consequently, we do not believe additional incentives for participation are necessary, as the modifications in this FIP significantly improve the system and the additional computational and communication costs do not substantially alter the cost structure of running a Filecoin node. 
+Participating in GossiPBFT only entails verifying O(n) and generating O(1) signatures per participant. If not enough participants follow the protocol, the liveness of F3 will be affected. This means that the service offered is affected, but also that participants do not receive rewards from block proposals for the period in which they do not participate. Consequently, we do not believe additional incentives for participation are necessary, as the modifications in this FIP significantly improve the system and the additional computational and communication costs do not substantially alter the cost structure of running a Filecoin node.
 
 Furthermore, incentivizing all messages and verification thereof is impossible: this would require consensus on which messages have been sent (which would entail even more messages, these new ones unverified). Nevertheless, subsequent FIPs can provide more incentives, such as rewarding participants whose signatures are listed in agreed-upon PoFs or slash/denylist participants who sign equivocating messages.
 
 
 ## Product Considerations
 
-1. Applications built on FVM and IPC do not need to wait for 900 epochs and can instead benefit from fast finalization times within the order of tens of seconds. 
+1. Applications built on FVM and IPC do not need to wait for 900 epochs and can instead benefit from fast finalization times within the order of tens of seconds.
 2. Other applications built on Filecoin (e.g., Glif, Axelar, Wormhole, exchanges) can also provide fast finality and low latency without compromising security.
 3. Safe, verifiable, fast bridging to other networks becomes possible.
 
