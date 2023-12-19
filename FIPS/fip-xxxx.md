@@ -352,22 +352,22 @@ F3(inputChain, baseChain) returns (chain, PoF):
 
 8:    while (not decideSent)  {
 9:      if (round = 0)
-10:     BEBroadcast <QUALITY, value>; trigger (timeout)
-11:     collect a clean set M of valid QUALITY messages
+10:       BEBroadcast <QUALITY, value>; trigger (timeout)
+11:       collect a clean set M of valid QUALITY messages
           until StrongQuorum(proposal, M) OR timeout expires
-12:     let C={prefix : IsPrefix(prefix,proposal) and StrongQuorum(prefix,M)}
-13:     if (C = ∅)
-14:       proposal ← baseChain \* no proposals of high-enough quality
-15:     else
-16:       proposal ← heaviest prefix ∈ C \* this becomes baseChain or sth heavier
-17:     value ← proposal
+12:       let C={prefix : IsPrefix(prefix,proposal) and StrongQuorum(prefix,M)}
+13:       if (C = ∅)
+14:         proposal ← baseChain \* no proposals of high-enough quality
+15:       else
+16:         proposal ← heaviest prefix ∈ C \* this becomes baseChain or sth heavier
+17:       value ← proposal
 
-18:     if (round > 0):     \* CONVERGE
+18:     if (round > 0)     \* CONVERGE
 19:       ticket ← VRF(Randomness(baseChain) || round)
 20:       value ← proposal \* set local proposal as value in CONVERGE message
 21:       BEBroadcast <CONVERGE, value, round, evidence, ticket>; trigger(timeout)
 22:       collect a clean set M of valid CONVERGE msgs from this round
-            until timeout expires
+          until timeout expires
 23:       value ← LowestTicketProposal(M)  \* leader election
 24:       if value ∈ ECCompatibleChains   \* see also lines 54-57
 25:         proposal ← value \* we sway proposal if the value is EC compatible
@@ -376,7 +376,7 @@ F3(inputChain, baseChain) returns (chain, PoF):
 
 28:     BEBroadcast <PREPARE, value, round>; trigger(timeout)
 29:     collect a clean set M of valid <PREPARE, proposal, round> msgs \* match PREPARE value against local proposal
-          until Power(M) > ⅔ OR timeout expires
+        until Power(M) > ⅔ OR timeout expires
 30:     if (Power(M)>⅔)  \* strong quorum of PREPAREs for local proposal
 31:       value ← proposal \* vote for deciding proposal (COMMIT)
 32:       evidence ← Aggregate(M) \* strong quorum of PREPAREs is evidence
@@ -386,10 +386,10 @@ F3(inputChain, baseChain) returns (chain, PoF):
 
 36:     BEBroadcast <COMMIT, value, evidence, round>; trigger(timeout)
 37:     collect a clean set M of valid COMMIT messages from this round
-          until (HasStrongQuorumValue(M) AND StrongQuorumValue(M) ≠ 丄)
-            OR (timeout expires AND Power(M)>2/3)
+        until (HasStrongQuorumValue(M) AND StrongQuorumValue(M) ≠ 丄)
+          OR (timeout expires AND Power(M)>2/3)
 38:     if (HasStrongQuorumValue(M) AND StrongQuorumValue(M) ≠ 丄)    \* decide
-39:       BEBroadcast <DECIDE, StrongQuorumValue(M))
+39:       BEBroadcast <DECIDE, StrongQuorumValue(M)
 40:       decideSent ← True
 40:     if (∃ m ∈ M: m.value ≠ 丄) \* m.value was possibly decided by others
 41:       proposal ← m.value; \* sway local proposal to possibly decided value
@@ -401,13 +401,13 @@ F3(inputChain, baseChain) returns (chain, PoF):
 47:   }  \*end while
 
 48:   collect a clean set M of DECIDE messages
-        until (HasStrongQuorumValue(M)) \* Collect a strong quorum of decide outside the round loop
+      until (HasStrongQuorumValue(M)) \* Collect a strong quorum of decide outside the round loop
 49:   return (StrongQuorumValue(M))
 
 50:   upon reception of clean set M of DECIDE messages such that HasWeakQuorumValue(M) and not decideSent
 51:     decideSent ← True
-52:     BEBroadcast <DECIDE, WeakQuorumValue(M))
-53:   go to line 48.
+52:     BEBroadcast <DECIDE, WeakQuorumValue(M)
+53:     go to line 48.
 ```
 
 Also, concurrently, we expect that the participant feeds to GossiPBFT chains that are incentive-compatible with EC. To this end, GossiPBFT has a separate invocation called _ECUpdate()_, which is called by an external process at a participant once EC delivers a _chain_ such that _inputChain_ is a prefix of _chain_ (i.e., EC at a participant delivers an extension of _inputChain_). This part is critical to ensuring the progress property in conjunction with lines 24-25.
@@ -430,7 +430,7 @@ If m is not properly signed:                | m must be properly signed.
   return False
 If m.step = QUALITY AND                     | A QUALITY message must
   NOT IsPrefix(baseChain, m.proposal)       | contain a proposal prefixed
-    return Fals                             | with baseChain.
+    return False                            | with baseChain.
 If m.step = CONVERGE AND                    | A CONVERGE message
   (m.ticket does not pass VRF validation    | must have a valid VRF ticket
     OR m.round = 0)                         | and round > 0.
@@ -451,15 +451,15 @@ AND (∃ M: Power(M)>⅔ AND m.evidence=Aggregate(M)        | evidence is a stro
   AND ((∀ m' ∈ M: m'.step = COMMIT AND m'.value = 丄)   | of COMMIT msgs for 丄
     OR (∀ m' ∈ M: m'.step = PREPARE AND                 | or PREPARE msgs for
       m'.value = m.value))                              | CONVERGE value
-      AND (∀ m' ∈ M: m'.round = m.round-1)              | from previous round
+  AND (∀ m' ∈ M: m'.round = m.round-1)))                 | from previous round
 
 
 OR (m = <COMMIT, value, round, evidence>                | valid COMMIT
-  AND ((∃ M: Power(M)>⅔ AND m.evidence=Aggregate(M)     | evidence is a strong quorum
-    AND ∀ m' ∈ M: m'.step = PREPAR                      | of PREPARE messages
+  AND (∃ M: Power(M)>⅔ AND m.evidence=Aggregate(M)      | evidence is a strong quorum
+    AND ∀ m' ∈ M: m'.step = PREPARE                     | of PREPARE messages
       AND ∀ m' ∈ M: m'.round = m.round                  | from the same round
         AND ∀ m' ∈ M: m'.value = m.value)               | for the same value, or
-          OR (m.value = 丄))                            | COMMIT is for 丄 with
+    OR (m.value = 丄))                                  | COMMIT is for 丄 with
                                                         | no evidence
 ```
 
