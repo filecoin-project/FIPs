@@ -208,7 +208,7 @@ Integrating F3 into Filecoin follows the usual path for Filecoin upgrades. One e
 
 This section provides the specification of GossiPBFT, the consensus protocol that is iteratively instantiated by the F3 loop and returns a decision (in the form of an F3-finalized chain) and a PoF per instance.
 
-GossiPBFT is a Byzantine fault-tolerant consensus protocol that is resilient optimal, i.e., it tolerates up to less than ⅓ QAP being controlled by a Byzantine adversary. Each instance of the protocol has a known set of participants. Each participant inputs a proposal value, and the protocol outputs one of the input values as the **final** decision value. We emphasize _final_ because, unlike a longest-chain protocol, the output of GossiPBFT is permanent (see [main design document](https://docs.google.com/document/d/17FBkZzrVWZg2zmq3JJcSZdn7MfbAPC9Lv2FgG42omxo/edit) for details).
+GossiPBFT is a Byzantine fault-tolerant consensus protocol that is resilient optimal, i.e., it tolerates up to less than ⅓ QAP being controlled by a Byzantine adversary. Each instance of the protocol has a known set of participants. Each participant inputs a proposal value, and the protocol outputs one of the input values as the final decision value. We emphasize _final_ because, unlike a longest-chain protocol, the output of GossiPBFT is permanent (see [main design document](https://docs.google.com/document/d/17FBkZzrVWZg2zmq3JJcSZdn7MfbAPC9Lv2FgG42omxo/edit) for details).
 
 GossiPBFT was designed with the Filecoin network in mind and presents a set of features that make it desirable in that context:
 
