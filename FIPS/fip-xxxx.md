@@ -38,7 +38,7 @@ We specify a mechanism for fast finality with the F3 component. F3 is expected t
 
 [Expected Consensus (EC)](https://spec.filecoin.io/algorithms/expected_consensus/) is the current mechanism by which participants in the Filecoin network reach an agreement on tipsets. A tipset is a set of blocks with the same epoch and the same set of parents. EC is a longest-chain protocol (more accurately, a heaviest-chain protocol) in which each participant independently builds the chain as it receives blocks from the network. Time is divided into slots of 30 seconds, called _epochs_. In each epoch, the protocol elects a set of network participants (i.e., storage providers) to become proposers. Each proposer can construct a new block and broadcast it to the network. On reception, each participant appends the block to its local view of the blockchain. Each tipset has a _weight_ corresponding to the total number of blocks in the path between the genesis and the tipset (the actual weight function is slightly more complex in reality, but this approximation is sufficient for this document). An example blockchain data structure is shown below, indicating the weight of each tipset in parentheses.
 
-![](https://hackmd.io/_uploads/Skmdqq6Ip.png)
+![](../resources/fip-xxxx/chain.png)
 
 Two or more tipsets of the same epoch with different parent tipsets (like tipsets $C$ and $C'$ above) form a _fork_ in the chain. Forks are resolved using a _fork choice rule_, a deterministic algorithm that, given a blockchain data structure, returns the heaviest tipset, called the _head_. We refer to the path from genesis to the head as the _canonical chain_. Participants may have different views of the blockchain, resulting in other canonical chains. For example, if a participant $p_1$ is not (yet) aware of tipset $D$, it would consider $C$ the heaviest tipset with the canonical chain $[G A B C]$. Another participant $p_2$ aware of tipset $D$ will consider $[G A C' D]$ to be the canonical chain. Once $p_1$ becomes aware of tipset $D$, it will update its canonical chain to $[G A C' D]$ - this is called _reorganization_. We say a tipset is _finalized_ when a reorganization involving that tipset is impossible, i.e., when a different path that does not contain the tipset cannot become the canonical chain.
 
@@ -58,7 +58,7 @@ In short, each participant $p$ in the Filecoin network (i.e., a storage provider
 - **EC:** Participant $p$ updates its local EC chain and commits not to reorganize the finalized tipset $t_i$, i.e., the tipset must stay in $p$'s EC canonical chain for good. Apart from this change, EC continues operating as it currently does. In particular, EC still does a 900-epoch lookback for its power table and continues operating “normally” if F3 assumptions are violated and F3 halts, with the combined EC/F3 protocol favoring availability over consistency (in CAP theorem parlance).
 - **F3 synchronization:** Participants disseminate information about finalized tipset $t_i$ and its proof $PoF_i$ to all other participants, light clients, and smart contracts. The main goal of F3 synchronization is to allow an external party (or a lagging F3 participant) to fetch a sequence of messages that prove the finality of some recent final tipset. The sequence demonstrates a chain of eligible participants deciding on a final tipset and, thus, the eligible power table for the next round. Verifying the finality of a tipset from genesis does not require validating the EC chain.
 
-![](https://hackmd.io/_uploads/r13SXiTU6.png)
+![](../resources/fip-xxxx/flow.png)
 
 ### F3 Adversarial Model
 
@@ -194,7 +194,7 @@ This redefinition of the heaviest chain is consistent with the abstract notion o
 
 We illustrate the updated rule in the following figure, where blocks in blue are finalized blocks, and all blocks are assumed to be proposed by a proposer holding only one EC ticket (the weight of a chain is the number of blocks):
 
-![](https://hackmd.io/_uploads/SJumBiT8p.png)
+![](../resources/fip-xxxx/fork.png)
 
 The current EC fork-choice rule would select the tipset $\lbrace D_0, D_1\rbrace$ as the head of the heaviest chain. However, the heaviest finalized tipset is $\lbrace C_3\rbrace$, which is not an ancestor of $\lbrace D_0, D_1\rbrace$. Therefore, the new fork choice rule selects $\lbrace D_3\rbrace$ as the head of the heaviest chain. The reason why $D_4$ is not selected is that its parent tipset does not exactly match the finalized tipset $\lbrace C_3\rbrace$, but a superset of it, i.e. $\lbrace C_3, C_4\rbrace$.
 
