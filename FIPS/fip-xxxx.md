@@ -733,6 +733,15 @@ Furthermore, incentivizing all messages and verification thereof is impossible: 
 
 We refer to the stand-alone implementation in a simulated environment in the [go-f3](https://github.com/filecoin-project/go-f3) repository. Work is ongoing on a reference lotus implementation (to be provided soon).
 
+
+## TODO
+
+- [ ] Complete benchmarking around message complexity and computational/networking requirements.
+- [ ] Decide between implicit and explicit evidence, based on forthcoming.
+- [ ] Finalize and incorporate the WIP [finality exchange protocol](https://docs.google.com/document/d/10i9tFremOSrZou9oO5A5wvu1uOy1lvFKbv8IsvoglR0/edit#heading=h.g8nngox3auow).
+- [ ] Update and move supplemental documentation into `resources`
+
+
 ## Copyright
 
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
