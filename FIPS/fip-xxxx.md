@@ -91,7 +91,7 @@ For termination, we assume a classical partially synchronous model with an unkno
 
 ### Properties of F3
 
-F3 is not identical to classical consensus, however similar to it. In a nutshell, the reasons why EC and Filecoin should not rely on classical consensus properties (implemented by existing off-the-shelf BFT consensus protocol) for fast finality are twofold: EC incentive compatibility and resilience to Filecoin power leakage attacks in case of a strong adversary. We refer to the accompanying document [Appendix A: F3 requirements specific to Filecoin and EC](https://docs.google.com/document/d/17FBkZzrVWZg2zmq3JJcSZdn7MfbAPC9Lv2FgG42omxo/edit#heading=h.jg4hdeovc1zg) for more details.
+F3 is not identical to classical consensus, however similar to it. In a nutshell, the reasons why EC and Filecoin should not rely on classical consensus properties (implemented by existing off-the-shelf BFT consensus protocol) for fast finality are twofold: EC incentive compatibility and resilience to Filecoin power leakage attacks in case of a strong adversary. 
 
 With this in mind, the F3 component interface and properties are given below.
 
@@ -172,7 +172,7 @@ finalizedTipset, PoF ← GossiPBFT(i, proposal, participants)
 
 Each participant keeps track of the finalized tipsets and respective proofs of finality in a data structure named $finalizedTipsets$. It contains one $finalizedTipsets[i]$ entry per consensus instance where $finalizedTipsets[i].tipset$ and $finalizedTipsets[i].PoF$ denote, respectively, the tipset and PoF output by consensus instance $i$. A participant considers a tipset finalized if it is included in $finalizedTipsets$ or is an ancestor of some tipset included in $finalizedTipsets$.
 
-The algorithm starts by initializing $finalizedTipsets[0]$ with the genesis tipset. This tipset is pre-defined as finalized and does not require a PoF. Then, in each iteration $i$ of the loop, it takes the following steps (see [this document](https://docs.google.com/document/d/1FzTNGG0N00RP80X0ARSmdUQLwe2iCS-EwxMrhAhqCbw/edit) for details):
+The algorithm starts by initializing $finalizedTipsets[0]$ with the genesis tipset. This tipset is pre-defined as finalized and does not require a PoF. Then, in each iteration $i$ of the loop, it takes the following steps:
 
 1. Obtain the set of participants of instance $i$ from the power table determined by the previously finalized tipset.
 2. Call the $\texttt{ChainHead}()$ function that returns the head tipset of the locally observed chain constructed by EC and sets the $proposal$ variable to the returned value. We assume that such a function is available to the finalizer.
@@ -208,7 +208,7 @@ Integrating F3 into Filecoin follows the usual path for Filecoin upgrades. One e
 
 This section provides the specification of GossiPBFT, the consensus protocol that is iteratively instantiated by the F3 loop and returns a decision (in the form of an F3-finalized chain) and a PoF per instance.
 
-GossiPBFT is a Byzantine fault-tolerant consensus protocol that is resilient optimal, i.e., it tolerates up to less than ⅓ QAP being controlled by a Byzantine adversary. Each instance of the protocol has a known set of participants. Each participant inputs a proposal value, and the protocol outputs one of the input values as the final decision value. We emphasize _final_ because, unlike a longest-chain protocol, the output of GossiPBFT is permanent (see [main design document](https://docs.google.com/document/d/17FBkZzrVWZg2zmq3JJcSZdn7MfbAPC9Lv2FgG42omxo/edit) for details).
+GossiPBFT is a Byzantine fault-tolerant consensus protocol that is resilient optimal, i.e., it tolerates up to less than ⅓ QAP being controlled by a Byzantine adversary. Each instance of the protocol has a known set of participants. Each participant inputs a proposal value, and the protocol outputs one of the input values as the final decision value. We emphasize _final_ because, unlike a longest-chain protocol, the output of GossiPBFT is permanent.
 
 GossiPBFT was designed with the Filecoin network in mind and presents a set of features that make it desirable in that context:
 
@@ -285,7 +285,7 @@ type AggregatedEvidence {
 
 ```
 
-All messages broadcast by a participant have their participant ID in the sender field and contain a digital signature by that participant $(m.Signature)$ over $(Instance || MsgType || Value || Round)$. The protocol assumes aggregatable signatures (e.g., BLS, Schnorr), resilient to [rogue public key attacks](https://crypto.stanford.edu/~dabo/pubs/papers/BLSmultisig.html) (see [Boneh, Drijvers, and Neven](https://eprint.iacr.org/2018/483.pdf) construction and [F3 Finality Decision Exchange Protocol](https://docs.google.com/document/d/10i9tFremOSrZou9oO5A5wvu1uOy1lvFKbv8IsvoglR0/edit#heading=h.g8nngox3auow) for more details).
+All messages broadcast by a participant have their participant ID in the sender field and contain a digital signature by that participant $(m.Signature)$ over $(Instance || MsgType || Value || Round)$. The protocol assumes aggregatable signatures (e.g., BLS, Schnorr), resilient to [rogue public key attacks](https://crypto.stanford.edu/~dabo/pubs/papers/BLSmultisig.html) (see [Boneh, Drijvers, and Neven](https://eprint.iacr.org/2018/483.pdf) construction).
 
 The receiver of a message only considers messages with valid signatures and discards all other messages as invalid. We sometimes omit the sender IDs and signatures in further descriptions for better readability.
 
@@ -337,7 +337,7 @@ A set of messages $M$ that does not contain equivocating messages is called _cle
 
 #### GossiPBFT pseudocode (main algorithm)
 
-We illustrate the pseudocode for GossiPBFT below, consisting of 3 steps per round (QUALITY/CONVERGE, PREPARE, COMMIT) and an additional step outside the round loop (DECIDE). The $Sender$, $Signature$, and $Instance$ fields are omitted from messages for better readability. See also the simplified [PlusCal/TLA+ specification](https://github.com/filecoin-project/f3/blob/main/PlusCal-TLA/GossiPBFT.tla).
+We illustrate the pseudocode for GossiPBFT below, consisting of 3 steps per round (QUALITY/CONVERGE, PREPARE, COMMIT) and an additional step outside the round loop (DECIDE). The $Sender$, $Signature$, and $Instance$ fields are omitted from messages for better readability. See also the simplified [PlusCal/TLA+ specification](https://github.com/filecoin-project/tla-f3).
 
 ```
 F3(inputChain, baseChain) returns (chain, PoF):
@@ -441,7 +441,7 @@ If m.step ∈ {CONVERGE, COMMIT} AND          | CONVERGE, COMMIT
 return True
 ```
 
-The $\texttt{ValidEvidence}()$ predicate is defined below (for other definitions used below, see [Preliminaries](https://docs.google.com/document/d/17FBkZzrVWZg2zmq3JJcSZdn7MfbAPC9Lv2FgG42omxo/edit#heading=h.ygq5svj4e7ap)). Note that QUALITY, PREPARE and DECIDE messages do not need evidence. In fact, DECIDE does not need any protocol-specific validation, since a weak quorum of DECIDE with the same value is required to trigger any  execution of the protocol.
+The $\texttt{ValidEvidence}()$ predicate is defined below. Note that QUALITY, PREPARE and DECIDE messages do not need evidence. In fact, DECIDE does not need any protocol-specific validation, since a weak quorum of DECIDE with the same value is required to trigger any  execution of the protocol.
 
 ```
 ValidEvidence(m):
@@ -491,7 +491,7 @@ Additionally, as an optimization, participants could continue to the subsequent 
 
 ### Synchronization of Participants across Instances
 
-The $finalizedTipsets$ data structure is disseminated among the participants and other observers of the Filecoin network in the same manner as the chain itself. In particular, newly joined and temporarily disconnected participants and observers wishing to download and verify the chain can obtain the $finalizedTipsets$ data from other participants or observers (see [main design document](https://docs.google.com/document/d/10i9tFremOSrZou9oO5A5wvu1uOy1lvFKbv8IsvoglR0/edit#heading=h.gxmabiz2hh3k) for details).
+The $finalizedTipsets$ data structure is disseminated among the participants and other observers of the Filecoin network in the same manner as the chain itself. In particular, newly joined and temporarily disconnected participants and observers wishing to download and verify the chain can obtain the $finalizedTipsets$ data from other participants or observers.
 
 To verify a finality decision, assuming prior knowledge of an already-final base, a client needs:
 
@@ -708,8 +708,8 @@ Because of changes to the EC fork choice rule, this FIP requires a network upgra
 
 The modifications proposed in this FIP have far-reaching implications for the security of the system. This FIP changes Filecoin at a fundamental level: from considering tipsets as final after some time to finalizing them after a quorum of participants reach an agreement. We list here the security considerations this modification entails.
 
-* **Censorship.** F3 and GossiPBFT are designed with censorship resistance in mind. The updated fork choice rule means that an adversary controlling at least more than ⅓ QAP can try to perform a censorship attack if honest participants start an instance of GossiPBFT proposing at least two distinct inputs. While this attack is theoretically possible, it is notably hard to perform on F3 given the QUALITY step of GossiPBFT and other mitigation strategies specifically put in place to protect against this (See [GossipBFT's design document, Appendix B](https://docs.google.com/document/d/17FBkZzrVWZg2zmq3JJcSZdn7MfbAPC9Lv2FgG42omxo/edit#heading=h.3563x64us9fj) for more details on the attack and mitigations). We strongly believe that, even against a majority adversary, the mitigations designed will prevent such an attack.
-* **Liveness.** Implementing F3 introduces the risk that an adversary controlling at least ⅓ QAP prevents termination of a GossiPBFT instance. In that case, the F3 component would halt, not finalizing any tipset anymore. At the same time, EC would still operate, outputting tipsets and considering them final after 900 epochs (see [Fast Finality in Filecoin (F3), Appendix A](https://docs.google.com/document/d/1FzTNGG0N00RP80X0ARSmdUQLwe2iCS-EwxMrhAhqCbw/edit#heading=h.iwwgfqxud6bn) for more details). The liveness of the system is thus not affected by attacks on the liveness of F3.
+* **Censorship.** F3 and GossiPBFT are designed with censorship resistance in mind. The updated fork choice rule means that an adversary controlling at least more than ⅓ QAP can try to perform a censorship attack if honest participants start an instance of GossiPBFT proposing at least two distinct inputs. While this attack is theoretically possible, it is notably hard to perform on F3 given the QUALITY step of GossiPBFT and other mitigation strategies specifically put in place to protect against this. We strongly believe that, even against a majority adversary, the mitigations designed will prevent such an attack.
+* **Liveness.** Implementing F3 introduces the risk that an adversary controlling at least ⅓ QAP prevents termination of a GossiPBFT instance. In that case, the F3 component would halt, not finalizing any tipset anymore. At the same time, EC would still operate, outputting tipsets and considering them final after 900 epochs. The liveness of the system is thus not affected by attacks on the liveness of F3.
 * **Safety.** Implementing F3 ensures the safety of finalized outputs during regular or even congested networks against a Byzantine adversary controlling less than ⅓ QAP. For stronger adversaries, F3 provides mitigations to prevent censorship attacks, as outlined above. If deemed necessary, the punishment and recovery from coalitions in the event of an attempted attack on safety can be explored in future FIPs. Note that safety is already significantly improved by F3 compared to the status quo: F3 provides safety of finalized outputs two orders of magnitude faster than the current estimate of 900 epochs during regular network operation.
 * **Denial-of-service (DoS).** The implementation of the F3 preserves resistance against DoS attacks currently ensured by Filecoin, thanks to the fully leaderless nature of GossiPBFT and to the use of a VRF to self-assign tickets during the CONVERGE step.
 * **Committees.** This FIP proposes to have all participants run all instances of GossiPBFT. While this ensures optimal resilience against a Byzantine adversary, it can render the system unusable if the number of participants grows too large. While we are still evaluating the maximum practical number of participants in F3, it is expected to be at least one order of magnitude greater than the current number of participants in Filecoin. This introduces an attack vector: if the scalability limit is 100,000 participants, a participant holding as little as 3% of the current QAP can perform a Sybil attack to render the system unusable, with the minimum QAP required per identity. As a result, the implementation should favor the messages of the more powerful participants if the number of participants grows too large. Given that favoring more powerful participants discriminates against the rest, affecting decentralization, amending F3 to use committees in the event of the number of participants exceeding the practical limit will be the topic of a future FIP, as well as the analysis of optimized message aggregation in the presence of self-selected committees.
