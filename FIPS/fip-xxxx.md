@@ -196,7 +196,7 @@ We illustrate the updated rule in the following figure, where blocks in blue are
 
 ![](https://hackmd.io/_uploads/SJumBiT8p.png)
 
-The current EC fork-choice rule would select the tipset $\{D_0, D_1\}$ as the head of the heaviest chain. However, the heaviest finalized tipset is $\{C_3\}$, which is not an ancestor of $\{D_0, D_1\}$. Therefore, the new fork choice rule selects ${D_3}$ as the head of the heaviest chain. The reason why $D_4$ is not selected is that its parent tipset does not exactly match the finalized tipset $\{C_3\}$, but a superset of it, i.e. $\{C_3, C_4\}$.
+The current EC fork-choice rule would select the tipset $\lbrace D_0, D_1\rbrace$ as the head of the heaviest chain. However, the heaviest finalized tipset is $\lbrace C_3\rbrace$, which is not an ancestor of $\lbrace D_0, D_1\rbrace$. Therefore, the new fork choice rule selects $\lbrace D_3\rbrace$ as the head of the heaviest chain. The reason why $D_4$ is not selected is that its parent tipset does not exactly match the finalized tipset $\lbrace C_3\rbrace$, but a superset of it, i.e. $\lbrace C_3, C_4\rbrace$.
 
 
 ### Bootstrapping
@@ -223,7 +223,7 @@ GossiPBFT was designed with the Filecoin network in mind and presents a set of f
 
 #### Message format, signatures, and equivocation
 
-Messages include the following fields: $\langle Sender, Signature, MsgType, Value, Instance, [Round, Evidence, Ticket] \rangle$. As $Round$, $Evidence$, and $Ticket$ are fields that not all message types require, when not required by a message type, their default value is used (i.e. $0$, $\texttt{AggregatedEvidence}(0, [] ECTipset \{\}, 0, 0, [] byte \{\}, [] byte \{\})$, and $\{\}$, respectively). We refer to a _field_ of message $m$, with $m.field$:
+Messages include the following fields: $\langle Sender, Signature, MsgType, Value, Instance, [Round, Evidence, Ticket] \rangle$. As $Round$, $Evidence$, and $Ticket$ are fields that not all message types require, when not required by a message type, their default value is used (i.e. $0$, $\texttt{AggregatedEvidence}(0, [] ECTipset \lbrace\rbrace, 0, 0, [] byte \lbrace\rbrace, [] byte \lbrace\rbrace)$, and $[] byte \lbrace\rbrace$, respectively). We refer to a _field_ of message $m$, with $m.field$:
 
 ```
 type GossiPBFTMessage struct {
