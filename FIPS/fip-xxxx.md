@@ -402,7 +402,7 @@ F3(inputChain, baseChain) returns (chain, PoF):
 
 48:   collect a clean set M of DECIDE messages
       until (HasStrongQuorumValue(M)) \* Collect a strong quorum of decide outside the round loop
-49:   return (StrongQuorumValue(M))
+49:   return (StrongQuorumValue(M), Aggregate(M))
 
 50:   upon reception of clean set M of DECIDE messages such that HasWeakQuorumValue(M) and not decideSent
 51:     decideSent ← True
