@@ -3,13 +3,12 @@
 fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
 title:  Deprecate  `ProveCommitSectors`  to Avoid Single PoRep Proof Verification in Cron 
 author: Jennifer Wang (@jennijuju)
-discussions-to: [<URL>](https://github.com/filecoin-project/FIPs/discussions/689)
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/689
 status: Draft
 type: Technical 
 category (*only required for Standard Track): Core
 created: 2023-09-03
-requires (*optional):  [FIP-0076](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md)
-
+requires: FIP-0076
 ---
 
 ## Simple Summary
@@ -40,17 +39,16 @@ Drop the `ProveCommitSector` [function](https://github.com/filecoin-project/buil
 
 ## Design Rationale
 
-There are other ways to achieve our goal, like modifying `ProveCommitSector` to activate sectors and deals asynchronously. However, the required protocol functionality can be achieved by other methods already, so deprecating the `ProveCommitSector` is the simplest way and also reduces the actor code that needs to be maintained.
+There are other ways to achieve our goal, like modifying `ProveCommitSector` to activate sectors and deals synchronously. However, the required protocol functionality can be achieved by other methods already, so deprecating the `ProveCommitSector` is the simplest way and also reduces the actor code that needs to be maintained.
 
 ## Backwards Compatibility
 
-The deprecation of this method MUST happen after `ProveCommitSectors2` is available in the network and being adapted by the client.  
+The deprecation of this method MUST happen after `ProveCommitSectors2` is available in the network and adopted by the clients.  
 
 This proposal requires a network upgrade to deploy the new built-in actor code.
 
 ## Test Cases
 
-Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.
 
 Calling `ProveCommitSector` will fail with ***USR_UNHANDLED_MESSAGE.***
 
@@ -60,7 +58,7 @@ This FIP avoids single PoRep proof verification in cron, which reduces the free 
 
 ## Incentive Considerations
 
-This FIP will enforce storage activation fees to be paid by the callers rather than having an imbalanced network subsidy. This means storage providers who only onboard sectors via `ProveCommitSector` will start to pay for sector proof validation and sector/deal activation, which is a gas cost increase from ~71M to ~196M based on the current implementation. However, the activation cost is expected to be lower with the direct data onboarding flow via the `ProveCommitSectors2` method, and storage providers and their data clients may choose to opt-out of f05 deal activation, which would result in significantly less gas cost.
+This FIP will enforce storage activation fees to be paid by the callers rather than having an imbalanced network subsidy. This means storage providers who only onboard sectors via `ProveCommitSector` will start to pay for sector proof validation and sector/deal activation, which is a gas cost increase from ~71M to ~196M based on the current implementation. However, the activation cost is expected to be lower with the direct data onboarding flow via the `ProveCommitSectors2` method, and storage providers and their data clients may opt-out of f05 deal activation, which would result in significantly lower gas cost.
 
 ## Product Considerations
 
