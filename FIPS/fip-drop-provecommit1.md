@@ -3,7 +3,7 @@
 fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
 title:  Remove Storage Miner Actor Method `ProveCommitSectors`  
 author: Jennifer Wang (@jennijuju)
-discussions-to: https://github.com/filecoin-project/FIPs/discussions/689
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/899
 status: Draft
 type: Technical 
 category: Core
@@ -19,19 +19,17 @@ Remove *`ProveCommitSector` (method 7)* in favor of `ProveCommitSectors2` and `P
 
 Currently, `ProveCommitSector` accepts a single PoRep proof for an individual sector, validates the proof, and activates the sector along with the deals inside it via a cron call to the power actor. In contrast, when submitting an aggregated PoRep with `ProveCommitAggregate`, all proof validation and sector activation are executed synchronously and the costs are billed to the caller. This creates an imbalance in the sector activation gas subsidy available to different onboarding methods, and also adds unnecessary work to unpaid network cron jobs.
 
-FIP-0076 provides an alternative, synchronous activation path for non-aggregated proofs. This proposal subsequently removes the ProveCommitSector method and thus the imbalance.
+FIP-0076 provides an alternative, synchronous activation path for non-aggregated proofs. This proposal subsequently removes the ProveCommitSector method once and thus the imbalance.
 
 ## Change Motivation
 
 Since the FVM launch, all computations are properly charged and storage providers have started to realize that even below the batch balancer base fee threshold, the per sector commit cost via `ProveCommitAggregate` is higher than `ProveCommitSector`.
 
-As @anorth laid out [here](https://github.com/filecoin-project/FIPs/discussions/689#discussioncomment-5680517):
+The chain explicitly charge gas (discounted) for the single proof validation when it is submitted, so it’s both bounded and paid for. However, the **state updates associated with sector activation are not metered**, because they execute in cron. The execution cost of this activation varies significantly with the deal content of the sector, but the storage provider doesn’t pay gas for this. On the other hand, aggregated proof validation also activates the sector synchronously, for which the SP pays the gas cost. Thus, single-sector onboarding is subsidized relative to aggregation, but aggregation would otherwise efficiently support much higher onboarding rates. The proposed change will resolve the imbalanced cost of sector activation using different onboarding methods and make proof aggregation financially sensible again.
 
-> "We explicitly charge gas (discounted) for the single proof validation when it is submitted, so it’s both bounded and paid for. However, the **state updates associated with sector activation are not metered**, because they execute in cron. The execution cost of this activation varies significantly with the deal content of the sector, but the storage provider doesn’t pay gas for this. On the other hand, aggregated proof validation also activates the sector synchronously, for which the SP pays the gas cost. Thus, single-sector onboarding is subsidized relative to aggregation, but aggregation would otherwise efficiently support much higher onboarding rates.”
+In addition, the activation jobs are being executed in cron which means the chain is subsidying the job cost. This is not a desireable subsidy incentive as it leads to the inefficient use of the chain validation resources by discouraging aggregation of proofs. Thus, the proposed the change also removes unnecessary yet expensive sector and deal activation work from the network cron, which prevents the network from potential cron blowup in the long term as well.
 
-Thus, we would like to resolve the imbalance in sector activation and make proof aggregation financially sensible again.
-
-This change also removes unnecessary yet expensive sector and deal activation work from the network cron, which prevents the network from potential cron blowup in the long term.
+- <TODO add fvm syscall  to be removed>  
 
 ## Specification
 
@@ -39,7 +37,7 @@ Drop the `ProveCommitSector` [function](https://github.com/filecoin-project/buil
 
 ## Design Rationale
 
-There are other ways to achieve our goal, like modifying `ProveCommitSector` to activate sectors and deals synchronously. However, the required protocol functionality can be achieved by other methods already, so deprecating the `ProveCommitSector` is the simplest way and also reduces the actor code that needs to be maintained.
+There are other ways to achieve our goal, like modifying `ProveCommitSector` to activate sectors and deals synchronously. However, with FIP-0076 introducing an alternative method that allows activating sectors with non-aggregated proof synchronously with other richer functionalities, along with the existence of `ProveCommitAggregate` that also allows synchronous activation, the old method is redundant and does not bring much onto the table. Therefore, reducing to one way and dropping the limitted pathway `ProveCommitSector` to redduce actor code complexity, implementation friction and risk and etc is preferred.
 
 ## Backwards Compatibility
 
@@ -62,11 +60,14 @@ This FIP will enforce storage activation fees to be paid by the callers rather t
 
 ## Product Considerations
 
-All features provided by Filecoin continue to function as expected.
+All features provided by Filecoin continue to function as expected. Having only one entry point for onoarding non-aggregated sectors is simpler than two for both implementations & SP stack integrations & support.
+
 
 ## Implementation
 
-The implementation involves dropping the [`ProveCommitSector` function](https://github.com/filecoin-project/builtin-actors/blob/807630512ba0df9a2d41836f7591c3607ddb0d4f/actors/miner/src/lib.rs#L1775C17-L1828). 
+<TODO>
+
+Note: Calling `ProveCommitSector` after this FIP is finalized in an upgrade should fail with some user error message, i.e: METHOD_NOT_FOUND.
 
 ## TODO
 
