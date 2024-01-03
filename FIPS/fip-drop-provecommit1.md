@@ -36,7 +36,7 @@ This change also removes unnecessary yet expensive sector and deal activation wo
 
 ## Specification
 
-Drop the `ProveCommitSector` function, https://github.com/filecoin-project/builtin-actors/blob/807630512ba0df9a2d41836f7591c3607ddb0d4f/actors/miner/src/lib.rs#L1775C17-L1828. 
+Drop the `ProveCommitSector` [function](https://github.com/filecoin-project/builtin-actors/blob/807630512ba0df9a2d41836f7591c3607ddb0d4f/actors/miner/src/lib.rs#L1775-L1828). 
 
 ## Design Rationale
 
