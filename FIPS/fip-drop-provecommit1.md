@@ -1,25 +1,25 @@
 ---
 
 fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
-title:  Deprecate  `ProveCommitSectors`  to Avoid Single PoRep Proof Verification in Cron 
+title:  Remove Storage Miner Actor Method `ProveCommitSectors`  
 author: Jennifer Wang (@jennijuju)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/689
 status: Draft
 type: Technical 
-category (*only required for Standard Track): Core
+category: Core
 created: 2023-09-03
 requires: FIP-0076
 ---
 
 ## Simple Summary
 
-Deprecate *`ProveCommitSector` (method 7)* in favor of `ProveCommitSectors2` and `ProveCommitAggregate`. This change ensures that single PoRep validations and single sector activations are executed synchronously and billed to the caller, instead of being executed asynchronously via a cron call to the actor.
+Remove *`ProveCommitSector` (method 7)* in favor of `ProveCommitSectors2` and `ProveCommitAggregate`. This change ensures that single PoRep validations and single sector activations are executed synchronously and billed to the caller, instead of being executed asynchronously via a cron call to the actor.
 
 ## Abstract
 
 Currently, `ProveCommitSector` accepts a single PoRep proof for an individual sector, validates the proof, and activates the sector along with the deals inside it via a cron call to the power actor. In contrast, when submitting an aggregated PoRep with `ProveCommitAggregate`, all proof validation and sector activation are executed synchronously and the costs are billed to the caller. This creates an imbalance in the sector activation gas subsidy available to different onboarding methods, and also adds unnecessary work to unpaid network cron jobs.
 
-To address this issue, we propose to deprecate the `ProveCommitSector` method after the network upgrade that includes the `ProveCommitSectors2` method, which is planned as part of [FIP-0076 - Direct Data Onboarding](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md) and is expected to be in scope for upcoming network upgrades.
+FIP-0076 provides an alternative, synchronous activation path for non-aggregated proofs. This proposal subsequently removes the ProveCommitSector method and thus the imbalance.
 
 ## Change Motivation
 
