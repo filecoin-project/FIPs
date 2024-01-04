@@ -21,6 +21,8 @@ Note that a FIP number will be assigned by an editor. When opening a pull reques
 
 The title should be 44 characters or less.
 
+# Title
+
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 "If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.
