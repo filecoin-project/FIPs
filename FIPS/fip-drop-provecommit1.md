@@ -23,11 +23,11 @@ FIP-0076 provides an alternative, synchronous activation path for non-aggregated
 
 ## Change Motivation
 
-Since the FVM launch, all computations are properly charged and storage providers have started to realize that even below the batch balancer base fee threshold, the per sector commit cost via `ProveCommitAggregate` is higher than `ProveCommitSector`.
+Since the FVM launch, all computations are properly charged and it has become evident that even below the batch balancer base fee threshold, the per sector commit cost via `ProveCommitAggregate` is higher than `ProveCommitSector`.
 
 The chain explicitly charge gas (discounted) for the single proof validation when it is submitted, so it’s both bounded and paid for. However, the **state updates associated with sector activation are not metered**, because they execute in cron. The execution cost of this activation varies significantly with the deal content of the sector, but the storage provider doesn’t pay gas for this. On the other hand, aggregated proof validation also activates the sector synchronously, for which the SP pays the gas cost. Thus, single-sector onboarding is subsidized relative to aggregation, but aggregation would otherwise efficiently support much higher onboarding rates. The proposed change will resolve the imbalanced cost of sector activation using different onboarding methods and make proof aggregation financially sensible again.
 
-In addition, the activation jobs are being executed in cron which means the chain is subsidying the job cost. This is not a desireable subsidy incentive as it leads to the inefficient use of the chain validation resources by discouraging aggregation of proofs. Thus, the proposed the change also removes unnecessary yet expensive sector and deal activation work from the network cron, which prevents the network from potential cron blowup in the long term as well.
+In addition, the activation jobs are being executed in cron which means the chain is subsidi[sz]ing the job cost. This is not a desirable subsidy incentive as it leads to the inefficient use of the chain validation resources by discouraging aggregation of proofs. Thus, the proposed the change also removes unnecessary yet expensive sector and deal activation work from the network cron, which prevents the network from potential cron blowup in the long term as well.
 
 - <TODO add fvm syscall  to be removed>  
 
@@ -41,7 +41,7 @@ There are other ways to achieve our goal, like modifying `ProveCommitSector` to 
 
 ## Backwards Compatibility
 
-The deprecation of this method MUST happen after `ProveCommitSectors2` is available in the network and adopted by the clients.  
+The deprecation of this method MUST happen after the methods from FIP-0076 are available in the network and adopted by the clients.  
 
 This proposal requires a network upgrade to deploy the new built-in actor code.
 
