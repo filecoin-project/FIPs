@@ -5,7 +5,7 @@ author: Jennifer Wang (@jennijuju), Jon Victor (@jnthnvctr)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/901
 status: Draft
 type: Technical
-category (*only required for Standard Track): Core
+category: Core
 created: 2024-01-04
 ---
 
