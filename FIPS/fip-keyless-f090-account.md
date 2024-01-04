@@ -46,8 +46,8 @@ This change is not backwards compatible, upon the activation of this FIP in netw
 - the existing signers of f090 multisig will no longer be able to perform multisig operations of the actor
 
 ## Test Cases
-<!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
-Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.
+
+- Get actor cid of f090 it should return actor code cid of an `account`
 
 ## Security Considerations
 
@@ -59,8 +59,6 @@ This proposal improves the network security by removing the ownership and contro
 This proposal allows the governance of the network reserved funds to be in hands of the network participants rather than 3 key owners, which makes the network more decentralized. 
 
 ## Implementation
-<!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
-The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.
 
 TODO 
 
