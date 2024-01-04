@@ -121,3 +121,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0081](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0081.md)  | Introduce lower bound for sector initial pledge | FIP | @anorth, @vkalghatgi | Draft |
 |[0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md)  | Add support for aggregated replica update proofs | FIP | nemo (@cryptonemo), Jake (@drpetervannostrand), @anorth | Draft |
 |[0083](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0083.md) | Add built-in Actor events in the Verified Registry, Miner and Market Actors | FIP | Aarsh (@aarshkshah1992)| Draft |
+|[0084](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0084.md) | Remove Storage Miner Actor Method `ProveCommitSectors`   | FIP | Jennifer Wang (@jennijuju)| Draft |
