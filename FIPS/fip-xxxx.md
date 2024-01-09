@@ -1,6 +1,6 @@
 ---
 fip: "<to be assigned>"
-title: Fast Finality in Filecoin
+title: Fast Finality in Filecoin (F3)
 author: Jie Hou (@mb1896), Henrique Moniz (@hmoniz), Alex North (@anorth), Matej Pavlovic (@matejpavlovic), Aayush Rajasekaran (@arajasek), Alejandro Ranchal-Pedrosa (@ranchalp), Jorge Soares (@jsoares) and Marko Vukolic (@vukolic)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/809
 status: Draft
