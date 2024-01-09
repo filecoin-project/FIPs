@@ -20,7 +20,7 @@ Filecoin clients currently consider blocks irreversible after 900 epochs, hinder
 
 The current Filecoin consensus mechanism only provides probabilistic finality. To simplify client implementations and provide some form of determinism, the protocol also includes a soft finality threshold, whereby miners at round $N$ reject all blocks that fork off before $N-900$. This finalization delay of 900 epochs (7.5 hours) hinders user experience and limits applications built on Filecoin.
 
-We specify a mechanism for fast finality with the F3 component. F3 is expected to finalize tipsets within tens of seconds during regular network operation, compared to the current 900-epoch finalization delay. It does so by leveraging GossiPBFT, an optimally resilient partially synchronous BFT consensus protocol, which runs in parallel with the current protocol, taking EC tipsets as input and providing finalized prefixes as output. EC's fork choice rule is modified never to select away from the F3-finalized chain.
+We specify a mechanism for fast finality with the F3 component. F3 is expected to finalize tipsets within tens of seconds during regular network operation, compared to the current 900-epoch finalization delay. It does so by leveraging GossiPBFT, an optimally resilient partially synchronous BFT consensus protocol, which runs in parallel with the current protocol, taking EC tipsets as input and providing finalized prefixes as output. The fork choice rule of EC is modified to ensure it never selects a chain other than the F3-finalized chain.
 
 
 ## Change Motivation
