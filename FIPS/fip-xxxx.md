@@ -25,7 +25,7 @@ We specify a mechanism for fast finality with the F3 component. F3 is expected t
 
 ## Change Motivation
 
-* The long time to finality on Filecoin mainnet restricts or severely affects applications built on Filecoin (e.g., IPC, FVM, Axelar, Wormhole, Glif, …).
+* The long time to finality on Filecoin mainnet restricts or severely affects applications built on Filecoin (e.g., IPC, Axelar, Wormhole, Glif, …).
 * Even though applications on Filecoin can set a lower finalization time than the built-in 900 epochs, delayed finalization for important transactions will require tens of minutes with a longest-chain protocol like Filecoin's Expected Consensus (EC).
 * Long finalization times also affect exchanges, by imposing a long confirmation period (often more than 1 hour) for users managing their FIL assets, and bridges, which face extended wait times for asset transfers.
 * Bridging to other systems is not currently fast, safe, and verifiable.
