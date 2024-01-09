@@ -49,7 +49,7 @@ In EC and, generally, longest-chain protocols, the probability of a path from so
 
 We propose implementing fast finality in Filecoin by introducing an F3 component, which works alongside EC in Filecoin client nodes (participants).
 
-The participants in F3 are the storage providers (SPs) of the Filecoin network. The participation of each SP is weighted according to its quality-adjusted power (QAP), which is a function of the storage power that the SP has committed to the network. This information is maintained in a built-in actor called the _power actor_ (f04).
+The participants in F3 are the storage providers (SPs) of the Filecoin network. The participation of each SP is weighted according to its quality-adjusted power (QAP), which is a function of the storage power that the SP has committed to the network. This information is maintained in a built-in actor called the _power actor_ (f04). Only SPs that hold more than the threshold of power to participate in EC can participate in F3.
 
 In short, each participant $p$ in the Filecoin network (i.e., a storage provider with power) runs F3 in a loop and feeds its input from EC. F3 returns a finalized prefix chain to EC, which updates the canonical chain to extend this F3-finalized prefix. More precisely, in each loop iteration $i$ (corresponding to the i-th instance of F3):
 
