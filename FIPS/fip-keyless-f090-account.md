@@ -29,7 +29,7 @@ As documented in the spec [here](https://spec.filecoin.io/#section-systems.filec
 
 At the moment, the actor holding the FIL mining reserve is `f090`, which is a multisig actor with 3 signers and an approval threshold of 2. All three signers are account actors, with wallet keys to those accounts. This means three individuals hold the keys to three wallets and can move funds and change the terms of f090, as long as 2 out of 3 signers approve the same transactions. They can do so without anyone else's approval, speaking protocol-wise. This opposes the decentralized governance principle as quoted in the above paragraph from the spec. This also creates a security gap in the network where if 2 out of the 3 signer keys of f090 are compromised by malicious actors, they may cause serious economic and reputational damage to the Filecoin network.
 
-In addition, having the reserve holds in a multisig also means changes toward the mining reserve, including unlock portion of the funds to new network participants or any operation/mechanism accepted by the community via FIP, may need to be managed by the msig signers via signed transactions which is a huge operational overhead (and again against the principle).
+In addition, having the reserve held in a multisig also means changes regarding use the reserve may need to be managed by the msig signers via signed transactions which is a huge operational overhead (and again against the principle).
 
 The proposal here is rather simple: to convert the f090 actor type from a *multisig* to an *account* type (without any keys, like `f099`), and any changes to the mining reserve must be proposed via FIPs, governed by the FIP and network upgrade process.
 
