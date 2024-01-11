@@ -58,7 +58,7 @@ This proposal improves the network security by removing the ownership and contro
 
 ## Product Considerations
 
-This proposal allows the governance of the network reserved funds to be in hands of the network participants rather than 3 key owners, which makes the network more decentralized. 
+This proposal places governance of the reserved funds entirely in hands of the network participants rather than 3 key owners, thus providing greater transparency and assurance of community consultation and deliberation in appropriate future disbursement of the funds.
 
 ## Implementation
 
