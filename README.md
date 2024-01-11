@@ -90,35 +90,35 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0049](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0049.md)  | Actor Events | FIP  |@stebalien, @raulk | Final  |
 |[0050](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0050.md)  | API Between User-Programmed Actors and Built-In Actors | FIP  |@anorth, @arajasek | Final  |
 |[0051](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0051.md)  | Synchronous Consistent Block Broadcast for EC Security | FRC  |Guy Goren <guy.goren@protocol.ai>, Alfonso de la Rocha <alfonso@protocol.ai> | Draft  |
-|[0052](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0052.md)  | Increase max sector commitment to 3.5 years | FIP  |@anorth | Accepted  |
+|[0052](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0052.md)  | Increase max sector commitment to 3.5 years | FIP  |@anorth | Final  |
 |[0053](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0053.md)  | Non-Fungible Token Standard | FRC  |@alexytsu, @abright, @anorth | Draft  |
 |[0054](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0054.md)  | Filecoin EVM Runtime (FEVM)  | FIP  |@raulk, @stebalien | Final  |
 |[0055](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0055.md)  | Supporting Ethereum Accounts, Addresses, and Transactions  | FIP  |@raulk, @stebalien | Final |
 |[0056](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0056.md)  | Sector Duration Multiplier  | FIP  | @AxCortesCubero, @jbenet, @misilva73, @momack2, @tmellan, @vkalghatgi, @zixuanzh | Rejected  |
 |[0057](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0057.md)  | Update Gas Charging Schedule and System Limits for FEVM  | FIP  |@raulk, @stebalien, @aakoshh, @kubuxu| Final  |
 |[0058](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0058.md)  | Verifiable Data Aggregation  | FRC  |Jakub Sztandera (@Kubuxu), Nicola Greco (@nicola), Peter Rabbitson (@ribasushi)| Draft  |
-|[0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)  | Synthetic PoRep  | FIP  |@Kubuxu @Luca @Rosario Gennaro @Nicola @Irene| Accepted  |
+|[0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)  | Synthetic PoRep  | FIP  |@Kubuxu @Luca @Rosario Gennaro @Nicola @Irene| Final  |
 |[0060](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0060.md)  | Set market deal maintenance interval to 30 days  | FIP  |Jakub Sztandera (@Kubuxu), @Zenground0, Alex North (@anorth)| Final  |
 |[0061](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0061.md)  | WindowPoSt Grindability Fix  | FIP  |@cryptonemo @Kubuxu  @DrPeterVanNostrand @Nicola @porcuquine @vmx @arajasek| Final  |
 |[0062](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0062.md)  | Fallback Method Handler for the Multisig Actor  | FIP  |JDimitris Vyzovitis (@vyzo), Raúl Kripalani (@raulk)| Final  |
-|[0063](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0063.md)  | Switching to new Drand mainnet network  | FIP  | @yiannisbot, @CluEleSsUK, @AnomalRoil, @nikkolasg, @willscott | Draft     |
+|[0063](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0063.md)  | Switching to new Drand mainnet network  | FIP  | @yiannisbot, @CluEleSsUK, @AnomalRoil, @nikkolasg, @willscott | Last Call     |
 |[0065](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0065.md)  | Ignore built-in market locked balance in circulating supply calculation  | FIP  | @anorth  | Accepted  |
 |[0066](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0066.md)  | Piece Retrieval Gateway | FRC  | @willscott, @dirkmc  | Draft  |
 |[0067](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0067.md)  | PoRep Security Policy & Replacement Sealing Enforcement  | FIP  | @Kubuxu, @anorth, @irenegia, @lucaniz | Accepted  |
 |[0068](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0068.md)  | Deal-Making Between SPs and FVM Smart Contracts | FRC  | @aashidham, @raulk, @skottie86, @jennijuju, @nonsense, @shrenujbansal | Draft  |
 |[0069](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md)  | Piece Multihash and v2 Piece CID | FRC  | @aschmahmann, @ribasushi | Draft  |
 |[0070](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0070.md)  | Allow SPs to move partitions between deadlines  | FIP  |Steven Li (@steven004), Alan Xu (@zhiqiangxu), Mike Li (@hunjixin), Alex North (@anorth), Nicola (@nicola)| Accepted  |
-|[0071](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0071.md)  | Deterministic State Access (IPLD Reachability)  | FIP  |@stebalien| Accepted  |
-|[0072](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0072.md)  | Improved event syscall API  | FIP  | @fridrik01, @Stebalien | Accepted  |
-|[0073](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0073.md)  | Remove beneficiary from the self_destruct syscall | FIP  | @Stebalien | Accepted  |
+|[0071](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0071.md)  | Deterministic State Access (IPLD Reachability)  | FIP  |@stebalien| Final  |
+|[0072](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0072.md)  | Improved event syscall API  | FIP  | @fridrik01, @Stebalien | Final  |
+|[0073](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0073.md)  | Remove beneficiary from the self_destruct syscall | FIP  | @Stebalien | Final  |
 |[0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md)  | Remove cron-based automatic deal settlement  | FIP  | @anorth, @alexytsu| Accepted  |
-|[0075](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0075.md)  | Improvements to the FVM randomness syscalls  | FIP  | @arajasek, @Stebalien  | Accepted  |
+|[0075](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0075.md)  | Improvements to the FVM randomness syscalls  | FIP  | @arajasek, @Stebalien  | Final  |
 |[0076](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md)  | Direct data onboarding | FIP  | @anorth, @zenground0 | Accepted  |
 |[0077](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0077.md)  | Add Cost Opportunity For New Miner Creation  | FIP  |Zac (@remakeZK), Mike Li (@hunjixin)| Draft  |
 |[0078](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0078.md)  | Remove Restrictions on the Minting of Datacap  | FIP  |Fatman13 (@Fatman13), flyworker (@flyworker), stuberman (@stuberman), Eliovp (@Eliovp), dcasem (@dcasem), and The-Wayvy (@The-Wayvy)| Draft  |
 |[0079](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0079.md)  | Add BLS Aggregate Signatures to FVM  | FIP  | Jake (@drpetervannostrand) | Accepted  |
 |[0080](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0080.md)  | Phasing Out Fil+ and Restoring Deal Quality Multiplier to 1x | FIP | @Fatman13, @ArthurWang1255, @stuberman, @Eliovp, @dcasem, @The-Wayvy | Draft |
 |[0081](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0081.md)  | Introduce lower bound for sector initial pledge | FIP | @anorth, @vkalghatgi | Draft |
-|[0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md)  | Add support for aggregated replica update proofs | FIP | nemo (@cryptonemo), Jake (@drpetervannostrand), @anorth | Draft |
+|[0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md)  | Add support for aggregated replica update proofs | FIP | nemo (@cryptonemo), Jake (@drpetervannostrand), @anorth | Last Call |
 |[0083](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0083.md) | Add built-in Actor events in the Verified Registry, Miner and Market Actors | FIP | Aarsh (@aarshkshah1992)| Draft |
 |[0084](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0084.md) | Remove Storage Miner Actor Method `ProveCommitSectors`   | FIP | Jennifer Wang (@jennijuju)| Draft |
