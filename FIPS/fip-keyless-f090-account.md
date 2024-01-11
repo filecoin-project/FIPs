@@ -27,11 +27,11 @@ This FIP proposes to alter the type of the FIL mining reserve actor from the afo
 
 As documented in the spec [here](https://spec.filecoin.io/#section-systems.filecoin_token.token_allocation), upon network launch, a pool of tokens was allocated as a Mining Reserve to support the maintenance of a robust Filecoin economy. It also mentions, "It will be up to the community to determine in the future how to distribute those tokens, through Filecoin improvement proposals (FIPs) or similar decentralized decision-making processes." It is worth noting that when the spec was written and when the network was first launched, the FIP process was not yet well-designed nor matured to support network governance, and significant improvements have been made since then.
 
-At the moment, the actor holding the FIL mining reserve is `f090`, which is a multisig actor with 3 signers and an approval threshold of 2. All three signers are account actors, with wallet keys to those accounts. This means three individuals hold the keys to three wallets and can move funds and change the terms of f090, as long as 2 out of 3 signers approve the same transactions. They can do so without anyone else's approval, speaking protocol-wise. This opposes the decentralized governance principle as quoted in the above paragraph from the spec. This also creates a security gap in the network where if 2 out of the 3 signer keys of f090 are compromised by malicious actors, they may cause serious economic and reputational damage to the Filecoin network.
+At the moment, the actor holding the FIL mining reserve is `f090`, which is a multisig actor with 3 signers and an approval threshold of 2. All three signers are account actors, with wallet keys to those accounts. This means that 2 out of 3 _individuals_ hold the keys to move funds and change the terms of f090. They can do so without a governance process or any protocol-level safeguards, which conflicts with the decentralized governance principle outlined in the spec. It further creates security concerns for the whole Filecoin network, in that a malicious actor that compromises 2 out of the 3 signer keys of f090 gains the ability to cause serious economic and reputational damage.
 
-In addition, having the reserve held in a multisig also means changes regarding use the reserve may need to be managed by the msig signers via signed transactions which is a huge operational overhead (and again against the principle).
+In addition, having the reserve held in a multisig also means the use of the reserve may need to be managed via signed transactions, creating significant operational overhead (and again deviating from the governance principle).
 
-The proposal here is rather simple: to convert the f090 actor type from a *multisig* to an *account* type (without any keys, like `f099`), and any changes to the mining reserve must be proposed via FIPs, governed by the FIP and network upgrade process.
+This proposal is simple: to convert the f090 actor type from a *multisig* to an *account* type (without any keys, like `f099`), so that any changes to the mining reserve must be proposed via the appropriate FIP and network upgrade processes.
 
 ## Specification
 
@@ -40,7 +40,6 @@ Convert f090 actor type from a _multisig_ to _account_ type. The new account act
 ```rust
 pub struct State {
   pub address: Address,
-  
 }
 ```
 
@@ -52,17 +51,17 @@ The choice of making f090 actor to be a keyless account type is to ensure that n
 
 ## Backwards Compatibility
 
-This change is not backwards compatible, upon the activation of this FIP in network upgrade:
-- the actor type of f090 will be migrated from a _multisig_ to _account_.
-- the existing signers of f090 multisig will no longer be able to perform multisig operations of the actor
+This change is not backwards compatible. Upon the activation of this FIP in a network upgrade:
+- the actor type of f090 will be migrated from _multisig_ to _account_.
+- the existing signers of the f090 multisig will no longer be able to perform operations on the actor
 
 ## Test Cases
 
-- Get actor cid of f090 it should return actor code cid of an `account`
+- Get actor cid of f090 should return actor code cid of an `account`
 
 ## Security Considerations
 
-This proposal improves the network security by removing the ownership and control of 15% of the total network token supply from 3 individuals to the network participants.
+This proposal improves the network security by removing the ownership and control of 15% of the total network token supply from 3 individuals and putting it under the control of network participants via the appropriate governance processes.
 
 
 ## Product Considerations
