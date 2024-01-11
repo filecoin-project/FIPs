@@ -37,6 +37,15 @@ The proposal here is rather simple: to convert the f090 actor type from a *multi
 
 Convert f090 actor type from a _multisig_ to _account_ type. The new account actor should be keyless, like `f099`.
 
+```rust
+pub struct State {
+  pub address: Address,
+  
+}
+```
+
+The new f090 account actor will contain a self-reference to its ID address in the `address` field.
+
 ## Design Rationale
 
 The choice of making f090 actor to be a keyless account type is to ensure that no single actor/entity owns the control over Filecoin mining reserves. The use of the mining reserves will be proposed and governed by the FIP process, and further adopted by the network via network upgrades. 
