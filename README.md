@@ -101,7 +101,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0060](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0060.md)  | Set market deal maintenance interval to 30 days  | FIP  |Jakub Sztandera (@Kubuxu), @Zenground0, Alex North (@anorth)| Final  |
 |[0061](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0061.md)  | WindowPoSt Grindability Fix  | FIP  |@cryptonemo @Kubuxu  @DrPeterVanNostrand @Nicola @porcuquine @vmx @arajasek| Final  |
 |[0062](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0062.md)  | Fallback Method Handler for the Multisig Actor  | FIP  |JDimitris Vyzovitis (@vyzo), Raúl Kripalani (@raulk)| Final  |
-|[0063](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0063.md)  | Switching to new Drand mainnet network  | FIP  | @yiannisbot, @CluEleSsUK, @AnomalRoil, @nikkolasg, @willscott | Draft     |
+|[0063](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0063.md)  | Switching to new Drand mainnet network  | FIP  | @yiannisbot, @CluEleSsUK, @AnomalRoil, @nikkolasg, @willscott | Last Call     |
 |[0065](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0065.md)  | Ignore built-in market locked balance in circulating supply calculation  | FIP  | @anorth  | Accepted  |
 |[0066](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0066.md)  | Piece Retrieval Gateway | FRC  | @willscott, @dirkmc  | Draft  |
 |[0067](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0067.md)  | PoRep Security Policy & Replacement Sealing Enforcement  | FIP  | @Kubuxu, @anorth, @irenegia, @lucaniz | Accepted  |
@@ -119,6 +119,6 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0079](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0079.md)  | Add BLS Aggregate Signatures to FVM  | FIP  | Jake (@drpetervannostrand) | Accepted  |
 |[0080](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0080.md)  | Phasing Out Fil+ and Restoring Deal Quality Multiplier to 1x | FIP | @Fatman13, @ArthurWang1255, @stuberman, @Eliovp, @dcasem, @The-Wayvy | Draft |
 |[0081](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0081.md)  | Introduce lower bound for sector initial pledge | FIP | @anorth, @vkalghatgi | Draft |
-|[0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md)  | Add support for aggregated replica update proofs | FIP | nemo (@cryptonemo), Jake (@drpetervannostrand), @anorth | Draft |
+|[0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md)  | Add support for aggregated replica update proofs | FIP | nemo (@cryptonemo), Jake (@drpetervannostrand), @anorth | Last Call |
 |[0083](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0083.md) | Add built-in Actor events in the Verified Registry, Miner and Market Actors | FIP | Aarsh (@aarshkshah1992)| Draft |
 |[0084](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0084.md) | Remove Storage Miner Actor Method `ProveCommitSectors`   | FIP | Jennifer Wang (@jennijuju)| Draft |
