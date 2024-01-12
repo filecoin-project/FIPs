@@ -389,7 +389,7 @@ F3(inputChain, baseChain) returns (chain, PoF):
         until (HasStrongQuorumValue(M) AND StrongQuorumValue(M) ≠ 丄)
           OR (timeout expires AND Power(M)>2/3)
 38:     if (HasStrongQuorumValue(M) AND StrongQuorumValue(M) ≠ 丄)    \* decide
-39:       BEBroadcast <DECIDE, StrongQuorumValue(M)
+39:       BEBroadcast <DECIDE, StrongQuorumValue(M)>
 40:       decideSent ← True
 40:     if (∃ m ∈ M: m.value ≠ 丄) \* m.value was possibly decided by others
 41:       proposal ← m.value; \* sway local proposal to possibly decided value
