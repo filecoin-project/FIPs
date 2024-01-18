@@ -42,6 +42,13 @@ The analysis detailing how we bound the finality of a given input can be found [
 
 ### Analyzing the probability of errors
 
+Our analysis draws inspiration from techniques developed in an [AFT’22 paper](https://arxiv.org/pdf/2203.06357.pdf) combined with techniques from an [ICDCS’20 paper](https://arxiv.org/pdf/2001.06403.pdf) and applying them to the observed chain history of Filecoin (when possible). In summary, we consider an observed addition of $k$ blocks on top of the target tipset produced at epoch $s$. We then look at:
+
+1. Distant past “random walk”: blocks produced by the adversary to form a competing chain _minus_ number of blocks observed in the local heaviest chain (lh-chain) up to the epoch $s$.
+2. Recent past “random race”: blocks produced by the adversary between epoch $s$ and the current epoch $c$, minus the number of blocks observed in the lh-chain in the same period.
+3. Future “random walk”: expected blocks produced by the adversary _minus_ the number of blocks produced by honest validators when slowed by the adversary.
+
+
 ### EC finality for users
 
 Our analysis is based on the two lemmas below. Roughly, they establish that a validator/user has visibility to all chains that end with an honest block. Recall that the fork choice rule in Filecoin is based on chain weight and validity, where "weight" incorporates the number of blocks together with the approximated storage space required to create them, and "validity" is determined by a set of rules that govern the correct construction of blocks. For simplicity, we shall ignore the subtleties of the two and refer to the "best" tipset as the tipset at the end of the heaviest valid chain, as well as conflate the weight of a chain to the number of blocks it contains.
