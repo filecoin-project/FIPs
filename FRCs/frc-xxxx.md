@@ -308,12 +308,13 @@ Testing for the implementation of the `I*DataAggregator` family of interfaces sh
 
 ### Data Retrieval
 
-Aggregators maintain a copy of the data and serve it via an HTTP endpoint. Aggregators should provide an HTTP endpoint and a IPFS endpoint for users to retrieve the data for a certain period, e.g. 30 days. Client can make an HTTP call to the aggregator they uploaded the data to to download the file by providing the data’s CID. 
+Aggregators maintain a copy of the data and serve it via an HTTP endpoint. Aggregators should provide an HTTP endpoint and a IPFS endpoint for users to retrieve the data for a certain period, e.g. 30 days. Client can make an HTTP call to the aggregator they uploaded the data to to download the file by providing the subpiece data CID (CommPc).
 
 Recommended API interface for the two retrieval methods mentioned above:
 
-- Retrieval endpoint for Filecoin retrieval: GET /data/<pieceCID>
-- Retrieval gateway for IPFS retrieval: https://gateway/ipfs/<pieceCID>
+- Retrieval endpoint for Filecoin retrieval: GET /piece/<pieceCID>
+For detailed specification (http interface, header, responses etc.), please refer to this [FRC regarding Filecoin piece retrieval gateway](https://github.com/willscott/FIPs/blob/3c073e89d5c2df1b24742af748c4fbacb4e06846/FRCs/piece-gateway.md).
+- Retrieval gateway for IPFS retrieval: https://gateway/ipfs/<CID>
 
 ### **Security Considerations**
 
