@@ -12,27 +12,27 @@ created: 2023-10-07
 
 ## Simple Summary 
 
-Filecoin deal-making flows for small files previously required trusted offchain aggregators to consolidate small files into a storage deal with a Filecoin Storage Provider. This FRC proposes a robust standard for an FEVM smart contract to act abstractly as an aggregator, enabing use cases for trustless aggregation, storage of small files on Filecoin, and composibility with other onchain data organiations on FEVM (including dapps and DataDAOs).
+Filecoin deal-making flows for small files previously required trusted offchain aggregators to consolidate small files into a storage deal with a Filecoin Storage Provider. This FRC proposes a robust standard for an FVM smart contract to act abstractly as an aggregator, enabling use cases for trustless aggregation, storage of small files on Filecoin, and composability with other onchain data organiations on FVM (including dapps and DataDAOs).
 
 ## Introduction
 
 This proposal presents the `I*DataAggregator` set of interfaces for the Filecoin Virtual Machine (FVM) along with its reference implementation. This family of interfaces manages storage deal creation requests and (optionally) stores relevant deal metadata, including `deal_id` and`provider_id`. 
 
-These also ensures data inclusion through PoDSI inclusion proof verification. PoDSI is described in [FRC-58 Verifiable Data Aggregation](https://github.com/filecoin-project/FIPs/blob/e913fea0f32cf412474f48600f29dbe9753b3d0c/FRCs/frc-0058.md), which allows aggregators to produce an Proof of Data Segment Inclusion (PoDSI) certifying that the client’s data is being accurately aggregated.
+These also ensures data inclusion through Proof of Data Segment Inclusion (PoDSI) proof verification. PoDSI proofs are described in [FRC-58 Verifiable Data Aggregation](https://github.com/filecoin-project/FIPs/blob/e913fea0f32cf412474f48600f29dbe9753b3d0c/FRCs/frc-0058.md), and allow aggregators to certify that the client’s data has been accurately aggregated.
 
-This proposal additionally supports Renew/Replication/Repair-as-a-Service (RaaS) full interface, where clients can specify flexible RaaS term deals with aggregator to define the renew period, replication factor, and repair threshold. Aggregator would then honor the provided deal terms with associated Storage providers, and perform the callback/emit event when the job is completed. More details on aggregator-implemented RaaS full interface workflow can be found [here](https://docs.google.com/presentation/d/11wurlsTFo7ojtDI3UKzU1JA9Ploy3-VduuJ5dJciW80/edit#slide=id.g253ed1e380a_1_122).
+This proposal additionally supports Renew/Replication/Repair-as-a-Service (RaaS) full interface, where clients can specify flexible RaaS term deals with aggregators. An aggregator would then honor the provided deal terms with associated storage providers and perform the callback/emit event when the job is completed. More details on the aggregator-implemented RaaS full interface workflow can be found [here](https://docs.google.com/presentation/d/11wurlsTFo7ojtDI3UKzU1JA9Ploy3-VduuJ5dJciW80/edit#slide=id.g253ed1e380a_1_122).
 
-Standardizing these interfaces allows various aggregators to offer a set of uniform methods for submitting storage deal creation requests and storing the deal metadata. This enhances community portability across different aggregators and promotes compatibility among tools and libraries. 
+Standardizing these interfaces allows various aggregators to offer a set of uniform methods for submitting storage deal creation requests and storing the deal metadata. This enhances community portability across different aggregators and promotes compatibility amongst tools and libraries. 
 
-Note that this FRC can be built on both FVM mainnet as well as IPC subnets. The latter can be more gas efficient, but may not feature the variety of SPs available on SP mainnet. Over time, we expect that gas costs may push more SPs and builders for this standard to IPC subnets. 
+Note that this FRC can be built on both FVM mainnet as well as IPC subnets. The latter can be more gas efficient, but may not feature the variety of SPs available on SP mainnet. Over time, we expect that gas costs may push more SPs and builders implementing this standard to do so on IPC subnets. 
 
-Note that currently this FRC does not cover paid deals, as well as managing escrow for paid deals. However we expect that future versions of this FRC may incorporate these flows.
+Note that currently this FRC does not currently describe a standard aggregation workflow for paid deals and/or paid deal escrow. 
 
 ## Motivation / Context
 
 This standard makes it possible for a client to transact with an aggregator in a trustless manner. That is, the user can be sure that the aggregated file contains the submitted subpiece through PoDSI (in the case of aggregators that implement `IOffchainDataAggregator`) or through commPa computation happening onchain (in the case of aggregators that implement `IOnchainDataAggregator`). Through this trustless aggregation, this standard also enables richer interactions with Dapps, DataDAOs, and other onchain organizations present on FVM or IPC subnets. These can now store small pieces of data through FVM / IPC.
 
-The main audience of this standard is aggregators running in the PLN that want to leverage onchain primitives to trustlessly aggregate data. They should leverage this approach when they want to make their operations transparent to clients, SPs and other onchain indexers. They should also leverage this standard when they want to make their aggregation composable with other data organizations (such as Dapps and DataDAOs) being built on FVM / IPC. We expect substantial adoption of this standard across these aggregators. 
+The main audience of this standard is aggregators that want to leverage onchain primitives to trustlessly aggregate data. They should leverage this approach when they want to make their operations transparent to clients, SPs and other onchain indexers. They should also leverage this standard when they want to make their aggregation composable with other data organizations (such as Dapps and DataDAOs) being built on FVM / IPC. We expect substantial adoption of this standard across these aggregators. 
 
 ## **Specification**
 
@@ -56,7 +56,7 @@ interface IOffchainDataAggregator {
     struct Deal {
         uint64 dealId;   // A unique identifier for the deal.
         uint64 providerId;  // The storage provider that is storing the data for the deal.
-				uint64 marketActorId; // The actor ID of the storage market in which the deal representation is stored. dealId is scoped by marketActorId
+	uint64 marketActorId; // The actor ID of the storage market in which the deal representation is stored. dealId is scoped by marketActorId
     }
 
     /**
@@ -93,7 +93,7 @@ interface IOffchainDataAggregator {
      */
     function submit(bytes memory _cid, bytes memory _fetchLink) external returns (uint256);
 
-		/**
+     /**
      * @notice Function to submit a new file to the aggregator, specifing the raas parameters
      * @param _cid The piece CID of the file to be stored
      * @param _replication_target The number of copies this file should be replicated to
@@ -101,9 +101,7 @@ interface IOffchainDataAggregator {
      * @param _renew_threshold The number of epochs the deal should be renewed before its expiration date
      * @return 
      */
-		function submitRaaS(bytes memory _cid, bytes memory _fetchLink,
-												 uint256 memory _replication_target, uint256 memory _repair_threshold,
-									       uint256 memory _renew_threshold);
+     function submitRaaS(bytes memory _cid, bytes memory _fetchLink, uint256 memory _replication_target, uint256 memory _repair_threshold, uint256 memory _renew_threshold);
 
     /**
      * @notice Callback function that is called by the aggregator once data has been stored
@@ -116,7 +114,7 @@ interface IOffchainDataAggregator {
      */
     function complete(
         uint256 _id,
-				uint64 _marketActorId,
+	uint64 _marketActorId,
         uint64 _dealId,
         uint64 _providerId,
         InclusionProof memory _proof,
@@ -186,7 +184,7 @@ interface IOnchainDataAggregator {
     struct Deal {
         uint64 dealId;   // A unique identifier for the deal.
         uint64 providerId;  // The storage provider that is storing the data for the deal.
-				uint64 marketActorId; // The actor ID of the storage market in which the deal representation is stored. dealId is scoped by marketActorId
+	uint64 marketActorId; // The actor ID of the storage market in which the deal representation is stored. dealId is scoped by marketActorId
     }
 
     /**
@@ -204,9 +202,7 @@ interface IOnchainDataAggregator {
      * @param _repair_threshold The number of epochs the deal should be repaired after being inactive for
      * @param _renew_threshold The number of epochs the deal should be renewed before its expiration date
      */
-    event SubmitAggregatorRequestWithRaaS(uint256 indexed id, bytes cid,
-																					uint256 _replication_target, uint256 _repair_threshold,
-																					uint256 _renew_threshold);
+    event SubmitAggregatorRequestWithRaaS(uint256 indexed id, bytes cid, uint256 _replication_target, uint256 _repair_threshold, uint256 _renew_threshold);
 
     /**
      * @notice Emitted when a request is completed, marking it with the request ID and deal ID
@@ -222,7 +218,7 @@ interface IOnchainDataAggregator {
      */
     function submit(bytes memory _cid, bytes memory _fetchLink) external returns (uint256);
 
-		/**
+     /**
      * @notice Function to submit a new file to the aggregator, specifing the raas parameters
      * @param _cid The piece CID of the file to be stored
      * @param _replication_target The number of copies this file should be replicated to
@@ -230,9 +226,7 @@ interface IOnchainDataAggregator {
      * @param _renew_threshold The number of epochs the deal should be renewed before its expiration date
      * @return 
      */
-		function submitRaaS(bytes memory _cid, bytes memory _fetchLink,
-												 uint256 memory _replication_target, uint256 memory _repair_threshold,
-									       uint256 memory _renew_threshold);
+     function submitRaaS(bytes memory _cid, bytes memory _fetchLink, uint256 memory _replication_target, uint256 memory _repair_threshold, uint256 memory _renew_threshold);
 
     /**
      * @notice Callback function that is called by the onchain aggregator once data has been stored
@@ -242,7 +236,7 @@ interface IOnchainDataAggregator {
      */
     function onchain_complete(
         uint256 _id,
-				uint64 _marketActorId,
+	uint64 _marketActorId,
         uint64 _dealId,
         uint64 _providerId,
     ) external returns ();
