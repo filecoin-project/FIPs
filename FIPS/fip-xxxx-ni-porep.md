@@ -1,12 +1,12 @@
 ---
-fip: "0059"
+fip: XXXX
 title: NI-Porep
-author: "@Luca @Kubuxu @Nicola @nemo @vmx"
+author: @lucaniz @Kubuxu @nicola @cryptonemo @vmx
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/854 
 status: Draft
 type: Technical
 category: Core
-created: 18 dec 2023
+created: 2023-12-18
 ---
 # NI-PoRep 
 
