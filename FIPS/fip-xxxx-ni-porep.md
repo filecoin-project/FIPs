@@ -35,26 +35,26 @@ There are multiple venues where NI-PoRep would be beneficial for Filecoin.
 
 **Cost Reduction: removing complexity reduces costs and enables the full potential of SupraSeal improvements**
 
-- No `PreCommit` method and message, only `ProveCommit` will stay (only one method and one message needed to add sectors to the network);
+- No `PreCommit` method and message, only `ProveCommit` will stay (only one step with one chain message needed to onboard sectors to the network)
 - No `PCD` (PreCommit Deposit)
 - No waiting time between `PreCommit` and `ProveCommit`
 - High impact in terms of SupraSeal software utilization
 
-**Trustless SaaS Enabled**
+**Trustless Sealing-as-a-Service (SaaS) Enabled**
 
 - SaaS would be possible in a trustless manner (low risk-low trust: sealer does not need to put down collateral that will need to be re-paid by buyers or buyer does not need to pre-pay this amount)
 - SaaS providers can delegate proving tasks. In particular, proving can be split into specialized subtasks which get outsourced to specialized entities (labeling the graph, Snarks, …)
 - Enabling HDD wholesale: it would be possible to receive brand new drives with Sector-Keys pre-generated in your name
 
-**PoRep secured Cryptographically and not Rationally**
+**PoRep Secured Cryptographically and not Rationally**
 
 Chain cryptographic security gets increased: NI-PoRep would make misbehaving cryptographically infeasible rather than irrational.
 
-**PoRep Security now independent from Consensus**
+**PoRep Security Now Independent from Consensus**
 
 Current PoRep is interactive and needs to get randomness form the chain. Moreover, in order to be secure, 150 epochs are needed between `PreCommit` and `ProveCommit`. This is due to the fact that some Consensus attacks need to be infeasible (as putting those attacks in place would allow for faking storage).
 
-In NI-PoRep, since randomness is derived locally, there is no link anymore between PoRep and consensus attacks. This mean that
+In NI-PoRep, since randomness is derived locally, there is no link anymore between PoRep and consensus attacks. This means that
 
 - Consensus attacks are not a concern anymore for PoRep security
 - PoRep can now work “agnostically” with any consensus protocol
@@ -68,12 +68,12 @@ In NI-PoRep, since randomness is derived locally, there is no link anymore betwe
 
 NI-PoRep protocol can be summarized as follows:
 
-**Graph Labelling and commitments** (similar to the current `PC1` and `PC2` computation)
+**Graph labelling and commitments** (similar to the current `PC1` and `PC2` computation)
 
 1. Using `ReplicaID` (which contains `CommD`), SP computes the labels for all layers and the replica R;
-2. SP compute the column commitments `CommC` , `CommRLast` and finally computes `CommR = Poseidon_2(CommC, CommRLast)`;
+2. SP computes the column commitments `CommC` , `CommRLast` and finally computes `CommR = Poseidon_2(CommC, CommRLast)`;
 
-**Storage Provider locally generates** `NI_ChallengesNumber` **challenges and vanilla proofs;**
+**Storage Provider locally generates `NI_ChallengesNumber` challenges and vanilla proofs;**
 
 1. Each challenge is of the form `ch_i = H(tag, ReplicaID, commR, i)`;
 2. SP computes responses for all the `NI_ChallengesNumber` challenges, which result in `NI_ChallengesNumber` vanilla proofs;
