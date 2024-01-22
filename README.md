@@ -122,3 +122,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md)  | Add support for aggregated replica update proofs | FIP | nemo (@cryptonemo), Jake (@drpetervannostrand), @anorth | Last Call |
 |[0083](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0083.md) | Add built-in Actor events in the Verified Registry, Miner and Market Actors | FIP | Aarsh (@aarshkshah1992)| Draft |
 |[0084](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0084.md) | Remove Storage Miner Actor Method `ProveCommitSectors`   | FIP | Jennifer Wang (@jennijuju)| Draft |
+|[0085](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0085.md) | Convert f090 Mining Reserve actor to a keyless account actor   | FIP | Jennifer Wang (@jennijuju), Jon Victor (@jnthnvctr)| Draft |
