@@ -1,7 +1,7 @@
 ---
 fip: XXXX
 title: NI-Porep
-author: @lucaniz @Kubuxu @nicola @cryptonemo @vmx
+author: @lucaniz @Kubuxu @nicola @cryptonemo @vmx @irenegia
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/854 
 status: Draft
 type: Technical
@@ -12,16 +12,16 @@ created: 2023-12-18
 
 ## Simple Summary
 
-This proposal presents a new PoRep protocol (Non Interactive PoRep) that removes `PreCommit`. As a result, we have
+This proposal presents a new PoRep protocol (Non-Interactive PoRep) that removes `PreCommit`. As a result, we have
 
 - Flexible Onboarding Pipeline, unblocking SupraSeal full potential
 - Trustless separation between storage and computing: the proving tasks associated with sector onboarding can be outsourced.
 
 ## Abstract
 
-NI-PoRep allows to remove on-chain interaction when onboarding sectors by changing the way PoRep challenges are generated.
+Non-Interactive PoRep (NI-PoRep) allows to remove on-chain interaction when onboarding sectors by changing the way PoRep challenges are generated.
 
-We allow SP to locally generate PoRep challenges instead of using on-chain randomness.
+The protocol allows SP to locally generate PoRep challenges instead of using on-chain randomness.
 
 On one hand, this feature of the protocol allows for drastically simpler onboarding pipeline. On the other hand, higher security guarantees than today are needed in order to preserve network security.
 
