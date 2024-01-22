@@ -143,7 +143,7 @@ This function uses the $PoF$ to verify that $decision$ was the output of some in
 
 ### Power Table and Consensus Participants
 
-As mentioned, the _power table_ is a system actor that maintains, among other things, the quality-adjusted power of each SP. Each tipset $t$ in the chain corresponds to a particular version of the power table denoted $\texttt{PowerTable}(t)$ that results from executing all messages in the chain from genesis to $t$. The participants of an instance of GossiPBFT are determined by the power table resulting from the tipset finalized by the previous instance. More rigorously, the input parameter $participants$ of an instance $i$ is obtained from $\texttt{PowerTable}(decision_{i-1})$, where $decision_{i-1}$ is the tipset output by instance $i-1$. If $i$ is the first consensus instance, $decision_{i-1}$ is the genesis tipset.
+The _power table_ in the power actor maintains, among other things, the quality-adjusted power of each SP. Each tipset $t$ in the chain corresponds to a particular version of the power table denoted $\texttt{PowerTable}(t)$ that results from executing all messages in the chain from genesis to $t$. The participants of an instance of GossiPBFT are determined by the power table resulting from the tipset finalized by the previous instance. More rigorously, the input parameter $participants$ of an instance $i$ is obtained from $\texttt{PowerTable}(decision_{i-1})$, where $decision_{i-1}$ is the tipset output by instance $i-1$. If $i$ is the first consensus instance, $decision_{i-1}$ is the genesis tipset.
 
 We assume that $\texttt{PowerTable}(t)$ ignores any unnecessary data in the power table and returns the set consisting of each participant's identity and weight.
 
