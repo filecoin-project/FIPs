@@ -14,8 +14,9 @@ created: 2023-12-18
 
 This proposal presents a new PoRep protocol (Non-Interactive PoRep) that removes `PreCommit`. As a result, we have
 
-- Flexible Onboarding Pipeline, unblocking SupraSeal full potential
+- Flexible onboarding pipeline, unblocking [SupraSeal](https://github.com/supranational/supra_seal)'s full potential
 - Trustless separation between storage and computing: the proving tasks associated with sector onboarding can be outsourced.
+
 
 ## Abstract
 
@@ -23,11 +24,11 @@ Non-Interactive PoRep (NI-PoRep) allows to remove on-chain interaction when onbo
 
 The protocol allows SP to locally generate PoRep challenges instead of using on-chain randomness.
 
-On one hand, this feature of the protocol allows for drastically simpler onboarding pipeline. On the other hand, higher security guarantees than today are needed in order to preserve network security.
+On one hand, this feature of the protocol allows for drastically simpler onboarding pipeline. On the other hand, it requires an higher number of PoRep challenges (2268 per SDR layer instead of the current 180 per SDR layer) in order to preserve network security.
 
-We consider 128 bits of security as a robust level of security long term. It is possible to lower down security guarantees, but if we want a long term solution, 128 bits of security is the way to go.
+NI-PoRep is proposed as an *optional* feature, the previously available proofs types will be still supported. 
 
-In practice, this translates in an higher number of PoRep challenges (2268 per SDR layer instead of the current 180 per SDR layer) compared with today (12.6x).
+
 
 ## Motivation
 
@@ -52,7 +53,7 @@ Chain cryptographic security gets increased: NI-PoRep would make misbehaving cry
 
 **PoRep Security Now Independent from Consensus**
 
-Current PoRep is interactive and needs to get randomness form the chain. Moreover, in order to be secure, 150 epochs are needed between `PreCommit` and `ProveCommit`. This is due to the fact that some Consensus attacks need to be infeasible (as putting those attacks in place would allow for faking storage).
+Current PoRep is interactive and needs to get randomness from the chain. Moreover, in order to be secure, 150 epochs are needed between `PreCommit` and `ProveCommit`. This is due to the fact that some Consensus attacks need to be infeasible (as putting those attacks in place would allow for faking storage).
 
 In NI-PoRep, since randomness is derived locally, there is no link anymore between PoRep and consensus attacks. This means that
 
@@ -214,7 +215,7 @@ For exemplary results of the benchmarks see: [SupraSeal C2 benchmarks](https://w
 
 ## Implementations
 
-Implementation in progress.
+Implementation in progress (TODO).
 
 ## Copyright Waiver
 
