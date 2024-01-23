@@ -107,7 +107,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0067](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0067.md)  | PoRep Security Policy & Replacement Sealing Enforcement  | FIP  | @Kubuxu, @anorth, @irenegia, @lucaniz | Accepted  |
 |[0068](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0068.md)  | Deal-Making Between SPs and FVM Smart Contracts | FRC  | @aashidham, @raulk, @skottie86, @jennijuju, @nonsense, @shrenujbansal | Draft  |
 |[0069](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md)  | Piece Multihash and v2 Piece CID | FRC  | @aschmahmann, @ribasushi | Draft  |
-|[0070](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0070.md)  | Allow SPs to move partitions between deadlines  | FIP  |Steven Li (@steven004), Alan Xu (@zhiqiangxu), Mike Li (@hunjixin), Alex North (@anorth), Nicola (@nicola)| Accepted  |
+|[0070](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0070.md)  | Allow SPs to move partitions between deadlines  | FIP  |Steven Li (@steven004), Alan Xu (@zhiqiangxu), Mike Li (@hunjixin), Alex North (@anorth), Nicola (@nicola)| Rejected  |
 |[0071](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0071.md)  | Deterministic State Access (IPLD Reachability)  | FIP  |@stebalien| Final  |
 |[0072](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0072.md)  | Improved event syscall API  | FIP  | @fridrik01, @Stebalien | Final  |
 |[0073](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0073.md)  | Remove beneficiary from the self_destruct syscall | FIP  | @Stebalien | Final  |
@@ -120,6 +120,6 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0080](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0080.md)  | Phasing Out Fil+ and Restoring Deal Quality Multiplier to 1x | FIP | @Fatman13, @ArthurWang1255, @stuberman, @Eliovp, @dcasem, @The-Wayvy | Draft |
 |[0081](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0081.md)  | Introduce lower bound for sector initial pledge | FIP | @anorth, @vkalghatgi | Draft |
 |[0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md)  | Add support for aggregated replica update proofs | FIP | nemo (@cryptonemo), Jake (@drpetervannostrand), @anorth | Last Call |
-|[0083](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0083.md) | Add built-in Actor events in the Verified Registry, Miner and Market Actors | FIP | Aarsh (@aarshkshah1992)| Draft |
-|[0084](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0084.md) | Remove Storage Miner Actor Method `ProveCommitSectors`   | FIP | Jennifer Wang (@jennijuju)| Draft |
+|[0083](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0083.md) | Add built-in Actor events in the Verified Registry, Miner and Market Actors | FIP | Aarsh (@aarshkshah1992)| Last call |
+|[0084](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0084.md) | Remove Storage Miner Actor Method `ProveCommitSectors`   | FIP | Jennifer Wang (@jennijuju)| Last Call |
 |[0085](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0085.md) | Convert f090 Mining Reserve actor to a keyless account actor   | FIP | Jennifer Wang (@jennijuju), Jon Victor (@jnthnvctr)| Draft |
