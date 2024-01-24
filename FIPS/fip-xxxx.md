@@ -198,6 +198,8 @@ We illustrate the updated rule in the following figure, where blocks in blue are
 
 The current EC fork-choice rule would select the tipset $\lbrace D_0, D_1\rbrace$ as the head of the heaviest chain. However, the heaviest finalized tipset is $\lbrace C_3\rbrace$, which is not an ancestor of $\lbrace D_0, D_1\rbrace$. Therefore, the new fork choice rule selects $\lbrace D_3\rbrace$ as the head of the heaviest chain. The reason why $D_4$ is not selected is that its parent tipset does not exactly match the finalized tipset $\lbrace C_3\rbrace$, but a superset of it, i.e. $\lbrace C_3, C_4\rbrace$.
 
+In the event that F3 halts, the fork choice rule allows EC to continue to progress, building a chain of unbounded length, per the current rules, on the last F3-finalized prefix.
+
 
 ### Bootstrapping
 
