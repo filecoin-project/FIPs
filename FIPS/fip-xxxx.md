@@ -9,7 +9,7 @@ category: Core
 created: 2023-12-18
 ---
 
-# Fast Finality in Filecoin
+# Fast Finality in Filecoin (F3)
 
 ## Simple Summary
 
