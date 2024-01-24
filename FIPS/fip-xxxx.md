@@ -736,8 +736,8 @@ We refer to the stand-alone implementation in a simulated environment in the [go
 
 ## TODO
 
-- [ ] Complete benchmarking around message complexity and computational/networking requirements.
-- [ ] Decide between implicit and explicit evidence, taking into account benchmark results.
+- [x] Complete benchmarking around message complexity and computational/networking requirements.
+- [x] Decide between implicit and explicit evidence, taking into account benchmark results.
 - [ ] Finalize and incorporate the WIP [finality exchange protocol](https://docs.google.com/document/d/10i9tFremOSrZou9oO5A5wvu1uOy1lvFKbv8IsvoglR0/edit#heading=h.g8nngox3auow).
 - [ ] Update and move proofs of correctness and other supplemental documentation into `resources`
 
