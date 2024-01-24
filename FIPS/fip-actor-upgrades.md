@@ -4,7 +4,8 @@ title: Add support for upgradable actors
 author: Fridrik Asmundsson (@fridrik01), Steven Allen (@stebalien)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/396
 status: Draft
-type: Technical Core
+type: Technical
+category: Core
 created: 2023-11-27
 ---
 
@@ -14,20 +15,20 @@ This FIP introduces support for upgradable actors, enabling deployed actors to u
 
 ## Abstract
 
-This FIP proposes the integration of upgradable actors into the Filecoin network through the introduction of a new `upgrade_actor` syscall and an optional `upgrade` WebAssembly (WASM) entrypoint.
+This FIP proposes the integration of upgradable actors into the Filecoin network through the introduction of a new `upgrade_actor` syscall and an optional `upgrade` WebAssembly (Wasm) entrypoint.
 
 Upgradable actors provide a framework for seamlessly replacing deployed actor code, significantly enhancing the user experience when updating deployed actor code.
 
 ## Change Motivation
 
-Currently, the code associated with all actors on the Filecoin Network are immutable once deployed. To modify the actor code, such as fixing a security bug, the following steps are required:
+Currently, the code associated with all actors on the Filecoin Network is immutable once deployed. To modify the actor code, such as fixing a security bug, the following steps are required:
 1. Deploy a new actor with the corrected code.
 2. Migrate all state from the previous actor to the new one.
 3. Update all other actors interacting with the old actor to use the new actor.
 
 By adding support for upgradable actors, deployed actors can easily upgrade their code and no longer need to go through the series of steps mentioned above.
 
-This FIP is also motivated by the `f4` extensible address class which was introduced in [FIP-0048] and required special "placeholder" actors to support interactions with addresses that do not yet exist on-chain. With upgradable actors we can simplify this address class and remove these placeholder actors completely and instead deploy real actors and upgrade their code on first send.
+This FIP is also motivated by the `f4` extensible address class which was introduced in [FIP-0048] and required special "placeholder" actors to support interactions with addresses that do not yet exist on-chain. With upgradable actors we can simplify this address class and remove these placeholder actors completely. We will be able to deploy real actors and upgrade their code on first send.
 
 Furthermore, this FIP paves the way for moving more network upgrade logic on-chain in the future, enabling a more seamless process for implementing critical updates and ensuring the continuous improvement of the Filecoin Network.
 
@@ -35,14 +36,14 @@ Furthermore, this FIP paves the way for moving more network upgrade logic on-cha
 
 Introducing support for actor upgrades involves the following changes to the FVM:
 
-1. Adding a new `upgrade` WASM entrypoint, which actors must implement in order to be a valid upgrade target.
+1. Adding a new `upgrade` Wasm entrypoint, which actors must implement in order to be a valid upgrade target.
 2. Adding a new `upgrade_actor` syscall, enabling actors to upgrade themselves.
 
 These changes are discussed in detail in the following sections.
 
-### New upgrade WASM Entrypoint
+### New upgrade Wasm Entrypoint
 
-We introduce a new optional `upgrade` WASM entrypoint. Deployed actors must implement this entrypoint to be a valid upgrade target. It is defined as follows:
+We introduce a new optional `upgrade` Wasm entrypoint. Deployed actors must implement this entrypoint to be a valid upgrade target. It is defined as follows:
 
 ```rust
 pub fn upgrade(params_id: u32, upgrade_info_id: u32) -> u32
@@ -64,11 +65,11 @@ pub struct UpgradeInfo {
 }
 ```
 
-When a target actor's `upgrade` WASM entrypoint is called, it can make necessary state tree changes from the calling if needed to its actor code. The `UpgradeInfo` struct provided by the FVM runtime can be used to check what code CID its upgrading from. A successful return from the `upgrade` entrypoint instructs the FVM that it should proceed with the upgrade. The target actor can reject the upgrade by calling `sdk::vm::exit()`` before returning from the upgrade entrypoint.
+When a target actor's `upgrade` Wasm entrypoint is called, it can make necessary state tree changes from the calling if needed to its actor code. The `UpgradeInfo` struct provided by the FVM runtime can be used to check what code CID its upgrading from. A successful return from the `upgrade` entrypoint instructs the FVM that it should proceed with the upgrade. The target actor can reject the upgrade by calling `sdk::vm::exit()`` before returning from the upgrade entrypoint.
 
 ### New upgrade_actor syscall
 
-We introduce a new `upgrade_actor` syscall which calls the `upgrade` wasm entrypoint of the calling actor and then atomically replaces the code CID of the calling actor with the provided code CID, and returns the exit code and block ID of the return. It is defined as follows:
+We introduce a new `upgrade_actor` syscall which calls the `upgrade` Wasm entrypoint of the calling actor and then atomically replaces the code CID of the calling actor with the provided code CID, and returns the exit code and block ID of the return. It is defined as follows:
 
 ```rust
 pub fn upgrade_actor(
@@ -116,7 +117,7 @@ We considered adding a new `get_old_code_cid` syscall to get the calling actors 
 
 ## Backwards Compatibility
 
-Fully backwards compatibility is expected.
+Full backwards compatibility is expected.
 
 ## Test Cases
 
