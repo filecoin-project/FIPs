@@ -35,14 +35,14 @@ NI-PoRep is proposed as an *optional* feature, the previously available proofs
 There are multiple venues where NI-PoRep would be beneficial for Filecoin. 
 
 **Cost Reduction: removing complexity reduces costs and enables the full potential of SupraSeal improvements**
-
+NI-PoRep allows for a drastically simplified sector onboarding pipeline respect to the current PoRep, which is interactive and needs two steps (`PreCommit` and `ProveCommit`) with on-chain interaction. More in details, with NI-PoRep we have: 
 - No `PreCommit` method and message, only `ProveCommit` will stay (only one step with one chain message needed to onboard sectors to the network)
 - No `PCD` (PreCommit Deposit)
 - No waiting time between `PreCommit` and `ProveCommit`
 - High impact in terms of SupraSeal software utilization
 
 **Trustless Sealing-as-a-Service (SaaS) Enabled**
-
+NI-PoRep enables the separation between computation and storage task, which brings the following benefits:
 - SaaS would be possible in a trustless manner (low risk-low trust: sealer does not need to put down collateral that will need to be re-paid by buyers or buyer does not need to pre-pay this amount)
 - SaaS providers can delegate proving tasks. In particular, proving can be split into specialized subtasks which get outsourced to specialized entities (labeling the graph, Snarks, …)
 - Enabling HDD wholesale: it would be possible to receive brand new drives with Sector-Keys pre-generated in your name
@@ -144,23 +144,14 @@ NI-PoRep is an *optional* feature that can be opt-in for those interested. The
 
 ## Rationale
 
-NI-PoRep represents the ultimate PoRep optimization which has little downside with respect to the status quo. It would allow to remove `PreCommit` (and thus PreCommit Deposit), at the cost of augmenting C2 costs (which would result in a limited cost increase looking at onboarding costs as a whole. More details in [Discussion #854](https://github.com/filecoin-project/FIPs/discussions/854)). Additionally, we would have
-
-- Drastically simplified pipeline
-- Decoupling of Storage and Computation (thus trustless SaaS and HDD wholesale)
-- No need of new Trusted Setup,
-- No proving overhead on the StorageProvider side,
-- No impact on PoRep security
+NI-PoRep represents the ultimate PoRep optimization which has little downside with respect to the status quo. It allows to remove `PreCommit` (and thus PreCommit Deposit), at the cost of augmenting C2 costs (which would result in a limited cost increase looking at onboarding costs as a whole. More details in [Discussion #854](https://github.com/filecoin-project/FIPs/discussions/854)). 
 
 We considered lower level of security (like 80 bits) but we are convinced that 128 is the best long term option.
 
-[gas and proving considerations to be added after fil crypto review]
-
-[batch balancer paragraph to be added]
 
 ## Backwards Compatibility
 
-Synthetic PoRep would become a new proof type with a different on-chain flow as current PoRep (due to the removal of the `PreCommit` step).
+NI-PoRep would become a new proof type with a different on-chain flow as current PoRep (due to the removal of the `PreCommit` step).
 
 ## Test Cases
 
