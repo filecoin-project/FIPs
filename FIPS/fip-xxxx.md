@@ -201,7 +201,7 @@ The current EC fork-choice rule would select the tipset $\lbrace D_0, D_1\rbrace
 
 ### Bootstrapping
 
-Integrating F3 into Filecoin follows the usual path for Filecoin upgrades. One epoch, $upgradeEpoch$, will be defined as the target epoch upon which participants upgrade Filecoin. Then, every participant starts the first instance with the tipset at the $upgradeEpoch$ minus the 900-epoch lookback as the head tipset of the first $baseChain$, which is assumed by design to be common to all participants.
+Integrating F3 into Filecoin follows the usual path for Filecoin upgrades. One epoch, $upgradeEpoch$, will be defined as the target epoch upon which participants upgrade Filecoin. Then, every participant starts the first instance of F3 with the tipset at the $upgradeEpoch$ minus the 900-epoch lookback as the head tipset of the first $baseChain$, which is assumed by design to be common to all participants.
 
 
 ### GossiPBFT Consensus
