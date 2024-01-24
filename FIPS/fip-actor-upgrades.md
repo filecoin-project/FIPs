@@ -11,7 +11,7 @@ created: 2023-11-27
 
 ## Simple Summary
 
-This FIP introduces support for upgradable actors, enabling deployed actors to update their code while retaining their address, state, and balance.
+This FIP introduces support for upgradable actors, enabling deployed actors to update their code while retaining their address, state, and balance. This feature is currently limited to use by built-in actors, and as of now, no built-in actor has been updated to become upgradable.
 
 ## Abstract
 
@@ -69,26 +69,29 @@ When a target actor's `upgrade` Wasm entrypoint is called, it can make necessary
 
 ### New upgrade_actor syscall
 
-We introduce a new `upgrade_actor` syscall which calls the `upgrade` Wasm entrypoint of the calling actor and then atomically replaces the code CID of the calling actor with the provided code CID, and returns the exit code and block ID of the return. It is defined as follows:
+We introduce a new `upgrade_actor` syscall which calls the `upgrade` Wasm entrypoint of the calling actor and then atomically replaces the code CID of the calling actor with the provided code CID, and returns the exit code and block of the return. It is defined as follows:
 
 ```rust
 pub fn upgrade_actor(
     new_code_cid_off: *const u8,
     params: u32,
-) -> Result<CallResult>;
+) -> Result<Send>;
 ```
 
 Parameters:
 - `new_code_cid_off`: The code CID the calling actor should be replaced with.
 - `params`: The IPLD block handle passed, or `0` for none.
 
-The `CallResult` struct is defined as follows:
+The `Send` struct is defined as follows:
 
 ```rust
-pub struct CallResult {
-    pub block_id: BlockId,
-    pub block_stat: BlockStat,
-    pub exit_code: ExitCode,
+pub struct Send {
+    // exit code returned by the upgrade endpoint
+    pub exit_code: u32,
+    // the block id/codec/size returned by the upgrade endpoint, or 0 if no block was returned
+    pub return_id: BlockId,
+    pub return_codec: u64,
+    pub return_size: u32,
 }
 ```
 
