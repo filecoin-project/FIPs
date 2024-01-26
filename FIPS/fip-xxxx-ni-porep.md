@@ -35,8 +35,8 @@ NI-PoRep is proposed as an *optional* feature, the previously available proofs
 There are multiple venues where NI-PoRep would be beneficial for Filecoin. 
 
 **Cost Reduction: removing complexity reduces costs and enables the full potential of SupraSeal improvements**
-NI-PoRep allows for a drastically simplified sector onboarding pipeline respect to the current PoRep, which is interactive and needs two steps (`PreCommit` and `ProveCommit`) with on-chain interaction. More in details, with NI-PoRep we have: 
-- No `PreCommit` method and message, only `ProveCommit` will stay (only one step with one chain message needed to onboard sectors to the network)
+
+- No `PreCommit` method and message, only `ProveCommit` will stay (only one step with one chain message needed to onboard sectors to the network). In particular, this translates in a possible gas cost reduction when considering  aggregated sectors (i.e., according to [our estimation](https://cryptonet.org/notebook/interactivenon-interactive-porep-gas-cost-comparison), when aggregating 6 sectors current PoRep is 2.1x more expensive than NI-PoRep per sector).
 - No `PCD` (PreCommit Deposit)
 - No waiting time between `PreCommit` and `ProveCommit`
 - High impact in terms of SupraSeal software utilization
@@ -144,10 +144,12 @@ NI-PoRep is an *optional* feature that can be opt-in for those interested. The
 
 ## Rationale
 
-NI-PoRep represents the ultimate PoRep optimization which has little downside with respect to the status quo. It allows to remove `PreCommit` (and thus PreCommit Deposit), at the cost of augmenting C2 costs (which would result in a limited cost increase looking at onboarding costs as a whole. More details in [Discussion #854](https://github.com/filecoin-project/FIPs/discussions/854)). 
+Current PoRep is interactive and it is composed by two steps: PreCommit and ProveCommit. At PreCommit SP puts down a collateral (PCD) and wait 150 epochs in order to receive a challenge seed from the chain which enables the ProveCommit step. 
 
-We considered lower level of security (like 80 bits) but we are convinced that 128 is the best long term option.
+A first step to mitigate the waiting time downsides was the introduction of Synthetic PoRep (See [FIP-0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)), which that reduces the size of the temporary data stored between PreCommit and ProveCommit. 
 
+NI-PoRep is the step forward, indeed it completely removes on-chain interaction (ie, the waiting time) and the need of PCD by allowing SP to locally generate challenges instead of using on-chain randomness. 
+NI-PoRep has little downside with respect to the status quo: it removes PreCommit at the cost of augmenting C2 (ie SNARK generation) costs (which would result in a limited cost increase looking at onboarding costs as a whole). Indeed, NI-PoRep requires 12.8x more PoRep Challenges, this translates into an 12,8x Snark proving overhead. We analyzed how this snark computation overhead affects overall costs. The conclusion is that considering PC1+PC2+C1+C2 and storage costs (i.e. not considering maintenance costs), a 128 bits of security NI-PoRep sector is 5% more expensive overall than a Interactive PoRep sector when sector duration is 3y. See full analysis [here](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md).
 
 ## Backwards Compatibility
 
