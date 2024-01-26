@@ -74,9 +74,7 @@ interface IOffchainDataAggregator {
      * @param _repair_threshold The number of epochs the deal should be repaired after being inactive for
      * @param _renew_threshold The number of epochs the deal should be renewed before its expiration date
      */
-    event SubmitAggregatorRequestWithRaaS(uint256 indexed id, bytes cid,
-																					uint256 _replication_target, uint256 _repair_threshold,
-																					uint256 _renew_threshold);
+    event SubmitAggregatorRequestWithRaaS(uint256 indexed id, bytes cid, uint256 _replication_target, uint256 _repair_threshold, uint256 _renew_threshold);
 
     /**
      * @notice Emitted when a request is completed, marking it with the request ID and deal ID
