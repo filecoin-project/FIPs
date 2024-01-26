@@ -163,7 +163,7 @@ Will be included with implementation to be presented.
 
 **Fiat-Shamir Heuristic and its effects**
 
-NI-PoRep is based on the well-known Fiat-Shamir Heuristic, which allows for having a non interactive protocol starting from any 3-message interactive protocol. However, the heuristic requires the interactive protocol to have at least 80 bits of security (instead of the current 10), and preferably 128. In order to have long term security we propose to opt for 128 bits: this means that for NI-PoRep we need  `NI_ChallengesNumber128bit` = 2268.
+NI-PoRep is based on the well-known Fiat-Shamir Heuristic, which allows for having a non interactive protocol starting from any 3-message interactive protocol. However, the heuristic requires the interactive protocol to have at least 80 [bits of security](https://en.wikipedia.org/wiki/Security_level) (instead of the current 10), and preferably 128. In order to have long term security we propose to opt for 128 bits: this means that for NI-PoRep we need  `NI_ChallengesNumber128bit` = 2268.
 
 **How to take `SealRandomness` for ensuring sectors are anchored to the chain**
 
