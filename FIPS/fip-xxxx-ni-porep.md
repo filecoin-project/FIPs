@@ -34,15 +34,17 @@ NI-PoRep is proposed as an *optional* feature, the previously available proofs
 
 There are multiple venues where NI-PoRep would be beneficial for Filecoin. 
 
-**Cost Reduction: removing complexity reduces costs and enables the full potential of SupraSeal improvements**
+**Cost reduction thanks to a simplified onboarding pipeline**
 
-- No `PreCommit` method and message, only `ProveCommit` will stay (only one step with one chain message needed to onboard sectors to the network). In particular, this translates in a possible gas cost reduction when considering  aggregated sectors (i.e., according to [our estimation](https://cryptonet.org/notebook/interactivenon-interactive-porep-gas-cost-comparison), when aggregating 6 sectors current PoRep is 2.1x more expensive than NI-PoRep per sector).
-- No `PCD` (PreCommit Deposit)
-- No waiting time between `PreCommit` and `ProveCommit`
-- High impact in terms of SupraSeal software utilization
+PoRep is currently interactive in order to complete sealing an SP has to wait to receive a challenge seed from the chain) and requires an ad-hoc collateral. These feature represent a limitation when considering optimisation for the on-boarding pipeline, such as Sealing-as-a-Service and the new SupraSeal sealing code. With NI-PoRep we have no interaction is needed and this gives:
+
+- [Gas cost reduction] Current PoRep iscomposed by two steps: PreCommit and ProveCommit. With NI-PoRep there is no more `PreCommit` method and message, only `ProveCommit` will stay (only one step with one chain message needed to onboard sectors to the network).  This translates in a possible gas cost reduction when considering  aggregated sectors (i.e., according to [our estimation](https://cryptonet.org/notebook/interactivenon-interactive-porep-gas-cost-comparison), when aggregating 6 sectors current PoRep is 2.1x more expensive than NI-PoRep per sector).
+- [Lower HW requiremnts] With NI-PoRep there is no more waiting time between `PreCommit` and `ProveCommit`. This helps when using sealing software (like SupraSeal) that seals more sectors at the same time. Currently, the memory requirments are given by the fact that some data need to be stored during the waiting time. Having no waiting time implies lower memory requirments. 
+
 
 **Trustless Sealing-as-a-Service (SaaS) Enabled**
-NI-PoRep enables the separation between computation and storage task, which brings the following benefits:
+
+NI-PoRep enables the full separation between computation and storage task (in particular, no `PCD` (PreCommit Deposit) is needed), which brings the following benefits:
 - SaaS would be possible in a trustless manner (low risk-low trust: sealer does not need to put down collateral that will need to be re-paid by buyers or buyer does not need to pre-pay this amount)
 - SaaS providers can delegate proving tasks. In particular, proving can be split into specialized subtasks which get outsourced to specialized entities (labeling the graph, Snarks, …)
 - Enabling HDD wholesale: it would be possible to receive brand new drives with Sector-Keys pre-generated in your name
