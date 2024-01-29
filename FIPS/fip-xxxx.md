@@ -371,7 +371,7 @@ F3(inputChain, baseChain) returns (chain, PoF):
 22:       collect a clean set M of valid CONVERGE msgs from this round
           until timeout expires
 23:       value ← LowestTicketProposal(M)  \* leader election
-24:       if value ∈ ECCompatibleChains   \* see also lines 54-57
+24:       if value ∈ ECCompatibleChains   \* see also lines 55-56
 25:         proposal ← value \* we sway proposal if the value is EC compatible
 26:       else
 27:         value ← 丄 \* vote for not deciding in this round
@@ -391,25 +391,26 @@ F3(inputChain, baseChain) returns (chain, PoF):
         until (HasStrongQuorumValue(M) AND StrongQuorumValue(M) ≠ 丄)
           OR (timeout expires AND Power(M)>2/3)
 38:     if (HasStrongQuorumValue(M) AND StrongQuorumValue(M) ≠ 丄)    \* decide
-39:       BEBroadcast <DECIDE, StrongQuorumValue(M)>
+39:       evidence ← Aggregate(M)
+39:       BEBroadcast <DECIDE, StrongQuorumValue(M), evidence>
 40:       decideSent ← True
-40:     if (∃ m ∈ M: m.value ≠ 丄) \* m.value was possibly decided by others
-41:       proposal ← m.value; \* sway local proposal to possibly decided value
-42:       evidence ← m.evidence \* strong PREPARE quorum is inherited evidence
-43:     else \* no participant decided in this round
-44:       evidence ← Aggregate(M) \* strong quorum of COMMITs for 丄 is evidence
-45:     round ← round + 1;
-46:     timeout ← updateTimeout(timeout, round)
-47:   }  \*end while
+41:     if (∃ m ∈ M: m.value ≠ 丄) \* m.value was possibly decided by others
+42:       proposal ← m.value; \* sway local proposal to possibly decided value
+43:       evidence ← m.evidence \* strong PREPARE quorum is inherited evidence
+44:     else \* no participant decided in this round
+45:       evidence ← Aggregate(M) \* strong quorum of COMMITs for 丄 is evidence
+46:     round ← round + 1;
+47:     timeout ← updateTimeout(timeout, round)
+48:   }  \*end while
 
-48:   collect a clean set M of DECIDE messages
+49:   collect a clean set M of DECIDE messages
       until (HasStrongQuorumValue(M)) \* Collect a strong quorum of decide outside the round loop
-49:   return (StrongQuorumValue(M), Aggregate(M))
+50:   return (StrongQuorumValue(M), Aggregate(M))
 
-50:   upon reception of clean set M of DECIDE messages such that HasWeakQuorumValue(M) and not decideSent
-51:     decideSent ← True
-52:     BEBroadcast <DECIDE, WeakQuorumValue(M)
-53:     go to line 48.
+51:   upon reception of a valid <DECIDE, value, evidence> message and not decideSent
+52:     decideSent ← True
+53:     BEBroadcast <DECIDE, value, evidence>
+54:     go to line 49
 ```
 
 Also, concurrently, we expect that the participant feeds to GossiPBFT chains that are incentive-compatible with EC. To this end, GossiPBFT has a separate invocation called $\texttt{ECUpdate}()$, which is called by an external process at a participant once EC delivers a $chain$ such that $inputChain$ is a prefix of $chain$ (i.e., EC at a participant delivers an extension of $inputChain$). This part is critical to ensuring the progress property in conjunction with lines 24-25.
@@ -417,13 +418,13 @@ Also, concurrently, we expect that the participant feeds to GossiPBFT chains tha
 ```
 ECupdate(chain):
 
-54:   If (IsPrefix(proposal, chain))  \* sanity check
-55:     ECCompatibleChains ← ECCompatibleChains ∪ all prefixes of chain, not lighter than baseChain
+55:   If (IsPrefix(proposal, chain))  \* sanity check
+56:     ECCompatibleChains ← ECCompatibleChains ∪ all prefixes of chain, not lighter than baseChain
 ```
 
 #### Valid messages and evidence
 
-The $\texttt{Valid}()$ predicate (referred to in lines 11, 22, 29, 37, and 48) is defined below.
+The $\texttt{Valid}()$ predicate (referred to in lines 11, 22, 29, 37, and 49) is defined below.
 
 ```
 Valid(m):                                   | For a message m to be valid,
@@ -481,7 +482,7 @@ GossiPBFT ensures termination provided that (i) all participants start the insta
 
 [Given prior tests performed on GossipSub](https://research.protocol.ai/publications/gossipsub-v1.1-evaluation-report/vyzovitis2020.pdf) (see also [here](https://gist.github.com/jsoares/9ce4c0ba6ebcfd2afa8f8993890e2d98)), we expect that almost all participants will reach sent messages within $Δ=3s$, with a huge majority receiving them even after $Δ=2s$. However, if several participants start the instance $Δ + ε$ after some other participants, termination is not guaranteed for the selected timeouts of $2*Δ$. Thus, we do not rely on an explicit synchrony bound for correctness. Instead, we (i) use drand as a beacon to synchronize participants within an instance and (ii) increase the estimate of Δ locally within an instance as rounds progress without decision.
 
-The synchronization of participants is performed in the call to updateTimeout(timeout, round) (line 46), and works as follows:
+The synchronization of participants is performed in the call to updateTimeout(timeout, round) (line 47), and works as follows:
 
 * Participants start an instance with $Δ=2s$.
 * If the first and second rounds fail to reach termination, participants start the 3rd round with $Δ=3s$.
