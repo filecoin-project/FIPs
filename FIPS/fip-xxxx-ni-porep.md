@@ -38,8 +38,8 @@ There are multiple venues where NI-PoRep would be beneficial for Filecoin.
 
 PoRep is currently interactive in order to complete sealing an SP has to wait to receive a challenge seed from the chain) and requires an ad-hoc collateral. These feature represent a limitation when considering optimisation for the on-boarding pipeline, such as Sealing-as-a-Service and the new SupraSeal sealing code. With NI-PoRep we have no interaction is needed and this gives:
 
-- [Gas cost reduction] Current PoRep iscomposed by two steps: PreCommit and ProveCommit. With NI-PoRep there is no more `PreCommit` method and message, only `ProveCommit` will stay (only one step with one chain message needed to onboard sectors to the network).  This translates in a possible gas cost reduction when considering  aggregated sectors (i.e., according to [our estimation](https://cryptonet.org/notebook/interactivenon-interactive-porep-gas-cost-comparison), when aggregating 6 sectors current PoRep is 2.1x more expensive than NI-PoRep per sector).
-- [Lower HW requiremnts] With NI-PoRep there is no more waiting time between `PreCommit` and `ProveCommit`. This helps when using sealing software (like SupraSeal) that seals more sectors at the same time. Currently, the memory requirments are given by the fact that some data need to be stored during the waiting time. Having no waiting time implies lower memory requirments. 
+- [Gas cost reduction] Current PoRep is composed by two steps: PreCommit and ProveCommit. With NI-PoRep there is no more `PreCommit` method and message, only `ProveCommit` will stay (only one step with one chain message needed to onboard sectors to the network).  This translates in a possible gas cost reduction when considering  aggregated sectors (i.e., according to [our estimation](https://cryptonet.org/notebook/interactivenon-interactive-porep-gas-cost-comparison), when aggregating 6 sectors current PoRep is 2.1x more expensive than NI-PoRep per sector).
+- [Lower HW requiremnts] With NI-PoRep there is no more waiting time between `PreCommit` and `ProveCommit`. This helps when using sealing software (like SupraSeal) that seals more sectors at the same time. Currently, the memory requirements are given by the fact that some data need to be stored during the waiting time. Having no waiting time implies lower memory requirements. 
 
 
 **Trustless Sealing-as-a-Service (SaaS) Enabled**
@@ -159,7 +159,7 @@ NI-PoRep would become a new proof type with a different on-chain flow as current
 
 ## Test Cases
 
-Will be included with implementation to be presented.
+Run the code for NI-PoRep and check if the resulting proof cryptographically verifies (ie, run the verification software). Test cases will be included with implementation to be presented.
 
 ## Security Considerations
 
