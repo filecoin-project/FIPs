@@ -194,7 +194,7 @@ NI-PoRep will implement the batch balancer currently in place. See [FIP-0013](ht
 
 ## Product Considerations
 
-NI-PoRep represent the ultimate step forward after the introduction of Synthetic PoRep (see [FIP-0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)). 
+NI-PoRep represents another step forward after the introduction of Synthetic PoRep (see [FIP-0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)). 
 
 As already mentioned above, NI-PoRep is a prerequisite to unblock new use cases like trustless SaaS and HDD wholesale as well as allowing for SupraSeal software employment at full potential. 
 
