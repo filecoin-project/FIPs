@@ -42,7 +42,7 @@ PoRep is currently interactive (in order to complete sealing, an SP has to wait 
 - [Lower hardware requirements] With NI-PoRep, there is no more waiting time between `PreCommit` and `ProveCommit`. This helps when using sealing software (like SupraSeal) that seals more sectors at the same time. Currently, memory requirements are increased by the fact that some data need to be stored during the waiting time. Having no waiting time implies lower memory requirements. 
 
 
-**Trustless Sealing-as-a-Service (SaaS) Enabled**
+**Trustless Sealing-as-a-Service (SaaS) becomes possible**
 
 NI-PoRep enables the full separation between computation and storage task (in particular, no `PCD` (PreCommit Deposit) is needed), which brings the following benefits:
 - SaaS would be possible in a trustless manner (low risk-low trust: sealer does not need to put down collateral that will need to be re-paid by buyers or buyer does not need to pre-pay this amount)
