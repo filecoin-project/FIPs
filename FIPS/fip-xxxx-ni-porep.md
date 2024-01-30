@@ -44,16 +44,15 @@ PoRep is currently interactive (in order to complete sealing, an SP has to wait 
 
 **Trustless Sealing-as-a-Service (SaaS) becomes possible**
 
-NI-PoRep enables the full separation between computation and storage task (in particular, no `PCD` (PreCommit Deposit) is needed), which brings the following benefits:
-- SaaS would be possible in a trustless manner (low risk-low trust: sealer does not need to put down collateral that will need to be re-paid by buyers or buyer does not need to pre-pay this amount)
-- SaaS providers can delegate proving tasks. In particular, proving can be split into specialized subtasks which get outsourced to specialized entities (labeling the graph, SNARKs, …)
-- Enabling HDD wholesale: it would be possible to receive brand new drives with sectorKeys pre-generated in your name
+NI-PoRep enables the full separation between computation and storage tasks. In particular, no `PCD` (PreCommit Deposit) is needed, which brings the following benefits:
+- Currently a SaaS Provider (the entity running the PoRep steps) needs to put down the PCD for the sector. The PCD will be re-paid or is prepaid by the SP sending the final SNARK proof on chain (i.e., the SP which will store the sector for the following spacetime proofs). With this NI-PoRep this level of interaction is not needed. In particular, this kind of simplification helps SaaS providers to delegate computation tasks (ie, PoRep can be split into specialized subtasks that get outsourced to specialized entities).
+- Enabling HDD wholesale: for an SP it would be possible to receive brand new drives with sectorKeys pre-generated using its miner_id.
 
-**PoRep Secured Cryptographically and not Rationally**
+**PoRep secured cryptographically and not rationally**
 
 Chain cryptographic security gets increased: NI-PoRep would make misbehaving cryptographically infeasible rather than irrational.
 
-**PoRep Security Now Independent from Consensus**
+**PoRep security now independent from consensus**
 
 Current PoRep is interactive and needs to get randomness from the chain. Moreover, in order to be secure, 150 epochs are needed between `PreCommit` and `ProveCommit`. This is due to the fact that some Consensus attacks need to be infeasible (as putting those attacks in place would allow for faking storage).
 
