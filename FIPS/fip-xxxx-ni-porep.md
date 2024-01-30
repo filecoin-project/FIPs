@@ -46,7 +46,7 @@ PoRep is currently interactive (in order to complete sealing, an SP has to wait 
 
 NI-PoRep enables the full separation between computation and storage task (in particular, no `PCD` (PreCommit Deposit) is needed), which brings the following benefits:
 - SaaS would be possible in a trustless manner (low risk-low trust: sealer does not need to put down collateral that will need to be re-paid by buyers or buyer does not need to pre-pay this amount)
-- SaaS providers can delegate proving tasks. In particular, proving can be split into specialized subtasks which get outsourced to specialized entities (labeling the graph, Snarks, …)
+- SaaS providers can delegate proving tasks. In particular, proving can be split into specialized subtasks which get outsourced to specialized entities (labeling the graph, SNARKs, …)
 - Enabling HDD wholesale: it would be possible to receive brand new drives with Sector-Keys pre-generated in your name
 
 **PoRep Secured Cryptographically and not Rationally**
