@@ -182,10 +182,8 @@ This means that, if PC1, PC2, C1, C2 happen locally over time resulting into dif
 
 One point to take into account when dealing with NI-PoRep, compared with the status quo, is that a malicious party willing to take over the network could potentially keep accumulating sectors locally onboarding them to the network all in a sudden.
 
-Our analysis shows that in terms of security there is no substantial difference with the case of Interactive PoRep and no additional security risks are introduced.
-
-As a result of our analysis we propose to decouple power table lookback from consensus and set it to 7 days.
-See discussion [#854](https://github.com/filecoin-project/FIPs/discussions/854) for full details.
+[Our analysis](https://pl-strflt.notion.site/Non-Interactive-PoRep-34705d7868934815bd777901b208b09a) shows that in terms of security there is no substantial difference with the case of Interactive PoRep and no additional security risks are introduced.
+A potential future improvement would be to decouple to decouple power table lookback from consensus and set it to 7 days. 
 
 ## Incentive Considerations
 
