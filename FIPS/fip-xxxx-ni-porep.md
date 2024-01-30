@@ -200,7 +200,7 @@ As already mentioned above, NI-PoRep is a prerequisite to unblock new use cases 
 
 ## Benchmarks
 
-In order to have a good cost estimation benchmarks on different systems were run. It’s consistent that the difference in the total runtime of the SNARK phase between interactive PoRep and non-interactive PoRep is the expected 12.5-13x.
+In order to have a good cost estimation, we ran benchmarks on different systems. It’s consistent that the difference in the total runtime of the SNARK phase between interactive PoRep and non-interactive PoRep is the expected 12.5-13x.
 
 This phase consists of two distinct steps. The synthesis, which is a memory and CPU heavy operation and the proving, which is GPU heavy. The SupraSeal implementation only target the proving. There we see speedups between 6-10x. It depends on the GPU, while newer generations see higher speedups.
 
