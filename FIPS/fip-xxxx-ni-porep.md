@@ -32,7 +32,7 @@ NI-PoRep is proposed as an *optional* feature, the previously available proofs
 
 ## Motivation
 
-There are multiple venues where NI-PoRep would be beneficial for Filecoin. 
+NI-PoRep will be beneficial for Filecoin in multiple ways, outlined below.
 
 **Cost reduction thanks to a simplified onboarding pipeline**
 
@@ -54,37 +54,37 @@ Chain cryptographic security gets increased: NI-PoRep would make misbehaving cry
 
 **PoRep security now independent from consensus**
 
-Current PoRep is interactive and needs to get randomness from the chain. Moreover, in order to be secure, 150 epochs are needed between `PreCommit` and `ProveCommit`. This is due to the fact that some Consensus attacks need to be infeasible (as putting those attacks in place would allow for faking storage).
+Current PoRep is interactive and needs to get randomness from the chain. Moreover, in order to be secure, 150 epochs are needed between `PreCommit` and `ProveCommit`. This is due to the fact that some consensus attacks need to be infeasible (as putting those attacks in place would allow for faking storage).
 
 In NI-PoRep, since randomness is derived locally, there is no link anymore between PoRep and consensus attacks. This means that
 
-- Consensus attacks are not a concern anymore for PoRep security
+- Consensus attacks are not a concern anymore for NI-PoRep security
 - PoRep can now work “agnostically” with any consensus protocol
 
 **Backward compatibility**
 
-- NI-PoRep would be a separate proof type with a different on-chain flow as current PoRep. Anyone can decide whether use NI-PoRep or not.
+- NI-PoRep would be a separate proof type with a different on-chain flow as current PoRep. Anyone can decide whether to use NI-PoRep or not.
 - No need for a new trusted setup
 
 ## Specification
 
-NI-PoRep protocol can be summarized as follows:
+The NI-PoRep protocol can be summarized as follows:
 
 **Graph labelling and commitments** (similar to the current `PC1` and `PC2` computation)
 
 1. Using `ReplicaID` (which contains `CommD`), SP computes the labels for all layers and the replica R;
 2. SP computes the column commitments `CommC` , `CommRLast` and finally computes `CommR = Poseidon_2(CommC, CommRLast)`;
 
-**Storage Provider locally generates `NI_ChallengesNumber` challenges and vanilla proofs;**
+**SP locally generates `NI_ChallengesNumber` challenges and vanilla proofs;**
 
 1. Each challenge is of the form `ch_i = H(tag, ReplicaID, commR, i)`;
 2. SP computes responses for all the `NI_ChallengesNumber` challenges, which result in `NI_ChallengesNumber` vanilla proofs;
 
-**Storage Provider publishes the new `NI_ProveCommitSector` proof**
+**SP publishes the new `NI_ProveCommitSector` proof**
 
 1. SP takes the `NI_ChallengesNumber` vanilla proofs and computes the corresponding SNARK proofs for these challenges.
-2. SP publishes the snark and commitment `CommR` (either in individual or aggregated form).
-    1. Note in this step the SP will, by default, use the SnarkPack aggregation technique to prove even only one sector (see “product considerations” section for the motivation).
+2. SP publishes the SNARK and commitment `CommR` (either in individual or aggregated form).
+    * Note that, in this step, the SP will, by default, use the SnarkPack aggregation technique, even if only proving one sector (see “Product Considerations” section).
 
 **Chain verifies proof**
 
@@ -95,7 +95,7 @@ NI-PoRep protocol can be summarized as follows:
 - Add two new proof types to the list of proof types that can be used when submitting a new sector
     - `RegisteredSealProof_NIStackedDrg32GiBV1`
     - `RegisteredSealProof_NIStackedDrg64GiBV1`
-- Introduce a new method `ProveSector`, combining the functionalities of `PreCommitSector` and `ProveCommitSector` taking the following parameters (assuming the implementation of FIP-0076):
+- Introduce a new method `ProveSector`, combining the functionalities of `PreCommitSector` and `ProveCommitSector` and taking the following parameters (assuming the implementation of FIP-0076):
     
     ```go
     struct ProveSectorParams {
@@ -116,7 +116,7 @@ NI-PoRep protocol can be summarized as follows:
     }
     ```
     
-- The `ProveSector` performs all the checks of `PreCommitSector`, omitting PreCommitDeposit and then continues to perform `ProveCommitSector` checks and verifies the proof.
+- The `ProveSector` performs all the checks of `PreCommitSector`, omitting PreCommitDeposit, and then continues to perform `ProveCommitSector` checks and verifies the proof.
 
 ### Proof changes
 
@@ -143,14 +143,15 @@ NI-PoRep protocol can be summarized as follows:
 
 NI-PoRep is an *optional* feature that can be opt-in for those interested. The previously available proofs types can be used to continue the PoRep behavior.
 
-## Rationale
+## Design Rationale
 
-Current PoRep is interactive and it is composed by two steps: PreCommit and ProveCommit. At PreCommit SP puts down a collateral (PCD) and wait 150 epochs in order to receive a challenge seed from the chain which enables the ProveCommit step. 
+Current PoRep is interactive, and it is composed of two steps: PreCommit and ProveCommit. At PreCommit, SP puts down a collateral (PCD) and waits 150 epochs in order to receive a challenge seed from the chain, which enables the ProveCommit step. 
 
-A first step to mitigate the waiting time downsides was the introduction of Synthetic PoRep (See [FIP-0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)), which that reduces the size of the temporary data stored between PreCommit and ProveCommit. 
+A first step to mitigate the downsides of the waiting time was the introduction of Synthetic PoRep (See [FIP-0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)), which reduces the size of the temporary data stored between PreCommit and ProveCommit. 
 
-NI-PoRep is the step forward, indeed it completely removes on-chain interaction (ie, the waiting time) and the need of PCD by allowing SP to locally generate challenges instead of using on-chain randomness. 
-NI-PoRep has little downside with respect to the status quo: it removes PreCommit at the cost of augmenting C2 (ie SNARK generation) costs (which would result in a limited cost increase looking at onboarding costs as a whole). Indeed, NI-PoRep requires 12.8x more PoRep Challenges, this translates into an 12,8x Snark proving overhead. We analyzed how this snark computation overhead affects overall costs. The conclusion is that considering PC1+PC2+C1+C2 and storage costs (i.e. not considering maintenance costs), a 128 bits of security NI-PoRep sector is 5% more expensive overall than a Interactive PoRep sector when sector duration is 3y. See full analysis [here](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md).
+NI-PoRep is a further step forward, completely foregoing on-chain interaction (ie, the waiting time) and the need of PCD by allowing SP to locally generate challenges instead of using on-chain randomness. 
+
+NI-PoRep has little downside with respect to the status quo: it removes PreCommit at the cost of augmenting C2 (ie SNARK generation) costs, which would result in a limited cost increase looking at onboarding costs as a whole). Indeed, NI-PoRep requires 12.8x more PoRep Challenges, which translates into an 12.8x SNARK proving overhead. We analyzed how this SNARK computation overhead affects overall costs. The conclusion is that considering PC1+PC2+C1+C2 and storage costs (i.e. not considering maintenance costs), a NI-PoRep sector with 128 bits of security is 5% more expensive than an Interactive PoRep sector when sector duration is 3y. See full analysis [here](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md).
 
 ## Backwards Compatibility
 
@@ -180,7 +181,7 @@ This means that, if PC1, PC2, C1, C2 happen locally over time resulting into dif
 
 ## Addressing concerns **due to interaction removal**
 
-One point to take into account when dealing with NI-PoRep, compared with the status quo, is that a malicious party willing to take over the network could potentially keep accumulating sectors locally onboarding them to the network all in a sudden.
+One point to take into account when dealing with NI-PoRep, compared with the status quo, is that a malicious party wanting to take over the network could potentially keep accumulating sectors locally before onboarding them to the network all at once.
 
 [Our analysis](https://pl-strflt.notion.site/Non-Interactive-PoRep-34705d7868934815bd777901b208b09a) shows that in terms of security there is no substantial difference with the case of Interactive PoRep and no additional security risks are introduced.
 A potential future improvement would be to decouple to decouple power table lookback from consensus and set it to 7 days. 
