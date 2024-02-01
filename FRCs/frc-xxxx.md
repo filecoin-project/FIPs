@@ -99,7 +99,7 @@ interface IOffchainDataAggregator {
      * @param _renew_threshold The number of epochs the deal should be renewed before its expiration date
      * @return The identifier for the submitted request
      */
-     function submitRaaS(bytes memory _cid, bytes memory _fetchLink, uint256 memory _replication_target, uint256 memory _repair_threshold, uint256 memory _renew_threshold) external payable returns (uint256)
+     function submitRaaS(bytes memory _cid, bytes memory _fetchLink, uint256 memory _replication_target, uint256 memory _repair_threshold, uint256 memory _renew_threshold) external payable returns (uint256);
 
     /**
      * @notice Callback function that is called by the aggregator once data has been stored
