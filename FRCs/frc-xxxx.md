@@ -89,7 +89,7 @@ interface IOffchainDataAggregator {
      * @param _fetchLink A link to he piece CID to allow the aggregators to fetch the data in the piece CID.
      * @return The identifier for the submitted request
      */
-    function submit(bytes memory _cid, bytes memory _fetchLink) external returns (uint256);
+    function submit(bytes memory _cid, bytes memory _fetchLink) external payable returns (uint256);
 
      /**
      * @notice Function to submit a new file to the aggregator, specifing the raas parameters
@@ -97,9 +97,9 @@ interface IOffchainDataAggregator {
      * @param _replication_target The number of copies this file should be replicated to
      * @param _repair_threshold The number of epochs the deal should be repaired after being inactive for
      * @param _renew_threshold The number of epochs the deal should be renewed before its expiration date
-     * @return 
+     * @return The identifier for the submitted request
      */
-     function submitRaaS(bytes memory _cid, bytes memory _fetchLink, uint256 memory _replication_target, uint256 memory _repair_threshold, uint256 memory _renew_threshold);
+     function submitRaaS(bytes memory _cid, bytes memory _fetchLink, uint256 memory _replication_target, uint256 memory _repair_threshold, uint256 memory _renew_threshold) external payable returns (uint256)
 
     /**
      * @notice Callback function that is called by the aggregator once data has been stored
@@ -214,7 +214,7 @@ interface IOnchainDataAggregator {
      * @param _cid The piece CID of the file to be stored
      * @return The identifier for the submitted request
      */
-    function submit(bytes memory _cid, bytes memory _fetchLink) external returns (uint256);
+    function submit(bytes memory _cid, bytes memory _fetchLink) external payable returns (uint256);
 
      /**
      * @notice Function to submit a new file to the aggregator, specifing the raas parameters
@@ -222,9 +222,9 @@ interface IOnchainDataAggregator {
      * @param _replication_target The number of copies this file should be replicated to
      * @param _repair_threshold The number of epochs the deal should be repaired after being inactive for
      * @param _renew_threshold The number of epochs the deal should be renewed before its expiration date
-     * @return 
+     * @return The identifier for the submitted request
      */
-     function submitRaaS(bytes memory _cid, bytes memory _fetchLink, uint256 memory _replication_target, uint256 memory _repair_threshold, uint256 memory _renew_threshold);
+     function submitRaaS(bytes memory _cid, bytes memory _fetchLink, uint256 memory _replication_target, uint256 memory _repair_threshold, uint256 memory _renew_threshold) external payable returns (uint256);
 
     /**
      * @notice Callback function that is called by the onchain aggregator once data has been stored
