@@ -3,4 +3,4 @@
 
 # Global owners
 # Ensure maintainers team is a requested reviewer for non-draft PRs
-*                       @filecoin-project/fips-editors
+*                       @momack2 @arajasek @jennijuju @kaitlin-beegle @anorth @raulk @jsoares
