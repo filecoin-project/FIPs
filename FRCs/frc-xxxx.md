@@ -36,97 +36,152 @@ Notably, (1) implies that our proposal can be an interim solution for Filecoin u
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any current Filecoin implementations. -->
-The analysis detailing how we bound the finality of a given input can be found [here](https://docs.google.com/document/d/1QpIpOLaabvieTrbgXzOSg3p1Z5SbNInGNqzBNFrCgXQ/edit#heading=h.c5olklehxrdn). We will be providing a more digestible version soon.
+The analysis detailing how we bound the finality of a given input can be found [here](https://docs.google.com/document/d/1QpIpOLaabvieTrbgXzOSg3p1Z5SbNInGNqzBNFrCgXQ/edit#heading=h.c5olklehxrdn). Here, we will present the resulting mechanism with a practitioner focus.
 
-### Preliminary
+In summary, we consider an observed addition of $k$ blocks on top of the target tipset produced at epoch $s$. We then look at:
 
-### Analyzing the probability of errors
+1. Distant past: potential adversarial lead at epoch $s$, with respect to the local heaviest chain
+2. Recent past: blocks produced by the adversary between epoch $s$ and the current epoch $c$
+3. Future: potential lead created by the adversary after current epoch $c$, with respect to blocks produced by honest validators slowed by the adversary
 
-Our analysis draws inspiration from techniques developed in an [AFT’22 paper](https://arxiv.org/pdf/2203.06357.pdf) combined with techniques from an [ICDCS’20 paper](https://arxiv.org/pdf/2001.06403.pdf) and applying them to the observed chain history of Filecoin (when possible). In summary, we consider an observed addition of $k$ blocks on top of the target tipset produced at epoch $s$. We then look at:
+We use the data from the three stages to determine the probability that the adversary will overtake the observed chain.
 
-1. Distant past “random walk”: blocks produced by the adversary to form a competing chain _minus_ number of blocks observed in the local heaviest chain (lh-chain) up to the epoch $s$.
-2. Recent past “random race”: blocks produced by the adversary between epoch $s$ and the current epoch $c$, minus the number of blocks observed in the lh-chain in the same period.
-3. Future “random walk”: expected blocks produced by the adversary _minus_ the number of blocks produced by honest validators when slowed by the adversary.
+### Stage 1
 
+```python
+# Initialize an array to store Pr(Lf=k)
+pr_Lf = [0] * (max_k_L + 1)
 
-### EC finality for users
+# Calculate Pr(Lf=k) for each value of k
+for k in range(0, max_k_L + 1):
+    sum_expected_adversarial_blocks_i = 0
+    sum_chain_blocks_i = 0
 
-Our analysis is based on the two lemmas below. Roughly, they establish that a validator/user has visibility to all chains that end with an honest block. Recall that the fork choice rule in Filecoin is based on chain weight and validity, where "weight" incorporates the number of blocks together with the approximated storage space required to create them, and "validity" is determined by a set of rules that govern the correct construction of blocks. For simplicity, we shall ignore the subtleties of the two and refer to the "best" tipset as the tipset at the end of the heaviest valid chain, as well as conflate the weight of a chain to the number of blocks it contains.
+    # Calculate Pr(Lf_i = k_i) for each epoch i, starting from epoch `s` under evaluation
+    # and walking backwards to the last final tipset
+    for i in range(target_epoch, current_epoch - 900, -1):
+        sum_expected_adversarial_blocks_i += rate_malicious_blocks
+        sum_chain_blocks_i -= chain[i - 1]
+        # Poisson(k=k, lambda=sum_expected_adversarial_blocks_i, location=sum_chain_blocks_i)
+        pr_Lf_i = ss.poisson.pmf(k, sum_expected_adversarial_blocks_i, sum_chain_blocks_i)
+        # Take Pr(Lf=k) as the maximum over all i
+        pr_Lf[k] = max(pr_Lf[k], pr_Lf_i)
+    
+    # Break if pr_Lf[k] becomes negligible
+    if k > 1 and pr_Lf[k] < negligible_threshold and pr_Lf[k] < pr_Lf[k-1]:
+        pr_Lf = pr_Lf[:(max_k_L:=k)+1]
+        break
 
-**Lemma 1**: Let $B_h$ be a block produced by an honest validator at round $r$, then the tipset chain ending at $\texttt{parent}(B_h)$ is known to all honest validators by round $r+1$.
+# As the adversarial lead is never negative, the missing probability is added to k=0
+pr_Lf[0] += 1 - sum(pr_Lf)
+```
 
-**Lemma 2**: Let $r_{curr}$ be the current round. Let $tipset_A[v_i]$ be the "best" tipset of which validator $v_i$ is aware (and would choose as parent) which ends in round $r_A$, and let $competingTipset_B[v_i]$ be the "second-best" tipset of which $v_i$ is aware and which ends in round $r_B$. Then, in the interval $[r_b,r_{curr}-1]$, the tipset chain of $competingTipset_B[v_i]$ could have been extended only with malicious blocks (blocks proposed by malicious validators).
+### Stage 2
 
-TODO: What do we mean by a tipset "ending" in a round? Should these be tipset chains rather than tipsets?
+```python
+# Initialize an array to store Pr(Bf=k)
+pr_Bf = [0] * (max_k_B + 1)
 
-We can now start the derivation of the probabilities.
+# Calculate Pr(Bf=k) for each value of k
+for k in range(0, max_k_B + 1):
+    # Poisson(k=k, lambda=sum_expected_adversarial_blocks, location=0)
+    pr_Bf[k] = ss.poisson.pmf(k, (current_epoch - target_epoch + 1) * rate_malicious_blocks, 0)
 
-#### Step 1
+    # Break if pr_Bf[k] becomes negligible
+    if k > 1 and pr_Bf[k] < negligible_threshold and pr_Bf[k] < pr_Bf[k-1]:
+        pr_Bf = pr_Bf[:(max_k_B:=k)+1]
+        break
+```
 
-TODO: consider using r_s and r_c, in line with lemma 2
+### Stage 3
 
-Denote by $s$ the epoch for which the finality probability is being evaluated, and by $c$ the current epoch ($c>s$). The random variable $L_f$ describes the adversarial (secret) lead gained from the last final tipset (e.g., the tipset at epoch $c-900$) until epoch $s$. It behaves as a biased random walk whenever $L_f>0$ but does not decrease when $L_f=0$. For each epoch $i \in [c-900+1,s]$, the "random walk" step's expectation is $f \cdot e - chain[i]$, where chain[i] is the number of blocks at the tipset of the lh-chain that was constructed at epoch $i$ and $f \cdot e$ is the expected number of adversarial blocks at an epoch (i.i.d).
+```python
+# Calculate the probability Pr(H>0)
+# Poisson (k=0, lambda=rate_honest_blocks, location=0)
+Pr_H_gt_0 = 1 - ss.poisson.pmf(0, rate_honest_blocks, 0)
 
-TODO: What's the "lh" chain?
+# Calculate E[Z]
+exp_Z = 0.0
+for k in range(0, (int) (4 * blocks_per_epoch)):  # Range stems from the distribution's moments
+    # Poisson(k=k, lambda=rate_adv_blocks, location=0)
+    pmf = ss.poisson.pmf(k, rate_malicious_blocks, 0)
+    exp_Z += ((rate_honest_blocks + k) / (2 ** k)) * pmf
 
-To account for the distribution of $L_f$ we can look at a reverse process ($L_f'$) that starts at the tipset of interest of epoch $s$ and moves backwards in time. (This is possible because the steps are i.i.d.) In this case we get that $L_f'$ is distributed according to the following: 
+# Lower bound on the growth rate of the public chain
+rate_public_chain = Pr_H_gt_0 * exp_Z
 
-$Pr[L_f' = k] = \max{\lbrace Pr[L_{f1}' =k_1],Pr[L_{f2}' =k_2],... \rbrace}$, where, for simplification we replace the binomial distributions of the steps by a poisson distribution. We get $L_{fi} \sim Pois(\sum_{j=s}^{j=s-i} f \cdot e)$, and $k_i=k+\sum_{j=s}^{j=s-i} chain[j]$. We conclude that $L_f \triangleq \max{\lbrace L_f',0 \rbrace}$.
+# Initialize an array to store Pr(Mf=k)
+pr_Mf = [0] * (max_k_M + 1)
 
-TODO: the variable of the sum is not indexed on j
+# Calculate Pr(Mf = k) for each value of k
+for k in range(0, max_k_M + 1):
+    # Calculate Pr(Mf_i = k) for each i and find the maximum
+    for i in range(max_i_M, 0, -1):
+        lambda_B_i = i * rate_malicious_blocks
+        lambda_Z_i = i * rate_public_chain
+        # Skellam(k=k, mu1=lambda_b_i, mu2=lambda_Z_i)
+        prob_Mf_i = ss.skellam.pmf(k, lambda_B_i, lambda_Z_i)
 
-For example, let's use the values $e=5$, $f=0.3$ and the following observed history
-![drawing](https://docs.google.com/drawings/d/12345/export/png)
+        # Break if prob_Mf_i becomes negligible
+        if prob_Mf_i < negligible_threshold and prob_Mf_i < pr_Mf[k]:
+            break # Note: to be checked, but breaking here didn't change output in simulation
 
-In this example, we have $L_{fi}' \sim \texttt{Pois}(\sum_{j=s}^{j=s-i} 1.5)$ and $\lbrace k_0=5,k_1=8,k_2=14,... \rbrace$. Notice that with each additional step of our random process (adding a previous epoch to the calculation), the expectation of $L_{fi}'-\sum chain[j]$ is reduced. Specifically:
+        # Take Pr(Mf=k) as the maximum over all i
+        pr_Mf[k] = max(pr_Mf[k], prob_Mf_i)
 
-|$E[L_{f0}-\sum_{j=s}^{j=s-0}chain[j]]$|$E[L_{f1}-\sum_{j=s}^{j=s-1}chain[j]]$|$E[L_{f2}-...]$|$E[L_{f3}-...]$|$E[L_{f4}-...]$|$E[L_{f5}-...]$|
-|---|---|---|---|---|---|
-|$-3.5$|$-3.5-1.5=-5$|$-9.5$|$-12$|$-16.5$|$-20$|
+    # Break if pr_Mf[k] becomes negligible
+    if k > 1 and pr_Mf[k] < negligible_threshold and pr_Mf[k] < pr_Mf[k-1]:
+        pr_Mf = pr_Mf[:(max_k_M:=k)+1]
+        break
 
-#### Step 2
+# pr_Mf[0] collects the probability of the adversary never catching up in the future.
+pr_Mf[0] += 1 - sum(pr_Mf)
+```
 
-The random variable $B_f$ is independent from $L_f$ and follows a simple binomial distribution as explained previously for $X_f$. That is, $B_f \sim \texttt{Bin}(N=\sum_{i=s+1}^{i=c-1} f \cdot n, p=\frac{e}{n})$. For ease of computation, we again estimate the binomial distribution by a Poisson one. Specifically, by $B_f \sim \texttt{Bin}(\sum_{i=s+1}^{i=c} f \cdot e)$
+### Final calculation
 
-TODO: Where is X_f?
+```python
+# Max k for which to calculate Pr(BAD)
+# The sum of each max_k provides a strict upper bound, but one could pick a fraction.
+max_k = max_k_L + max_k_B + max_k_M 
 
-#### Step 3
+# Initialize an array to store the pr of BAD given a k good-advantage
+pr_error = [0] * max_k
 
-Lastly, we calculate the random variable $M_f$, the adversary's "catching up" in the future. The production of honest blocks follows a binomial distribution. However, it might be that not all honest blocks are added to the same tipset (due to pointing to different parent tipsets). This is only achieved by the adversary splitting the honest chain. Specifically, the adversary must be able to provide parent tipsets which are "better" than the currently available lh-chain one (with tie-breaking in the adversary's favor). We calculate a lower bound on the public chain growth rate based on the following two assumptions:
+# Calculate cumulative sums for Lf, Bf, and Mf
+cumsum_Lf = np.cumsum(pr_Lf)
+cumsum_Bf = np.cumsum(pr_Bf)
+cumsum_Mf = np.cumsum(pr_Mf)
 
-* Using the blocks of epoch $i$, the adversary can optimally split the network power for epoch $i+1$ (the next epoch), however, 
-* only (adversarial) blocks from epoch  may be used to split the power at epoch $i+1$.
+# Calculate pr_error[k] for each value of k
+# Performs a convolution over the step probability vectors
+for k in range(0, max_k):
+    sum_Lf_ge_k = cumsum_Lf[-1]
+    if k > 0:
+        sum_Lf_ge_k -= cumsum_Lf[min(k - 1, max_k_L)] 
+    double_sum = 0.0
 
-The first assumption considerably favors the adversary, while the latter moderately favors us by somewhat limiting the adversary's capabilities. We conjecture that these assumptions correspond to a lower bound without them since, compared to without them, they seem to favor the adversary more than us. This is due to the practical difficulty of coordinating a perfect split (not just in expectation), which significantly benefits the adversary. While, on the other hand, using only recent blocks for the split (the assumption that benefits us), probably has a smaller effect due to the diminishing probability of them maintaining relevance.
+    for l in range(0, k):
+        sum_Bf_ge_k_min_l = cumsum_Bf[-1] 
+        if k - l - 1 > 0:  
+            sum_Bf_ge_k_min_l -= cumsum_Bf[min(k - l - 1, max_k_B)]
+        double_sum += pr_Lf[min(l, max_k_L)] * sum_Bf_ge_k_min_l
 
+        for b in range(0, k - l):
+            sum_Mf_ge_k_min_l_min_b = cumsum_Mf[-1] 
+            if k - l - b - 1 > 0:
+                sum_Mf_ge_k_min_l_min_b -= cumsum_Mf[min(k - l - b - 1, max_k_M)]
+            double_sum += pr_Lf[min(l, max_k_L)] * pr_Bf[min(b, max_k_B)] * sum_Mf_ge_k_min_l_min_b
 
-With Consistent Broadcast, we have that for $b[i]$ and $h[i+1]$ being the number of ADV blocks and honest blocks in epochs $i$ and $i+1$, respectively, the honest chain grows by at least $\min{\lbrace\frac{h[i+1]+b[i]}{e^{b[t]}},h[i+1]\rbrace}$
+    pr_error[k] = sum_Lf_ge_k + double_sum
 
+# The observed chain has added weight equal to number of blocks since added
+observed_added_weight = sum(chain[target_epoch:current_epoch])
 
-We therefore have that at step  the random variable $M_f$ changes according to the sum: $b[i]-\min{\lbrace}$. Since  and  are both i.i.d variables that are uncorrelated, we get an expected step (per epoch) of 
-
-~~.~~
-
-To simplify the calculations, we replace the random variable  by  In particular, 
-
-
-
-~~.~~
-
-We define the random process  recursively to be   with . That is, . Moreover, for each  we have that  and that . Thus, we conclude that . As a difference of two independent Poisson-distributed random variables, each  follows a [Skellam distribution](https://en.wikipedia.org/wiki/Skellam_distribution) with parameters  and .
-
-<span style="text-decoration:underline;">Final step</span>:
-
-In summary, for an observed good addition , the safety violation event  happens only if one of the three mutually exclusive events occur:
-
-
-
-1. 
-2. but 
-3. but 
-
-We get that 
-
+# Get the probability of the adversary overtaking the observed weight
+# The conservative upper may exceed 1 in limit cases, so we cap the output.
+return min(pr_error[observed_added_weight], 1.0)
+```
 
 
 ## Backwards Compatibility
