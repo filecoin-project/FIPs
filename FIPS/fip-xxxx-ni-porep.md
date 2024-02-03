@@ -181,10 +181,7 @@ This means that, if PC1, PC2, C1, C2 happen locally over time resulting into dif
 
 ## Addressing concerns **due to interaction removal**
 
-One point to take into account when dealing with NI-PoRep, compared with the status quo, is that a malicious party wanting to take over the network could potentially keep accumulating sectors locally before onboarding them to the network all at once.
-
-[Our analysis](https://pl-strflt.notion.site/Non-Interactive-PoRep-34705d7868934815bd777901b208b09a) shows that in terms of security there is no substantial difference with the case of Interactive PoRep and no additional security risks are introduced.
-A potential future improvement would be to decouple to decouple power table lookback from consensus and set it to 7 days. 
+Concerns were raised over the possibility that a malicious party wanting to take over the network could potentially keep accumulating sectors locally before onboarding them to the network all at once. [Our analysis](https://pl-strflt.notion.site/Non-Interactive-PoRep-34705d7868934815bd777901b208b09a) shows that no additional security risks are introduced with respect to Interactive PoRep. The security of both pathways can be improved by decoupling the power table lookback from consensus, which may be a subject for a future FIP.
 
 ## Incentive Considerations
 
