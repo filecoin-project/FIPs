@@ -195,13 +195,22 @@ As already mentioned above, NI-PoRep is a prerequisite to unblock new use cases 
 
 ## Benchmarks
 
-In order to have a good cost estimation, we ran benchmarks on different systems. It’s consistent that the difference in the total runtime of the SNARK phase between interactive PoRep and non-interactive PoRep is the expected 12.5-13x.
 
-This phase consists of two distinct steps. The synthesis, which is a memory and CPU heavy operation and the proving, which is GPU heavy. The SupraSeal implementation only target the proving. There we see speedups between 6-10x. It depends on the GPU, while newer generations see higher speedups.
+### Comparison against Interactive PoRep
 
-When the synthesis is also taken into account, then the overall improvements are 3-5x. There older GPU generations see higher speeds as the proving time dominates over the synthesis time.
+In order to have a good cost estimation, we ran benchmarks on different systems. We observe that the SNARK phase of NI-PoRep is consistently 12.5x-13x slower than Interactive PoRep, in line with expectations.
 
-For exemplary results of the benchmarks see: [SupraSeal C2 benchmarks](https://www.notion.so/SupraSeal-C2-benchmarks-9739face18a9448e8b6de1a1fcc9c0e3?pvs=21).
+### Impact of SupraSeal
+
+The SNARK phase consists of two distinct steps:
+- The synthesis, which is a memory- and CPU-heavy operation
+- The proving, which is GPU-heavy
+
+The SupraSeal implementation only targets the proving, where we observe speedups between 6-10x. When the synthesis is also taken into account, then the overall improvements are 3-5x. This means that NI-PoRep with SupraSeal is only 2.5-4.5x slower than Interactive PoRep without SupraSeal.
+
+The ratio between synthesis and proving time depends on the GPU, and consequently so does the speedup. In particular, synthesis time tends to be dominant in newer GPUs, reducing the overall speedup.
+
+For benchmark data, see: [SupraSeal C2 benchmarks](https://www.notion.so/SupraSeal-C2-benchmarks-9739face18a9448e8b6de1a1fcc9c0e3?pvs=21).
 
 ## Implementations
 
