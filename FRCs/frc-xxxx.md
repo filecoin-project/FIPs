@@ -2,7 +2,7 @@
 fip: "to be assigned"
 title: EC finality calculator
 author: "Guy Goren (@guy-goren), Jorge M. Soares (@jsoares)"
-discussions-to: [foo.com](https://github.com/filecoin-project/FIPs/discussions/919)
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/919
 status: Draft
 type: "FRC"
 created: 2024-01-03
