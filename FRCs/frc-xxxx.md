@@ -141,10 +141,6 @@ pr_Mf[0] += 1 - sum(pr_Mf)
 ### Final calculation
 
 ```python
-# Max k for which to calculate Pr(BAD)
-# The sum of each max_k provides a strict upper bound, but one could pick a fraction.
-max_k = max_k_L + max_k_B + max_k_M 
-
 # Calculate cumulative sums for Lf, Bf, and Mf
 cumsum_Lf = np.cumsum(pr_Lf)
 cumsum_Bf = np.cumsum(pr_Bf)
