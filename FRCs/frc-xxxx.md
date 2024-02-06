@@ -145,42 +145,38 @@ pr_Mf[0] += 1 - sum(pr_Mf)
 # The sum of each max_k provides a strict upper bound, but one could pick a fraction.
 max_k = max_k_L + max_k_B + max_k_M 
 
-# Initialize an array to store the pr of BAD given a k good-advantage
-pr_error = [0] * max_k
-
 # Calculate cumulative sums for Lf, Bf, and Mf
 cumsum_Lf = np.cumsum(pr_Lf)
 cumsum_Bf = np.cumsum(pr_Bf)
 cumsum_Mf = np.cumsum(pr_Mf)
 
-# Calculate pr_error[k] for each value of k
-# Performs a convolution over the step probability vectors
-for k in range(0, max_k):
-    sum_Lf_ge_k = cumsum_Lf[-1]
-    if k > 0:
-        sum_Lf_ge_k -= cumsum_Lf[min(k - 1, max_k_L)] 
-    double_sum = 0.0
-
-    for l in range(0, k):
-        sum_Bf_ge_k_min_l = cumsum_Bf[-1] 
-        if k - l - 1 > 0:  
-            sum_Bf_ge_k_min_l -= cumsum_Bf[min(k - l - 1, max_k_B)]
-        double_sum += pr_Lf[min(l, max_k_L)] * sum_Bf_ge_k_min_l
-
-        for b in range(0, k - l):
-            sum_Mf_ge_k_min_l_min_b = cumsum_Mf[-1] 
-            if k - l - b - 1 > 0:
-                sum_Mf_ge_k_min_l_min_b -= cumsum_Mf[min(k - l - b - 1, max_k_M)]
-            double_sum += pr_Lf[min(l, max_k_L)] * pr_Bf[min(b, max_k_B)] * sum_Mf_ge_k_min_l_min_b
-
-    pr_error[k] = sum_Lf_ge_k + double_sum
-
 # The observed chain has added weight equal to number of blocks since added
-observed_added_weight = sum(chain[target_epoch:current_epoch])
+k = sum(chain[target_epoch:current_epoch])
+
+# Calculate pr_error[k] for the observed added weight
+# Performs a convolution over the step probability vectors
+sum_Lf_ge_k = cumsum_Lf[-1]
+if k > 0:
+    sum_Lf_ge_k -= cumsum_Lf[min(k - 1, max_k_L)] 
+double_sum = 0.0
+
+for l in range(0, k):
+    sum_Bf_ge_k_min_l = cumsum_Bf[-1] 
+    if k - l - 1 > 0:  
+        sum_Bf_ge_k_min_l -= cumsum_Bf[min(k - l - 1, max_k_B)]
+    double_sum += pr_Lf[min(l, max_k_L)] * sum_Bf_ge_k_min_l
+
+    for b in range(0, k - l):
+        sum_Mf_ge_k_min_l_min_b = cumsum_Mf[-1] 
+        if k - l - b - 1 > 0:
+            sum_Mf_ge_k_min_l_min_b -= cumsum_Mf[min(k - l - b - 1, max_k_M)]
+        double_sum += pr_Lf[min(l, max_k_L)] * pr_Bf[min(b, max_k_B)] * sum_Mf_ge_k_min_l_min_b
+
+pr_error = sum_Lf_ge_k + double_sum
 
 # Get the probability of the adversary overtaking the observed weight
 # The conservative upper may exceed 1 in limit cases, so we cap the output.
-return min(pr_error[observed_added_weight], 1.0)
+return min(pr_error, 1.0)
 ```
 
 
