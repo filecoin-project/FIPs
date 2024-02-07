@@ -29,14 +29,14 @@ The motivation for this proposal is twofold:
 F3 will also address these points (with even faster finality). Nevertheless, this work does not conflict with F3 and independently provides several benefits:
 1. It requires no change to client code and, therefore, no consensus. Instead, it is a simple algorithm that any node can run separately from the "mining process". The algorithm takes the observed history and outputs a measure of safety.
 2. It does not change the incentive considerations of Filecoin, which remains a longest-chain blockchain, similar to Bitcoin and Ethereum. Since no extra work is mandatory, the algorithm's execution (or no execution) does not affect the safety of Filecoin.
-3. It is an algorithm and not a protocol. Its execution is local, and the result does not depend on other nodes executing the algorithm. For the same reason, it requires no additional communication and is infinitely scalable.
+3. It is an algorithm and not a protocol. It executes locally and does not depend on other nodes executing the algorithm. For the same reason, it requires no additional communication and is infinitely scalable.
 4. In case F3 halts and the network falls back on EC finality, it can reduce the degradation experienced by users.
 
 Notably, (1) implies that our proposal can be an interim solution for Filecoin until F3 goes live on the network.
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any current Filecoin implementations. -->
-The analysis detailing how we bound the finality of a given input can be found in the [companion resources](../resources/frc-xxxx/theory.pdf). Here, we will present the resulting mechanism with a focus on implementers.
+The analysis detailing how we bound the finality of a given input can be found in the [companion resources](../resources/frc-xxxx/theory.pdf). In the interest of brevity and of minimising duplication, we will skip the derivations here and instead present the resulting mechanism with a focus on implementers.
 
 In summary, we consider an observed addition of $k$ blocks on top of the target tipset produced at epoch $s$. We then look at:
 
