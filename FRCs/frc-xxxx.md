@@ -1,9 +1,9 @@
 ---
-fip: "**TODO**" 
-title: "FVM-Enabled Deal Aggregation"
+fip: "0087" 
+title: "On-chain Deal Aggregation"
 author: "@aashidham, @raulk, @nonsense, @honghao"
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/866
-status: Draft
+status: Active
 type: FRC
 created: 2023-10-07
 ---
