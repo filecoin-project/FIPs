@@ -1,7 +1,7 @@
 ---
 fip: XXXX
 title: NI-Porep
-author: @lucaniz @Kubuxu @nicola @cryptonemo @vmx @irenegia
+author: luca (@lucaniz), kuba (@Kubuxu), nicola (@nicola), nemo (@cryptonemo), volker (@vmx), irene (@irenegia)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/854 
 status: Draft
 type: Technical
@@ -70,38 +70,38 @@ In NI-PoRep, since randomness is derived locally, there is no link anymore betwe
 
 The NI-PoRep protocol can be summarized as follows:
 
-**Graph labelling and commitments** (similar to the current `PC1` and `PC2` computation)
+**Graph labelling and commitments** (similar to the current PC1 and PC2 computation)
 
 1. Using `ReplicaID` (which contains `CommD`), SP computes the labels for all layers and the replica R;
 2. SP computes the column commitments `CommC` , `CommRLast` and finally computes `CommR = Poseidon_2(CommC, CommRLast)`;
 
-**SP locally generates `NI_ChallengesNumber` challenges and vanilla proofs;**
+**SP locally generates `NIChallengesNumber` challenges and vanilla proofs;**
 
-1. Each challenge is of the form `ch_i = H(tag, ReplicaID, commR, i)`;
-2. SP computes responses for all the `NI_ChallengesNumber` challenges, which result in `NI_ChallengesNumber` vanilla proofs;
+1. Each challenge is of the form `NIChallenge_i = H(tag, ReplicaID, commR, i)`;
+2. SP computes responses for all the `NIChallengesNumber` challenges, which result in `NIChallengesNumber` vanilla proofs;
 
-**SP publishes the new `NI_ProveCommitSector` proof**
+**SP publishes the new `NIProveCommitSector` proof**
 
-1. SP takes the `NI_ChallengesNumber` vanilla proofs and computes the corresponding SNARK proofs for these challenges.
+1. SP takes the `NIChallengesNumber` vanilla proofs and computes the corresponding SNARK proofs for these challenges.
 2. SP publishes the SNARK and commitment `CommR` (either in individual or aggregated form).
     * Note that, in this step, the SP will, by default, use the SnarkPack aggregation technique, even if only proving one sector (see “Product Considerations” section).
 
 **Chain verifies proof**
 
-1. Using `CommR` as a seed, the chain generates `NI_ChallengesNumber` challenges and these are fed into proof verification
+1. Using `CommR` as a seed, the chain generates `NIChallengesNumber` challenges and these are fed into proof verification
 
 ### Actor changes
 
 - Add two new proof types to the list of proof types that can be used when submitting a new sector
     - `RegisteredSealProof_NIStackedDrg32GiBV1`
     - `RegisteredSealProof_NIStackedDrg64GiBV1`
-- Introduce a new method `ProveSector`, combining the functionalities of `PreCommitSector` and `ProveCommitSector` and taking the following parameters (assuming the implementation of FIP-0076):
+- Introduce a new method `NIProveSectors`, combining the functionalities of `PreCommitSector` and `ProveCommitSector` and taking the following parameters (assuming the implementation of FIP-0076):
     
     ```go
-    struct ProveSectorParams {
-    		// carries information which previously was passed in PreCommit
-    		sector_infos: []SectorPreCommitInfo
-    		// Activation manifest for each sector being proven.
+    struct NIProveSectorsParams {
+        // carries information which previously was passed in PreCommit
+        SectorInfos: []SectorPreCommitInfo
+        // Activation manifest for each sector being proven.
         SectorActivations: []SectorActivationManifest,
         // Proofs for each sector, parallel to activation manifests.
         // Exactly one of sector_proofs or aggregate_proof must be non-empty.
@@ -116,7 +116,7 @@ The NI-PoRep protocol can be summarized as follows:
     }
     ```
     
-- The `ProveSector` performs all the checks of `PreCommitSector`, omitting PreCommitDeposit, and then continues to perform `ProveCommitSector` checks and verifies the proof.
+- The `NIProveSectors` performs all the checks of `PreCommitSector`, omitting PreCommitDeposit, and then continues to perform `ProveCommitSector` checks and verifies the proof.
 
 ### Proof changes
 
@@ -165,7 +165,7 @@ Run the code for NI-PoRep and check if the resulting proof cryptographically ver
 
 **Fiat-Shamir Heuristic and its effects**
 
-NI-PoRep is based on the well-known Fiat-Shamir Heuristic, which allows for having a non interactive protocol starting from any 3-message interactive protocol. However, the heuristic requires the interactive protocol to have at least 80 [bits of security](https://en.wikipedia.org/wiki/Security_level) (instead of the current 10), and preferably 128. In order to have long term security we propose to opt for 128 bits: this means that for NI-PoRep we need  `NI_ChallengesNumber128bit` = 2268.
+NI-PoRep is based on the well-known Fiat-Shamir Heuristic, which allows for having a non interactive protocol starting from any 3-message interactive protocol. However, the heuristic requires the original interactive protocol to have at least 80 [bits of security](https://en.wikipedia.org/wiki/Security_level) (instead of the current 10), and preferably 128. In order to have long term security we propose to opt for 128 bits: since the security level in PoRep is given by the number of challenges, this means that for NI-PoRep we need  `NIChallengesNumber` to be at least 2253. 
 
 **How to take `SealRandomness` for ensuring sectors are anchored to the chain**
 
@@ -175,7 +175,7 @@ On one hand, `SealRandomness` needs to be taken from finalized blocks, but on 
 
 Given NI-PoRep removes onchain interaction, `SealRandomness` verification becomes more difficult, but still necessary to protect the chain against the same class of attacks mentioned above.
 
-We set up a validity time window which holds for all the sectors committed onchain together. We set this time window to be  `sealChallengeEarliest` = 30 days, which is coherent with the current `MaxProveCommitDuration` as per FIP-0013.
+We set up a validity time window which holds for all the sectors committed onchain together. We call this time window to be  `sealChallengeEarliest` epochs and set its value to be the number of epochs in 30 days, which is coherent with the current `MaxProveCommitDuration` as per FIP-0013.
 
 This means that, if PC1, PC2, C1, C2 happen locally over time resulting into different sectors sealed in different moments in time and committed on-chain at the end of the process, all sectors committed together should have a randomness which is not older than  `sealChallengeEarliest` epochs in the past. As a result, a NI-PoRep step needs to be completed within `sealChallengeEarliest` epochs overall to be valid.
 
