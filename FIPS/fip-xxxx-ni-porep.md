@@ -38,7 +38,7 @@ NI-PoRep will be beneficial for Filecoin in multiple ways, outlined below.
 
 PoRep is currently interactive (in order to complete sealing, an SP has to wait to receive a challenge seed from the chain) and requires ad-hoc collateral. These features represent a limitation when considering optimisation for the onboarding pipeline, such as Sealing-as-a-Service and the new SupraSeal sealing code. With NI-PoRep we have no interaction is needed and this yields:
 
-- [Gas cost reduction] Current PoRep is composed of two steps: PreCommit and ProveCommit. With NI-PoRep there is no more `PreCommit` method and message, and only `ProveCommit` remains, i.e. only one step with one chain message is needed to onboard sectors to the network.  This translates into a possible gas cost reduction when considering aggregated sectors; according to [our estimation](https://cryptonet.org/notebook/interactivenon-interactive-porep-gas-cost-comparison), current PoRep is 2.1x more expensive than NI-PoRep when aggregating 6 sectors.
+- [Gas cost reduction] Current PoRep is composed of two steps: PreCommit and ProveCommit. With NI-PoRep there is no more `PreCommit` method and message, and only `ProveCommit` remains, i.e. only one step with one chain message is needed to onboard sectors to the network.  This translates into a possible gas cost reduction when considering aggregated sectors; according to [our estimation](../resources/fip-xxx-niporep/PoRep_GasComparison.pdf), current PoRep is 2.1x more expensive than NI-PoRep when aggregating 6 sectors.
 - [Lower hardware requirements] With NI-PoRep, there is no more waiting time between `PreCommit` and `ProveCommit`. This helps when using sealing software (like SupraSeal) that seals more sectors at the same time. Currently, memory requirements are increased by the fact that some data need to be stored during the waiting time. Having no waiting time implies lower memory requirements. 
 
 
@@ -151,7 +151,7 @@ A first step to mitigate the downsides of the waiting time was the introduction 
 
 NI-PoRep is a further step forward, completely foregoing on-chain interaction (ie, the waiting time) and the need of PCD by allowing SP to locally generate challenges instead of using on-chain randomness. 
 
-NI-PoRep has little downside with respect to the status quo: it removes PreCommit at the cost of augmenting C2 (ie SNARK generation) costs, which would result in a limited cost increase looking at onboarding costs as a whole). Indeed, NI-PoRep requires 12.8x more PoRep Challenges, which translates into an 12.8x SNARK proving overhead. We analyzed how this SNARK computation overhead affects overall costs. The conclusion is that considering PC1+PC2+C1+C2 and storage costs (i.e. not considering maintenance costs), a NI-PoRep sector with 128 bits of security is 5% more expensive than an Interactive PoRep sector when sector duration is 3y. See full analysis [here](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md).
+NI-PoRep has little downside with respect to the status quo: it removes PreCommit at the cost of augmenting C2 (ie SNARK generation) costs, which would result in a limited cost increase looking at onboarding costs as a whole). Indeed, NI-PoRep requires 12.8x more PoRep Challenges, which translates into an 12.8x SNARK proving overhead. We analyzed how this SNARK computation overhead affects overall costs. The conclusion is that considering PC1+PC2+C1+C2 and storage costs (i.e. not considering maintenance costs), a NI-PoRep sector with 128 bits of security is 5% more expensive than an Interactive PoRep sector when sector duration is 3y. See full analysis [here](../resources/fip-xxx-niporep/NIPoRep_CostAnalysis.pdf).
 
 ## Backwards Compatibility
 
@@ -181,7 +181,7 @@ This means that, if PC1, PC2, C1, C2 happen locally over time resulting into dif
 
 ## Addressing concerns **due to interaction removal**
 
-Concerns were raised over the possibility that a malicious party wanting to take over the network could potentially keep accumulating sectors locally before onboarding them to the network all at once. [Our analysis](https://pl-strflt.notion.site/Non-Interactive-PoRep-34705d7868934815bd777901b208b09a) shows that no additional security risks are introduced with respect to Interactive PoRep. The security of both pathways can be improved by decoupling the power table lookback from consensus, which may be a subject for a future FIP.
+Concerns were raised over the possibility that a malicious party wanting to take over the network could potentially keep accumulating sectors locally before onboarding them to the network all at once. [Our analysis](../resources/fip-xxx-niporep/interactionRemoval.pdf.pdf) shows that no additional security risks are introduced with respect to Interactive PoRep. The security of both pathways can be improved by decoupling the power table lookback from consensus, which may be a subject for a future FIP.
 
 ## Incentive Considerations
 
@@ -210,7 +210,7 @@ The SupraSeal implementation only targets the proving, where we observe speedups
 
 The ratio between synthesis and proving time depends on the GPU, and consequently so does the speedup. In particular, synthesis time tends to be dominant in newer GPUs, reducing the overall speedup.
 
-For benchmark data, see: [SupraSeal C2 benchmarks](https://www.notion.so/SupraSeal-C2-benchmarks-9739face18a9448e8b6de1a1fcc9c0e3?pvs=21).
+For benchmark data, see: [SupraSeal C2 benchmarks](../resources/fip-xxx-niporep/benchmarks.pdf).
 
 ## Implementations
 
