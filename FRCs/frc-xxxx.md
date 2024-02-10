@@ -150,7 +150,7 @@ pr_M[0] += 1 - sum(pr_M)
 
 ### Error probability
 
-For an observed good addition $G=k$, the safety violation event happens if the adversary chain grows heavier than the honest chain at any point. That corresponds to one of three mutually exclusive events occurring:
+For an observed good addition $k$, the safety violation event happens if the adversary chain grows heavier than the honest chain at any point. That corresponds to one of three mutually exclusive events occurring:
 1. $L \geq k$
 2. $L < k$ but $L+B \geq k$
 3. $L + B < k$ but $L+B+M \geq k$
