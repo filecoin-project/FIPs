@@ -54,7 +54,7 @@ We use the data from the three stages to determine the probability that the adve
 
 The random variable $L$ describes the adversarial lead at epoch $s$, i.e. the blocks produced by the adversary to form a competing chain minus the blocks observed in *lh-chain* up to the epoch $s$. It behaves *like* a biased random walk, and, intuitively, its step expectation is $f \cdot e - chain[i]$, where $chain[i]$ is the number of blocks at the tipset $i$ of the *lh-chain* $f \cdot e$ is the expected number of adversarial blocks in the same epoch.
 
-To account for the distribution of $L$ we can look at a reverse process $L'$ that starts at the tipset of interest of epoch $s$ and moves backward in time, computing the maximal advantage over any chain length $i$ up to 900 epochs. We model $L'$ using a Poisson distribution $\texttt{Pois}\left(\sum_{j=s-i}^{s} f \cdot e\right)$. 
+To account for the distribution of $L$ we can look at a reverse process $L'$ that starts at the tipset of interest of epoch $s$ and moves backward in time, computing the maximal advantage over any chain length $i$ up to 900 epochs. We model $L'$ using a Poisson distribution $\texttt{Pois}\left(\displaystyle\sum_{j=s-i}^{s} f \cdot e\right)$. 
 
 ```python
 # Initialize an array to store Pr(L=k)
@@ -86,7 +86,7 @@ pr_L[0] += 1 - sum(pr_L)
 
 ### Span 2: Recent past 
 
-The random variable $B$ describes the blocks produced by the adversary between epoch $s$ and the current epoch $c$. It, too, can be approximated as a Poisson distribution $\texttt{Pois}\left(\sum_{i=s+1}^{i=c} f \cdot e\right)$, parameterised by the expected number of malicious blocks. 
+The random variable $B$ describes the blocks produced by the adversary between epoch $s$ and the current epoch $c$. It, too, can be approximated as a Poisson distribution $\texttt{Pois}\left(\displaystyle\sum_{i=s+1}^{i=c} f \cdot e\right)$, parameterised by the expected number of malicious blocks. 
 
 ```python
 # Initialize an array to store Pr(B=k)
