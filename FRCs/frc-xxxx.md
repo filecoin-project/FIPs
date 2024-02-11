@@ -52,7 +52,7 @@ We use the data from the three stages to determine the probability that the adve
 
 ### Span 1: Distant past
 
-The random variable $L$ describes the adversarial lead at epoch $s$, i.e. the blocks produced by the adversary to form a competing chain minus the blocks observed in *lh-chain* up to the epoch $s$. It behaves *like* a biased random walk, and, intuitively, its step expectation is $f \cdot e - chain[i]$, where $chain[i]$ is the number of blocks at the tipset $i$ of the *lh-chain* $f \cdot e$ is the expected number of adversarial blocks in the same epoch.
+The random variable $L$ describes the adversarial lead at epoch $s$, i.e. the blocks produced by the adversary to form a competing chain minus the blocks observed in *lh-chain* up to the epoch $s$. It behaves *like* a biased random walk, and, intuitively, its step expectation is $f \cdot e - chain[i]$, where $chain[i]$ is the number of blocks at the tipset $i$ of the *lh-chain*, and $f \cdot e$ is the expected number of adversarial blocks in the same epoch.
 
 To account for the distribution of $L$ we can look at a reverse process $L'$ that starts at the tipset of interest of epoch $s$ and moves backward in time, computing the maximal advantage over any chain length $i$ up to 900 epochs. We model $L'$ using a Poisson distribution $\texttt{Pois}\left(\displaystyle\sum_{j=s-i}^{s} f \cdot e\right)$. 
 
@@ -105,7 +105,7 @@ for k in range(0, max_k_B + 1):
 
 ### Span 3: Future
 
-The random variable $M$ describes the blocks expected to be produced by the adversary minus the number of blocks produced by honest validators when slowed by the adversary. We can model the growth of each chain using a Poisson distribution, meaning that we can define a random process $M_i \sim \texttt{Skellam}(n \cdot e \cdot f, n \cdot E[Z])$ that represents the difference at each step, and where $n \cdot e \cdot f$ represents the blocks added to the malicious chain and $n \cdot E[Z]$ represents the blocks added to the honest chain.
+The random variable $M$ describes the blocks expected to be produced by the adversary minus the number of blocks produced by honest validators when slowed by the adversary. We can model the growth of each chain using a Poisson distribution, meaning that we can define a random process $M_i \sim \texttt{Skellam}(n \cdot e \cdot f, n \cdot E[Z])$ that represents the difference between the adverserial chain and the honest chain after $n$ epochs, where $n \cdot e \cdot f$ represents the blocks added to the malicious chain and $n \cdot E[Z]$ represents the blocks added to the honest chain.
 
 ```python
 # Calculate the probability Pr(H>0)
