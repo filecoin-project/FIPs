@@ -12,21 +12,21 @@ created: 2023-12-18
 
 ## Simple Summary
 
-This proposal presents a new PoRep protocol (Non-Interactive PoRep) that removes `PreCommit`. As a result, we have
+This proposal presents a new PoRep protocol (Non-Interactive PoRep) that removes `PreCommit` when onboarding CC sectors. As a result, we have
 
-- Flexible onboarding pipeline, unblocking [SupraSeal](https://github.com/supranational/supra_seal)'s full potential
+- Simplified onboarding pipeline, unblocking [SupraSeal](https://github.com/supranational/supra_seal)'s full potential
 - Trustless separation between storage and computing: the proving tasks associated with sector onboarding can be outsourced.
 
 
 ## Abstract
 
-Non-Interactive PoRep (NI-PoRep) allows to remove on-chain interaction when onboarding sectors by changing the way PoRep challenges are generated.
+Non-Interactive PoRep (NI-PoRep) allows to remove on-chain interaction when onboarding CC sectors by changing the way PoRep challenges are generated.
 
 The protocol allows SP to locally generate PoRep challenges instead of using on-chain randomness.
 
 On one hand, this feature of the protocol allows for drastically simpler onboarding pipeline. On the other hand, it requires an higher number of PoRep challenges (2268 per SDR layer instead of the current 180 per SDR layer) in order to preserve network security.
 
-NI-PoRep is proposed as an *optional* feature, the previously available proofs types will be still supported. 
+NI-PoRep is proposed as an *optional* feature, the previously available proofs types will be still supported. NI-PoRep is restricted to CC sectors (i.e., sectors with no deals).
 
 
 
@@ -55,16 +55,15 @@ Chain cryptographic security gets increased: NI-PoRep would make misbehaving cry
 **PoRep security now independent from consensus**
 
 Current PoRep is interactive and needs to get randomness from the chain. Moreover, in order to be secure, 150 epochs are needed between `PreCommit` and `ProveCommit`. This is due to the fact that some consensus attacks need to be infeasible (as putting those attacks in place would allow for faking storage).
-
 In NI-PoRep, since randomness is derived locally, there is no link anymore between PoRep and consensus attacks. This means that
 
-- Consensus attacks are not a concern anymore for NI-PoRep security
-- PoRep can now work “agnostically” with any consensus protocol
+- Consensus attacks are not a concern anymore for NI-PoRep security;
+- PoRep can now work “agnostically” with any consensus protocol.
 
 **Backward compatibility**
 
 - NI-PoRep would be a separate proof type with a different on-chain flow as current PoRep. Anyone can decide whether to use NI-PoRep or not.
-- No need for a new trusted setup
+- No need for a new trusted setup.
 
 ## Specification
 
@@ -72,51 +71,56 @@ The NI-PoRep protocol can be summarized as follows:
 
 **Graph labelling and commitments** (similar to the current PC1 and PC2 computation)
 
-1. Using `ReplicaID` (which contains `CommD`), SP computes the labels for all layers and the replica R;
+1. Using `ReplicaID`, SP computes the labels for all layers and the replica R;
 2. SP computes the column commitments `CommC` , `CommRLast` and finally computes `CommR = Poseidon_2(CommC, CommRLast)`;
 
 **SP locally generates `NIChallengesNumber` challenges and vanilla proofs;**
 
-1. Each challenge is of the form `NIChallenge_i = H(tag, ReplicaID, commR, i)`;
+1. Each challenge is of the form `NIChallenge_i = H(ReplicaID, CommR, i)`;
 2. SP computes responses for all the `NIChallengesNumber` challenges, which result in `NIChallengesNumber` vanilla proofs;
 
 **SP publishes the new `NIProveCommitSector` proof**
 
 1. SP takes the `NIChallengesNumber` vanilla proofs and computes the corresponding SNARK proofs for these challenges.
-2. SP publishes the SNARK and commitment `CommR` (either in individual or aggregated form).
+2. SP publishes the SNARK proofs and commitment `CommR` (either in individual or aggregated form).
     * Note that, in this step, the SP will, by default, use the SnarkPack aggregation technique, even if only proving one sector (see “Product Considerations” section).
 
 **Chain verifies proof**
 
-1. Using `CommR` as a seed, the chain generates `NIChallengesNumber` challenges and these are fed into proof verification
+1. Using `CommR` as a seed, the chain generates `NIChallengesNumber` challenges and these are fed into proof verification.
 
 ### Actor changes
 
 - Add two new proof types to the list of proof types that can be used when submitting a new sector
     - `RegisteredSealProof_NIStackedDrg32GiBV1`
     - `RegisteredSealProof_NIStackedDrg64GiBV1`
-- Introduce a new method `NIProveSectors`, combining the functionalities of `PreCommitSector` and `ProveCommitSector` and taking the following parameters (assuming the implementation of FIP-0076):
-    
-    ```go
-    struct NIProveSectorsParams {
-        // carries information which previously was passed in PreCommit
-        SectorInfos: []SectorPreCommitInfo
-        // Activation manifest for each sector being proven.
-        SectorActivations: []SectorActivationManifest,
-        // Proofs for each sector, parallel to activation manifests.
-        // Exactly one of sector_proofs or aggregate_proof must be non-empty.
-        SectorProofs: [][]byte,
-        // Aggregate proof for all sectors.
-        // Exactly one of sector_proofs or aggregate_proof must be non-empty.
-        AggregateProof: []byte,
-        // Whether to abort if any sector activation fails.
-        RequireActivationSuccess: bool,
-        // Whether to abort if any notification returns a non-zero exit code.
-        RequireNotificationSuccess: bool,
-    }
-    ```
-    
-- The `NIProveSectors` performs all the checks of `PreCommitSector`, omitting PreCommitDeposit, and then continues to perform `ProveCommitSector` checks and verifies the proof.
+- Introduce a new method `ProveCommitSectorsNI`, which performs a non-interactive proof for CC sectors, without the need for a preceding PreCommitSector. Note that there is no piece or deal information; sectors are constrained to commit to “zero” data.
+  ```go
+  // Note no UnsealedCID because it must be "zero" data.
+  struct SectorNIActivationInfo {
+      SectorNumber: SectorNumber,
+      SealedCID: Cid, // CommR
+      SealRandEpoch: ChainEpoch,
+      Expiration: ChainEpoch,
+  }
+
+  struct ProveCommitSectorsNIParams {
+     // Information about sealing of each sector.
+     Sectors: []SectorNIActivationInfo
+     // Proof type for each seal (must be an NI-PoRep variant)
+     SealProofType: RegisteredSealProof,
+     // Proofs for each sector, parallel to activation manifests.
+     // Exactly one of sector_proofs or aggregate_proof must be non-empty.
+     SectorProofs: [][]byte,
+     // Aggregate proof for all sectors.
+     // Exactly one of sector_proofs or aggregate_proof must be non-empty.
+     AggregateProof: []byte,
+     // Proof type for aggregation, if aggregated
+     AggregateProofType: Option<RegisteredAggregateProof>
+     // Whether to abort if any sector activation fails.
+     RequireActivationSuccess: bool,
+   }
+  ```
 
 ### Proof changes
 
@@ -124,7 +128,7 @@ The NI-PoRep protocol can be summarized as follows:
     - `RegisteredSealProof::FeatureNIStackedDrgWindow32GiBV1_2`
     - `RegisteredSealProof::FeatureNIStackedDrgWindow64GiBV1_2`
 - Related constants
-    - `NI_porep_min_challenges` set to 2253; That’s the theoretical minimum number for 128 bits of security, for practical reasons the number of challenges will be 2268.
+    - `NI_porep_min_challenges` set to 2253. That’s the theoretical minimum number for 128 bits of security, for practical reasons the number of challenges will be 2268.
 - New challenge generation function:
     
     ```rust
@@ -138,20 +142,22 @@ The NI-PoRep protocol can be summarized as follows:
         bigint = u256::from_le_u32s(digest)
         challenge: u32 = (bigint % (SECTOR_NODES - 1)) + 1
     }
-    ```
-    
+    ```  
 
 NI-PoRep is an *optional* feature that can be opt-in for those interested. The previously available proofs types can be used to continue the PoRep behavior.
 
 ## Design Rationale
 
 Current PoRep is interactive, and it is composed of two steps: PreCommit and ProveCommit. At PreCommit, SP puts down a collateral (PCD) and waits 150 epochs in order to receive a challenge seed from the chain, which enables the ProveCommit step. 
-
 A first step to mitigate the downsides of the waiting time was the introduction of Synthetic PoRep (See [FIP-0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)), which reduces the size of the temporary data stored between PreCommit and ProveCommit. 
-
 NI-PoRep is a further step forward, completely foregoing on-chain interaction (ie, the waiting time) and the need of PCD by allowing SP to locally generate challenges instead of using on-chain randomness. 
 
 NI-PoRep has little downside with respect to the status quo: it removes PreCommit at the cost of augmenting C2 (ie SNARK generation) costs, which would result in a limited cost increase looking at onboarding costs as a whole). Indeed, NI-PoRep requires 12.8x more PoRep Challenges, which translates into an 12.8x SNARK proving overhead. We analyzed how this SNARK computation overhead affects overall costs. The conclusion is that considering PC1+PC2+C1+C2 and storage costs (i.e. not considering maintenance costs), a NI-PoRep sector with 128 bits of security is 5% more expensive than an Interactive PoRep sector when sector duration is 3y. See full analysis [here](../resources/fip-xxx-niporep/NIPoRep_CostAnalysis.pdf).
+
+The new onboarding method `ProveCommitSectorsNI` is restricted to CC-sectors. We decided for this design for the following reasons:
+1. We believe that the main users of NI-PoRep will be SaaS Providers, which will use NI-PoRep for CC sectors anyway. In the SaaS scenario, the flow where the SP ships the data over to an SaaS Provider and then gets back the sealed data (replica) seems more complex (and therefore more expensive in practice) than the flow where the SaaS Provider distributes CC sectors and then the SP can snap the data later. This should be especially true after [FIP0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md) (SuperSnap) will be deployed in the network.
+2. We think that restricting the new onboarding method to CC sectors can simplify the storage pipeline for Filecoin. Currently, there are quite few different flows for onboarding data; having such diversity (ie, complexity) can be a source of risk and can slow down protocol development. If NI-PoRep (restricted to C sectors) will be widely adopted, we may be allowed to consider the "CC+Snap" flow as the standard for Filecoin and deprecate older onboarding methods. Note that beyond simplified pipeline, the "CC+Snap" flow allows for the possibility of new features. For a sector that is onboarded as CC, we have the `SectorKey` proved on chain this means we can support re-snap (sector data to be replaced more than once) and proof-of-access to unsealed copy protocols.
+4. Last but not least: Implementation of the NI-PoRep onboarding method could be much simpler if it only supports CC sectors. Data sectors add significant code complexity in the miner actor to support two different ways of committing to data.
 
 ## Backwards Compatibility
 
