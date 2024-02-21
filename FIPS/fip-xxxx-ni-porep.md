@@ -83,7 +83,7 @@ The NI-PoRep protocol can be summarized as follows:
 
 1. SP takes the `NIChallengesNumber` vanilla proofs and computes the corresponding SNARK proofs for these challenges.
 2. SP publishes the SNARK proofs and commitment `CommR` (either in individual or aggregated form).
-    * Note that, in this step, the SP will, by default, use the SnarkPack aggregation technique, even if only proving one sector (see “Product Considerations” section).
+    * Note that, in this step, the SP will, by default, use the SnarkPack aggregation technique, even if only proving one sector. Indeed, the large amount of proofs due to the higher number of challenges (see Design Rationale section) makes aggregation by default viable.
 
 **Chain verifies proof**
 
@@ -198,9 +198,6 @@ NI-PoRep will implement the batch balancer currently in place. See [FIP-0013](ht
 NI-PoRep represents another step forward after the introduction of Synthetic PoRep (see [FIP-0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)). 
 
 As already mentioned above, NI-PoRep is a prerequisite to unblock new use cases like trustless SaaS and HDD wholesale as well as allowing for SupraSeal software employment at full potential. 
-
-## Benchmarks
-
 
 ### Comparison against Interactive PoRep
 
