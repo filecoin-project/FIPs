@@ -12,7 +12,7 @@ created: 2023-12-18
 
 ## Simple Summary
 
-This proposal presents a new PoRep protocol (Non-Interactive PoRep) that removes `PreCommit` when onboarding CC sectors. As a result, we have
+This proposal presents a new PoRep protocol (Non-Interactive PoRep) that removes `PreCommit` when onboarding Committed Capacity (CC) sectors. As a result, we have
 
 - Simplified onboarding pipeline, unblocking [SupraSeal](https://github.com/supranational/supra_seal)'s full potential
 - Trustless separation between storage and computing: the proving tasks associated with sector onboarding can be outsourced.
@@ -20,13 +20,13 @@ This proposal presents a new PoRep protocol (Non-Interactive PoRep) that removes
 
 ## Abstract
 
-Non-Interactive PoRep (NI-PoRep) allows to remove on-chain interaction when onboarding CC sectors by changing the way PoRep challenges are generated.
+Non-Interactive PoRep (NI-PoRep) allows to remove on-chain interaction when onboarding  Committed Capacity (CC) sectors by changing the way PoRep challenges are generated.
 
 The protocol allows SP to locally generate PoRep challenges instead of using on-chain randomness.
 
 On one hand, this feature of the protocol allows for drastically simpler onboarding pipeline. On the other hand, it requires an higher number of PoRep challenges (2268 per SDR layer instead of the current 180 per SDR layer) in order to preserve network security.
 
-NI-PoRep is proposed as an *optional* feature, the previously available proofs types will be still supported. NI-PoRep is restricted to CC sectors (i.e., sectors with no deals).
+NI-PoRep is proposed as an *optional* feature, the previously available proofs types will be still supported. NI-PoRep is restricted to CC sectors (i.e., sectors with no data).
 
 
 
@@ -34,7 +34,7 @@ NI-PoRep is proposed as an *optional* feature, the previously available proofs
 
 NI-PoRep will be beneficial for Filecoin in multiple ways, outlined below.
 
-**Cost reduction thanks to a simplified onboarding pipeline**
+### Cost reduction thanks to a simplified onboarding pipeline
 
 PoRep is currently interactive (in order to complete sealing, an SP has to wait to receive a challenge seed from the chain) and requires ad-hoc collateral. These features represent a limitation when considering optimisation for the onboarding pipeline, such as Sealing-as-a-Service and the new SupraSeal sealing code. With NI-PoRep we have no interaction is needed and this yields:
 
@@ -42,17 +42,17 @@ PoRep is currently interactive (in order to complete sealing, an SP has to wait 
 - [Lower hardware requirements] With NI-PoRep, there is no more waiting time between `PreCommit` and `ProveCommit`. This helps when using sealing software (like SupraSeal) that seals more sectors at the same time. Currently, memory requirements are increased by the fact that some data need to be stored during the waiting time. Having no waiting time implies lower memory requirements. 
 
 
-**Trustless Sealing-as-a-Service (SaaS) becomes possible**
+### Trustless Sealing-as-a-Service (SaaS) becomes possible
 
 NI-PoRep enables the full separation between computation and storage tasks. In particular, no `PCD` (PreCommit Deposit) is needed, which brings the following benefits:
 - Currently a SaaS Provider (the entity running the PoRep steps) needs to put down the PCD for the sector. The PCD will be re-paid or is prepaid by the SP sending the final SNARK proof on chain (i.e., the SP which will store the sector for the following spacetime proofs). With this NI-PoRep this level of interaction is not needed. In particular, this kind of simplification helps SaaS providers to delegate computation tasks (ie, PoRep can be split into specialized subtasks that get outsourced to specialized entities).
 - Enabling HDD wholesale: for an SP it would be possible to receive brand new drives with sectorKeys pre-generated using its miner_id.
 
-**PoRep secured cryptographically and not rationally**
+### PoRep secured cryptographically and not rationally
 
 Chain cryptographic security gets increased: NI-PoRep would make misbehaving cryptographically infeasible rather than irrational.
 
-**PoRep security now independent from consensus**
+### PoRep security now independent from consensus
 
 Current PoRep is interactive and needs to get randomness from the chain. Moreover, in order to be secure, 150 epochs are needed between `PreCommit` and `ProveCommit`. This is due to the fact that some consensus attacks need to be infeasible (as putting those attacks in place would allow for faking storage).
 In NI-PoRep, since randomness is derived locally, there is no link anymore between PoRep and consensus attacks. This means that
@@ -60,7 +60,7 @@ In NI-PoRep, since randomness is derived locally, there is no link anymore betwe
 - Consensus attacks are not a concern anymore for NI-PoRep security;
 - PoRep can now work “agnostically” with any consensus protocol.
 
-**Backward compatibility**
+## Backward compatibility
 
 - NI-PoRep would be a separate proof type with a different on-chain flow as current PoRep. Anyone can decide whether to use NI-PoRep or not.
 - No need for a new trusted setup.
@@ -94,7 +94,7 @@ The NI-PoRep protocol can be summarized as follows:
 - Add two new proof types to the list of proof types that can be used when submitting a new sector
     - `RegisteredSealProof_NIStackedDrg32GiBV1`
     - `RegisteredSealProof_NIStackedDrg64GiBV1`
-- Introduce a new method `ProveCommitSectorsNI`, which performs a non-interactive proof for CC sectors, without the need for a preceding PreCommitSector. Note that there is no piece or deal information; sectors are constrained to commit to “zero” data.
+- Introduce a new method `ProveCommitSectorsNI` (method 36), which performs a non-interactive proof for CC sectors, without the need for a preceding PreCommitSector. Note that there is no piece or deal information; sectors are constrained to commit to “zero” data.
   ```go
   // Note no UnsealedCID because it must be "zero" data.
   struct SectorNIActivationInfo {
@@ -144,7 +144,7 @@ The NI-PoRep protocol can be summarized as follows:
     }
     ```  
 
-NI-PoRep is an *optional* feature that can be opt-in for those interested. The previously available proofs types can be used to continue the PoRep behavior.
+NI-PoRep is an *optional* feature that can be opt-in for those interested. The previously available proofs types can be used with existing onboarding methods to continue interactive PoRep behavior.
 
 ## Design Rationale
 
@@ -169,11 +169,11 @@ Run the code for NI-PoRep and check if the resulting proof cryptographically ver
 
 ## Security Considerations
 
-**Fiat-Shamir Heuristic and its effects**
+### Fiat-Shamir Heuristic and its effects
 
 NI-PoRep is based on the well-known Fiat-Shamir Heuristic, which allows for having a non interactive protocol starting from any 3-message interactive protocol. However, the heuristic requires the original interactive protocol to have at least 80 [bits of security](https://en.wikipedia.org/wiki/Security_level) (instead of the current 10), and preferably 128. In order to have long term security we propose to opt for 128 bits: since the security level in PoRep is given by the number of challenges, this means that for NI-PoRep we need  `NIChallengesNumber` to be at least 2253. 
 
-**How to take `SealRandomness` for ensuring sectors are anchored to the chain**
+### How to take `SealRandomness` for ensuring sectors are anchored to the chain
 
 The epoch in which sealing took place is identified by the corresponding chain reference, called `SealRandomness` which is the anchor of the sector to the chain. `SealRandomness` must be taken from the VRF chain, in order to ensure that no other fork can replay the Seal.
 
