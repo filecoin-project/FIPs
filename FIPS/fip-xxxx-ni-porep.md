@@ -67,8 +67,8 @@ In NI-PoRep, since randomness is derived locally, there is no link anymore betwe
 
 ## Specification
 
-The NI-PoRep protocol can be summarized as follows:
-
+The NI-PoRep protocol can be summarized as follows (see [here](https://spec.filecoin.io/algorithms/sdr/notation/) for notation and [here](https://spec.filecoin.io/algorithms/sdr/) for basic algorithms):
+:
 **Graph labelling and commitments** (similar to the current PC1 and PC2 computation)
 
 1. Using `ReplicaID`, SP computes the labels for all layers and the replica R;
@@ -88,6 +88,8 @@ The NI-PoRep protocol can be summarized as follows:
 **Chain verifies proof**
 
 1. Using `CommR` as a seed, the chain generates `NIChallengesNumber` challenges and these are fed into proof verification.
+
+Note that, same as with Iteractive PoRep, each sector has a `SealRandEpoch` that identifies the sealing epoch; chain verification needs to happen within a fixed number of epochs to be vailid. For NI-PoRep we call this parameter `sealChallengeEarliest`and set it to be equal to the number of epochs in 30 days (more details in the Security Considerations section).
 
 ### Actor changes
 
@@ -121,7 +123,9 @@ The NI-PoRep protocol can be summarized as follows:
      RequireActivationSuccess: bool,
    }
   ```
-
+- Related constants
+    - `sealChallengeEarliest` set to be equal to the number of epochs in 30 days.
+      
 ### Proof changes
 
 - Add two new proof types to the list of proof types that can be used when pre-committing a new sector
