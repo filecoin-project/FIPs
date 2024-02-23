@@ -81,9 +81,8 @@ The NI-PoRep protocol can be summarized as follows (see [here](https://spec.file
 
 **SP publishes the new `NIProveCommitSector` proof**
 
-1. SP takes the `NIChallengesNumber` vanilla proofs and computes the corresponding SNARK proofs for these challenges.
-2. SP publishes the SNARK proofs and commitment `CommR` (either in individual or aggregated form).
-    * Note that, in this step, the SP will, by default, use the SnarkPack aggregation technique, even if only proving one sector. Indeed, the large amount of proofs due to the higher number of challenges (see Design Rationale section) makes aggregation by default viable.
+1. SP takes the `NIChallengesNumber` vanilla proofs and computes the corresponding SNARK proofs for these challenges and aggregates them into a single proof.
+2. SP publishes the aggregated SNARK proof and commitment `CommR`.
 
 **Chain verifies proof**
 
