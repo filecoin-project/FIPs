@@ -95,7 +95,7 @@ Note that, same as with Iteractive PoRep, each sector has a `SealRandEpoch` that
 - Add two new proof types to the list of proof types that can be used when submitting a new sector
     - `RegisteredSealProof_NIStackedDrg32GiBV1`
     - `RegisteredSealProof_NIStackedDrg64GiBV1`
-- Introduce a new method `ProveCommitSectorsNI` (method 36), which performs a non-interactive proof for CC sectors, without the need for a preceding PreCommitSector. Note that there is no piece or deal information; sectors are constrained to commit to “zero” data.
+- Introduce a new method `ProveCommitSectorsNI` (method 36), which performs a non-interactive proof for CC sectors, without the need for a preceding PreCommitSector. Note that there is no piece or deal information; sectors are constrained to commit to “zero” data. We can use the same return type as `ProveCommitAggregate`.
   ```go
   // Note no UnsealedCID because it must be "zero" data.
   struct SectorNIActivationInfo {
