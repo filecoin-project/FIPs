@@ -149,6 +149,8 @@ Note that, same as with Iteractive PoRep, each sector has a `SealRandEpoch` that
 
 NI-PoRep is an *optional* feature that can be opt-in for those interested. The previously available proofs types can be used with existing onboarding methods to continue interactive PoRep behavior.
 
+TODO: specify batch balancer params.
+
 ## Design Rationale
 
 Current PoRep is interactive, and it is composed of two steps: PreCommit and ProveCommit. At PreCommit, SP puts down a collateral (PCD) and waits 150 epochs in order to receive a challenge seed from the chain, which enables the ProveCommit step. 
@@ -195,6 +197,8 @@ Concerns were raised over the possibility that a malicious party wanting to take
 ## Incentive Considerations
 
 NI-PoRep will implement the batch balancer currently in place. See [FIP-0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md) for details.
+
+
 
 ## Product Considerations
 
