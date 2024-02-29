@@ -68,7 +68,7 @@ In NI-PoRep, since randomness is derived locally, there is no link anymore betwe
 ## Specification
 
 The NI-PoRep protocol can be summarized as follows (see [here](https://spec.filecoin.io/algorithms/sdr/notation/) for notation and [here](https://spec.filecoin.io/algorithms/sdr/) for basic algorithms):
-:
+
 **Graph labelling and commitments** (similar to the current PC1 and PC2 computation)
 
 1. Using `ReplicaID`, SP computes the labels for all layers and the replica R;
