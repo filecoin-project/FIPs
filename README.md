@@ -125,4 +125,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0085](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0085.md) | Convert f090 Mining Reserve actor to a keyless account actor   | FIP | Jennifer Wang (@jennijuju), Jon Victor (@jnthnvctr)| Last Call |
 |[0086](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0086.md) | Fast Finality in Filecoin (F3) | FIP | @stebalien, @mb1896, @hmoniz, @anorth, @matejpavlovic, @arajasek, @ranchalp, @jsoares, @Kubuxu, @vukolic | Draft |
 |[0087](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0087.md) | FVM-Enabled Deal Aggregation | FRC | @aashidham, @honghao, @raulk, @nonsense | Draft |
-|[0089](https://github.com/filecoin-project/FIPs/blob/master/FRCs/fip-0089.md) | A Finality Calculator for Filecoin | FRC | @guy-goren, @jsoares | Draft |
+|[0089](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0089.md) | A Finality Calculator for Filecoin | FRC | @guy-goren, @jsoares | Draft |
