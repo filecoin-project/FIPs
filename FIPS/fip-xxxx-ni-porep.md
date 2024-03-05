@@ -14,8 +14,9 @@ created: 2023-12-18
 
 This proposal presents a new PoRep protocol (Non-Interactive PoRep) that removes `PreCommit` when onboarding Committed Capacity (CC) sectors. As a result, we have
 
-- Simplified onboarding pipeline, unblocking [SupraSeal](https://github.com/supranational/supra_seal)'s full potential
-- Trustless separation between storage and computing: the proving tasks associated with sector onboarding can be outsourced.
+- Simplified storage onboarding pipeline
+- Trustless separation between storage and computing: the proving tasks associated with sector onboarding can be outsourced. 
+- Unblocking [SupraSeal](https://github.com/supranational/supra_seal)'s full potential
 
 
 ## Abstract
@@ -43,7 +44,7 @@ PoRep is currently interactive (in order to complete sealing, an SP has to wait 
 ### Trustless Sealing-as-a-Service (SaaS) becomes possible
 
 NI-PoRep enables the full separation between computation and storage tasks. In particular, no `PCD` ([PreCommit Deposit](https://spec.filecoin.io/#section-systems.filecoin_mining.storage_mining.balance-requirements)) is needed, which brings the following benefits:
-- Currently a SaaS Provider (the entity running the PoRep steps) needs to put down the PCD for the sector. The PCD will be re-paid or prepaid by the SP sending the final SNARK proof on chain (i.e., the SP that will store the sector for the following PoST). With this NI-PoRep this level of interaction is not needed. In particular, this kind of simplification helps SaaS providers to delegate computation tasks (ie, PoRep can be split into specialized subtasks that get outsourced to specialized entities).
+- Currently a SaaS Provider (the entity running the PoRep steps) needs to put down the PCD for the sector, along with the PreCommit message. The PCD will be re-paid or prepaid by the SP sending the final SNARK proof on the chain (i.e., the SP that will store the sector for the following PoST). With NI-PoRep, this level of payment interaction is not needed. In particular, this kind of simplification helps SaaS providers to delegate computation tasks (ie, PoRep can be split into specialized subtasks that get outsourced to specialized entities).
 - Enabling HDD wholesale: for an SP it would be possible to receive brand new drives with `sectorKeys ` pre-generated using its `miner_id`.
 
 ### PoRep secured cryptographically and not rationally
@@ -158,8 +159,8 @@ NI-PoRep is a further step forward, completely foregoing on-chain interaction (i
 NI-PoRep has little downside with respect to the status quo: it removes PreCommit at the cost of augmenting C2 (ie SNARK generation) costs, which would result in a limited cost increase looking at onboarding costs as a whole). Indeed, NI-PoRep requires 12.8x more PoRep Challenges, which translates into an 12.8x SNARK proving overhead. We analyzed how this SNARK computation overhead affects overall costs. The conclusion is that considering PC1+PC2+C1+C2 and storage costs (i.e. not considering maintenance costs), a NI-PoRep sector with 128 bits of security is 5% more expensive than an Interactive PoRep sector when sector duration is 3y. See full analysis [here](../resources/fip-xxx-niporep/NIPoRep_CostAnalysis.pdf).
 
 The new onboarding method `ProveCommitSectorsNI` is restricted to CC-sectors. We decided for this design for the following reasons:
-1. We believe that the main users of NI-PoRep will be SaaS Providers, which will use NI-PoRep for CC sectors anyway. In the SaaS scenario, the flow where the SP ships the data over to an SaaS Provider and then gets back the sealed data (replica) seems more complex (and therefore more expensive in practice) than the flow where the SaaS Provider distributes CC sectors and then the SP can snap the data later. This should be especially true after [FIP0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md) (SuperSnap) will be deployed in the network.
-2. We think that restricting the new onboarding method to CC sectors can simplify the storage pipeline for Filecoin. Currently, there are quite a few different flows for onboarding data; having such diversity (ie, complexity) can be a source of risk and can slow down protocol development. If NI-PoRep (restricted to CC sectors) is widely adopted, we may come to consider the "CC+Snap" flow as the standard and deprecate older onboarding methods. Note that beyond a simplified pipeline, the "CC+Snap" flow allows for the possibility of new features. For a sector that is onboarded as CC, we have the `SectorKey` proved on-chain, meaning we can support re-snap (sector data to be replaced more than once) and proof-of-access to unsealed copy protocols.
+1. We believe that the main users of NI-PoRep will be SaaS Providers, which will use NI-PoRep for CC sectors anyway. In the SaaS scenario, the flow where the SP ships the data over to an SaaS Provider and then gets back the sealed data (replica) seems more complex (and therefore more expensive in practice) than the flow where the SaaS Provider distributes CC sectors and then the SP can snap the data later. This should be especially true if [FIP0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md) (SuperSnap) were deployed in the network.
+2. We think that restricting the new onboarding method to CC sectors can simplify the storage pipeline for Filecoin. Currently, there are quite a few different flows for onboarding data; having such diversity (ie, complexity) can be a source of risk and can slow down protocol development. It also complicates the SP stack software and new SP onboarding. If NI-PoRep (restricted to CC sectors) is widely adopted, we may come to consider the "CC+Snap" flow as the standard and deprecate older onboarding methods. Note that beyond a simplified pipeline, the "CC+Snap" flow allows for the possibility of new features. For a sector that is onboarded as CC, we have the `SectorKey` proved on-chain, meaning we can support re-snap (sector data to be replaced more than once) and proof-of-access to unsealed copy protocols.
 3. Implementation of the NI-PoRep onboarding method is simplified by only supporting CC sectors. Data sectors add significant code complexity in the miner actor to support two different ways of committing to data.
 
 ## Backwards Compatibility
