@@ -14,9 +14,9 @@ created: 2023-12-18
 
 This proposal presents a new PoRep protocol (Non-Interactive PoRep) that removes `PreCommit` when onboarding Committed Capacity (CC) sectors. As a result, we have
 
-- Simplified storage onboarding pipeline
-- Trustless separation between storage and computing: the proving tasks associated with sector onboarding can be outsourced. 
-- Unblocking [SupraSeal](https://github.com/supranational/supra_seal)'s full potential
+- Simplified storage onboarding pipeline;
+- Trustless separation between storage and computing: the proving tasks associated with sector onboarding can be outsourced;
+- Unblocking [SupraSeal](https://github.com/supranational/supra_seal)'s full potential.
 
 
 ## Abstract
@@ -130,7 +130,8 @@ Note that, same as with interactive PoRep, each sector has a `SealRandEpoch` tha
     - `RegisteredSealProof::FeatureNIStackedDrgWindow32GiBV1_2`
     - `RegisteredSealProof::FeatureNIStackedDrgWindow64GiBV1_2`
 - Related constants
-    - `NI_porep_min_challenges` set to 2253, the theoretical minimum number for 128 bits of security. For practical reasons, the number of challenges will be 2268.
+    - `NI_porep_min_challenges` set to 2253, the theoretical minimum number for 128 bits of security;
+    - `NUM_CHALLENGES` computed as the smallest multiple of 18 that is also larger or equal to  `NI_porep_min_challenges` (indeed in practice, due to existing contraints in the trusted SNARK setup and circuit design, the number of challenges used has to be a multiple of 18).
 - New challenge generation function:
     
     ```rust
@@ -156,7 +157,7 @@ Current PoRep is interactive, and it is composed of two steps: PreCommit and Pro
 A first step to mitigate the downsides of the waiting time was the introduction of Synthetic PoRep (See [FIP-0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)), which reduces the size of the temporary data stored between PreCommit and ProveCommit. 
 NI-PoRep is a further step forward, completely foregoing on-chain interaction (ie, the waiting time) and the need of PCD by allowing SP to locally generate challenges instead of using on-chain randomness. 
 
-NI-PoRep has little downside with respect to the status quo: it removes PreCommit at the cost of augmenting C2 (ie SNARK generation) costs, which would result in a limited cost increase looking at onboarding costs as a whole). Indeed, NI-PoRep requires 12.8x more PoRep Challenges, which translates into an 12.8x SNARK proving overhead. We analyzed how this SNARK computation overhead affects overall costs. The conclusion is that considering PC1+PC2+C1+C2 and storage costs (i.e. not considering maintenance costs), a NI-PoRep sector with 128 bits of security is 5% more expensive than an Interactive PoRep sector when sector duration is 3y. See full analysis [here](../resources/fip-xxx-niporep/NIPoRep_CostAnalysis.pdf).
+NI-PoRep has little downside with respect to the status quo: it removes PreCommit at the cost of augmenting C2 (ie SNARK generation) costs, which would result in a limited cost increase looking at onboarding costs as a whole. Indeed, NI-PoRep requires 12.8x more PoRep Challenges, which translates into an 12.8x SNARK proving overhead. We analyzed how this SNARK computation overhead affects overall costs. The conclusion is that considering PC1+PC2+C1+C2 and storage costs (i.e. not considering maintenance costs), a NI-PoRep sector with 128 bits of security is 5% more expensive than an Interactive PoRep sector when sector duration is 3y. See full analysis [here](../resources/fip-xxx-niporep/NIPoRep_CostAnalysis.pdf).
 
 The new onboarding method `ProveCommitSectorsNI` is restricted to CC-sectors. We decided for this design for the following reasons:
 1. We believe that the main users of NI-PoRep will be SaaS Providers, which will use NI-PoRep for CC sectors anyway. In the SaaS scenario, the flow where the SP ships the data over to an SaaS Provider and then gets back the sealed data (replica) seems more complex (and therefore more expensive in practice) than the flow where the SaaS Provider distributes CC sectors and then the SP can snap the data later. This should be especially true if [FIP0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md) (SuperSnap) were deployed in the network.
