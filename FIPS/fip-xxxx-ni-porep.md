@@ -44,7 +44,7 @@ PoRep is currently interactive (in order to complete sealing, an SP has to wait 
 ### Trustless Sealing-as-a-Service (SaaS) becomes possible
 
 NI-PoRep enables the full separation between computation and storage tasks. In particular, no `PCD` ([PreCommit Deposit](https://spec.filecoin.io/#section-systems.filecoin_mining.storage_mining.balance-requirements)) is needed, which brings the following benefits:
-- Currently a SaaS Provider (the entity running the PoRep steps) needs to put down the PCD for the sector, along with the PreCommit message. The PCD will be re-paid or prepaid by the SP sending the final SNARK proof on the chain (i.e., the SP that will store the sector for the following PoST). With NI-PoRep, this level of payment interaction is not needed. In particular, this kind of simplification helps SaaS providers to delegate computation tasks (ie, PoRep can be split into specialized subtasks that get outsourced to specialized entities).
+- Currently a SaaS Provider (the entity running the PoRep steps) needs to put down the PCD for the sector, along with the PreCommit message. The PCD will be re-paid or prepaid by the SP sending the final SNARK proof on the chain (i.e., the SP that will store the sector for the following PoST). With NI-PoRep, this level of payment interaction is not needed. In particular, this kind of simplification helps SPs and SaaS providers to delegate computation tasks (ie, PoRep can be split into specialized subtasks that get outsourced to specialized entities).
 - Enabling HDD wholesale: for an SP it would be possible to receive brand new drives with `sectorKeys ` pre-generated using its `miner_id`.
 
 ### PoRep secured cryptographically and not rationally
@@ -92,9 +92,10 @@ Note that, same as with interactive PoRep, each sector has a `SealRandEpoch` tha
 ### Actor changes
 
 - Add two new proof types to the list of proof types that can be used when submitting a new sector
-    - `RegisteredSealProof_NIStackedDrg32GiBV1`
-    - `RegisteredSealProof_NIStackedDrg64GiBV1`
-- Introduce a new method `ProveCommitSectorsNI` (method 36), which performs a non-interactive proof for CC sectors, without the need for a preceding PreCommitSector. Note that there is no piece or deal information; sectors are constrained to commit to “zero” data. We can use the same return type as `ProveCommitAggregate`.
+    - `StackedDrg32GiBV1_1_Feat_NiPoRep`
+    - `StackedDrg64GiBV1_1_Feat_NiPoRep`
+- Introduce a new method `ProveCommitSectorsNI` (method 36), which performs a non-interactive proof for CC sectors, without a preceding PreCommitSector message (ie, this method rejects sectors that were already pre-committed. Such sectors must be activated with one of the existing ProveCommit methods). The method can be used with seal proofs or aggregate proof (but only one option can be chosen per call); the return type is the same  as `ProveCommitAggregate`.
+  
   ```go
   // Note no UnsealedCID because it must be "zero" data.
   struct SectorNIActivationInfo {
@@ -127,8 +128,8 @@ Note that, same as with interactive PoRep, each sector has a `SealRandEpoch` tha
 ### Proof changes
 
 - Add two new proof types to the list of proof types that can be used when pre-committing a new sector
-    - `RegisteredSealProof::FeatureNIStackedDrgWindow32GiBV1_2`
-    - `RegisteredSealProof::FeatureNIStackedDrgWindow64GiBV1_2`
+    - `RegisteredSealProof::StackedDrg32GiBV1_1_Feat_NiPoRep`
+    - `RegisteredSealProof::StackedDrg64GiBV1_1_Feat_NiPoRep`
 - Related constants
     - `NI_porep_min_challenges` set to 2253, the theoretical minimum number for 128 bits of security;
     - `NUM_CHALLENGES` computed as the smallest multiple of 18 that is also larger or equal to  `NI_porep_min_challenges` (indeed in practice, due to existing contraints in the trusted SNARK setup and circuit design, the number of challenges used has to be a multiple of 18).
@@ -166,7 +167,7 @@ The new onboarding method `ProveCommitSectorsNI` is restricted to CC-sectors. We
 
 ## Backwards Compatibility
 
-NI-PoRep would become a new proof type with a different on-chain flow as current PoRep (due to the removal of the `PreCommit` step).
+NI-PoRep would become a new proof type with a different on-chain flow as current PoRep (due to the removal of the `PreCommit` step). A new method, `ProveCommitSectorNI` is added and the existing ProveCommit methods (ie, `ProveCommitSector`, `ProveCommitAggregate`, `ProveCommitSectors3`) will not accept NI-PoRep proof. 
 
 ## Test Cases
 
@@ -204,7 +205,7 @@ NI-PoRep will implement the batch balancer currently in place. See [FIP-0013](ht
 
 NI-PoRep represents another step forward after the introduction of Synthetic PoRep (see [FIP-0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)). 
 
-As already mentioned above, NI-PoRep is a prerequisite to unblock new use cases like trustless SaaS and HDD wholesale as well as allowing for SupraSeal software employment at full potential. 
+As already mentioned above, NI-PoRep is a prerequisite to unblock new use cases like trustless SaaS and HDD wholesale as well as allowing for SupraSeal software employment at full potential. Moreovere, note that enabling trustless SaaS can lower the entry bar for new Storage Providers to join the network.
 
 ### Comparison against Interactive PoRep
 
