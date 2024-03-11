@@ -1,5 +1,5 @@
 ---
-fip: "XXXX"
+fip: "0090"
 title: Non-Interactive PoRep
 author: luca (@lucaniz), kuba (@Kubuxu), nicola (@nicola), nemo (@cryptonemo), volker (@vmx), irene (@irenegia)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/854 
@@ -8,7 +8,7 @@ type: Technical
 category: Core
 created: 2023-12-18
 ---
-# FIP-XXXX: Non-Interactive PoRep
+# FIP-0090: Non-Interactive PoRep
 
 ## Simple Summary
 
