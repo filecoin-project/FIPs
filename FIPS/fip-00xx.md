@@ -53,7 +53,7 @@ type LegacyEthTx struct {
 
 The main distinction relevant to this FIP is that legacy transactions do not contain a `ChainID` and so the transactions are not scoped to a specific chain.  This allows replaying the same signed contract creation transaction across multiple chains for deploying a contract and also enables the contract to have the same address across chains.
 
-Support for legacy transactions on Filecoin will be enabled by prepending an extra marker byte (arbitrarily selected as  `0x80`) to the signature of legacy transactions. This will allow Filecoin to detect that a transaction is a legacy transaction and process and execute it accordingly.
+Support for legacy transactions on Filecoin will be enabled by prepending an extra marker byte `0x01` to the signature of legacy transactions. This will allow Filecoin to detect that a transaction is a legacy transaction and process and execute it accordingly.
 
 The `GasPrice` parameter from the legacy transaction will be utilized to determine both the `GasFeeCap` and `GasPremium` parameters in the Filecoin message, as `GasPrice` encompasses the full cost per unit of gas that the sender is willing to pay.
 
@@ -74,14 +74,14 @@ Filecoin supports EIP-1559 transactions by converting them into standard Filecoi
 2. Confirming that the "from" address originates from an Ethereum account (indicated by the prefix `f410f...`).
 3. Reconstructing the original EIP-1559 transaction from the Filecoin message and verifying its signature.
 
-For legacy transactions, the validation process is similar, with a crucial modification in the third step. To differentiate legacy transactions from EIP-1559 transactions and to accurately reconstruct the original legacy Ethereum transaction from the Filecoin message, this FIP introduces a method to mark legacy transactions uniquely. Specifically, it proposes prepending a distinct marker byte `0x80` to the signature of a legacy ETH transaction. This adjustment occurs after the legacy transaction is submitted to a Filecoin node but before it is broadcast across the network. Consequently, the signature length of a legacy ETH transaction extends to 66 bytes, compared to 65 bytes for an EIP-1559 transaction. This modified signature is also stored in the chain state for legacy transactions.
+For legacy transactions, the validation process is similar, with a crucial modification in the third step. To differentiate legacy transactions from EIP-1559 transactions and to accurately reconstruct the original legacy Ethereum transaction from the Filecoin message, this FIP introduces a method to mark legacy transactions uniquely. Specifically, it proposes prepending a distinct marker byte `0x01` to the signature of a legacy ETH transaction. This adjustment occurs after the legacy transaction is submitted to a Filecoin node but before it is broadcast across the network. Consequently, the signature length of a legacy ETH transaction extends to 66 bytes, compared to 65 bytes for an EIP-1559 transaction. This modified signature is also stored in the chain state for legacy transactions.
 
 The revised steps for processing and validating a Filecoin message representing an Ethereum transaction are:
 
 1. Recognize the "delegated" signature type, indicating an Ethereum transaction.
 2. Verify that the "from" address is an Ethereum account (starting with `f410f...`).
 3. Distinguish the transaction type based on the signature length:
-   - If the signature is 66 bytes long and starts with `0x80`, it is translated to a legacy ETH transaction.
+   - If the signature is 66 bytes long and starts with `0x01`, it is translated to a legacy ETH transaction.
    - If the signature is 65 bytes long, it corresponds to an EIP-1559 transaction.
 4. Validate the transaction parameters and signature.
 
