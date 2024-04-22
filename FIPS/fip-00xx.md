@@ -158,8 +158,8 @@ A notable number of smart contracts on various chains were initially deployed us
 Moreover, some contracts _rely_ on legacy transactions so that they can be deployed at the same address no matter what chain they're deployed to. Specifically, they rely on the fact that the transaction is _not_ scoped to a specific chain so that the same message can be re-used to deploy the same contract across multiple chains. This FIP enables deployment and execution of such smart contracts on Filecoin as legacy transactions do not have a `ChainID` parameter and are thus not scoped to a specific chain. 
 
 ## Implementation
-Implementation of this proposal is in progress on the following feature branch:  
-https://github.com/filecoin-project/lotus/pull/11864.
+Implementation of this proposal is in progress on the following integration branch:
+https://github.com/filecoin-project/lotus/tree/integrate/add-eth-legacy-call.
 
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
