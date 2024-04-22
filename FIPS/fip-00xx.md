@@ -9,7 +9,7 @@ category: Core
 created: 2024-04-17
 ---
 
-# FIP-00XX: Add support for legacy Homstead Ethereum Trasnactions 
+# FIP-00XX: Add support for legacy Homestead Ethereum Transactions 
 
 ## Simple Summary
 This FIP introduces support for the Ethereum Homestead era's legacy transactions on the Filecoin network, complementing the existing support for EIP-1599 transactions. The main goal of this proposal is to facilitate the use of legacy contracts on Filecoin, which depend on these older transaction formats for both deployment and operation.
@@ -19,7 +19,7 @@ It's important to note that this FIP specifically targets the integration of leg
 ## Abstract
 The Filecoin network already supports EIP-1599 transactions. These transactions have a designated transaction type of `0x02` and have the following parameters:
 
-```
+```go
 type EIP1599Tx struct {
 	ChainID int  
 	Nonce int  
@@ -99,7 +99,7 @@ The use of the `V` parameter in the signature of an Ethereum transaction and the
 
 For EIP-1599 transactions that are supported by Filecoin, the `V` parameter in the signature can take a value of either 0 or 1. This helps determine which of the two possible Y coordinates is correct for the elliptic curve point that corresponds to the R part of the signature. This is necessary because the ECDSA signature produces an R value and an S value, but two possible Y coordinates can be derived from the X coordinate (R).
 
-However, for legacy Homstead Ethereum transactions, the value of `V` was arbitrarily set to 27(corresponds to "0" in EIP-1599 transactions) or 28(corresponds to "1" in EIP-1599 transactions) and serves the same purpose of being able to specifically determine the parity of the Y coordinate corresponding to the R component of the signature.
+However, for legacy Homestead Ethereum transactions, the value of `V` was arbitrarily set to 27 (corresponds to `0` in EIP-1559 transactions) or 28 (corresponds to `1` in EIP-1559 transactions) and serves the same purpose of being able to specifically determine the parity of the Y coordinate corresponding to the R component of the signature.
 
 Given that the current signature verification implementation for the delegated signature type(which is the signature type that will be used for legacy ETH transactions in addition to EIP1599 transactions) only recognizes `V` values of 0 or 1, it is necessary to adjust the `V` value in the signature of legacy transactions by subtracting 27. This adjustment must be made prior to the authentication and verification of the message's signature, as well as before extracting the public key and sender's address from the legacy transaction's signature.
 
@@ -147,7 +147,7 @@ However, legacy Ethereum transactions only have a single `GasPrice` parameter, w
 Under the FVM fee market framework, when processing legacy transactions, `GasPrice` is adapted to simultaneously fulfill the roles of both `GasFeeCap` and `GasPremium`. In this adaptation, both `GasFeeCap` and `GasPremium` are set equal to `GasPrice`. Initially, the base fee is subtracted, and any remaining attoFIL from the `GasPrice`, after this deduction, is allocated entirely as a priority fee to the miner. This arrangement ensures that the total fee (base fee plus priority fee) paid by the user for a legacy transaction does not surpass the `GasPrice` set by the user on the legacy ETH transaction.
 
 ## Product Considerations
-This FIP enhances the Filecoin network by facilitating the execution of legacy Ethereum transactions, thereby bolstering Filecoin's interoperability with the Ethereum network, which already accommodates such transactions.
+This FIP enhances the Filecoin network by facilitating the execution of legacy Ethereum transactions, thereby bolstering Filecoin's interoperability with pre-existing Ethereum tools, libraries, contract suites, and frameworks, which assume such transactions.
 
 A notable number of smart contracts on various chains were initially deployed using legacy transactions, signed by the contract authors through ephemeral accounts. Subsequently, these keys were discarded, and the signed transactions for deploying these contracts became publicly accessible online. This FIP enables users to deploy these pre-signed contracts on the Filecoin network by directly replaying the existing legacy contract creation transactions.
 
