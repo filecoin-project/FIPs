@@ -49,38 +49,29 @@
 ## Simple Summary
 
 Add the notion of `sealerID` and use it for the sealing process for NI-PoRep. In particular:
-
-
-
 * We add a new actor, the Sealer Actor so that for SealerIDs can be registered;
 * SealerID can be used in the method `ProveCommitSectorsNI` to seal sectors.
 
 
 ## Abstract 
 
-With the current protocol, when a party creates `ReplicaID` needs to use the same `minerID` that will be used for PoRep verifications. This implies that “pre-sealing” sector is not a viable option: no sector can be sealed (ie, replica created) ahead of time, before knowing the identity of the SPs who will own it. To enable this scenario we introduce the concept of `sealerID` to be used in the place of the `minerID` only during sealing.
+With the current protocol, the party creates the `ReplicaID` needs to use the same `minerID` that will be used for PoRep verifications. This implies that “pre-sealing” sectors is not a viable option: no sector can be sealed (ie, replica created) ahead of time, before knowing the identity of the miner actor who will own it. To enable this scenario, we introduce the concept of `sealerID` to be used in place of the `minerID` only during sealing.
 
 
 ## Motivation
 
-We consider the scenario where Storage Providers want to delegate some of their activities to external parties in order to let a competition of service providers optimize and lower the costs.
+We consider the scenario where Storage Providers want to delegate some of their activities to external parties that offer competitive services at lower costs.
 
 In particular, we call **Sealing-as-a-Service (SaaS) Provider** an entity that runs all PoRep operations (labeling the graph, column commitments, MT generation, vanilla proofs and SNARKs generation) needed to get a replica and onboard the sector that contains it.
 
-The SaaS then transfers the replica and the proofs to a **SaaS Client.** This is an SP that will onboard the sector with the replica R (ie, call a ProveCommit method) and will be responsible for storing R and proving validity of the corresponding sector (ie, running window- and winning-PoSt).
-
-
+The SaaS then transfers the replica and the proofs to a **SaaS Client.** This is an SP that will onboard the sector with the replica R (ie, call a ProveCommit method) and will be responsible for storing R and proving validity of the corresponding sector (ie, running window- and winning-PoSt), and/or adding data to the committed capacity sector via SnapDeals.
 ### Addressed issues:
 
-
-
 1. [solved already] With interactive PoRep the SaaS Provider and Client needs coordination and agreement (therefore trust) about the intermediate interaction with the chain (ie, sending commR on chain) and locking down PCD (PreCommitDeposit). This is resolved by using NI-PoRep [FIP0090](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0090.md) that requires no chain interaction and no deposit.
-2. [solved by this FIP] Even with NI-PoRep, some coordination between the SaaS Provider and Client remains. Indeed during the labeling phase the Provider creates `ReplicaID` and for this needs to use the `minerID` and `sectorNumber`from the SaaS Client who will receive the replica to be stored. If these values are not correctly used then the SNARK proof will not be valid. This means that a Provider needs to “wait” for the request (and info) from a client to seal sectors. In other words, this prevents a SaaS Provider from sealing sectors in advance using its HW at max capacity (and therefore reducing sealing cost for everyone).
+2. [solved by this FIP] Even with NI-PoRep, some coordination between the SaaS Provider and their client (SP) remains. Indeed during the labeling phase the SaaS Provider creates `ReplicaID` and for this needs to use the `minerID` and `sectorNumber`from the SaaS Client who will receive the replica to be stored. If these values are not correctly used then the SNARK proof will not be valid. This means that a SaaS Provider needs to “wait” for the request (and info) from a SaaS client to seal sectors. In other words, this prevents a SaaS Provider from sealing sectors in advance using its HW at max capacity (and therefore reducing sealing cost for everyone).
 
 
 ## Specification
-
-
 
 1. We add a new type of actor: the Sealer Actor (to be used for SaaS Providers);
     1. This can be a “disposable” actor, no need for an owner key. If something bad happens, create a new id. This is okay because no tokens are locked for this actor;
@@ -99,10 +90,6 @@ The SaaS then transfers the replica and the proofs to a **SaaS Client.** This is
 When an SP onboards a sector (ie, call to method `ProveCommitSectorsNIParams` in the Miner Actor), then call to the Sealer Actor. If the ACL is enabled, then call the ACL contract.
 
 ![Sealer ID](https://github.com/filecoin-project/FIPs/assets/23217773/4852d5eb-6c81-4fc7-9f7e-dd7a351ed943)
-
-
-
-
 
 ## Rationale 
 
