@@ -51,7 +51,7 @@ type LegacyEthTx struct {
 }
 ```
 
-The main distinction relevant to this FIP is that legacy transactions do not contain a `ChainID` and so the transactions are not scoped to a specific chain.  This allows replaying the same signed contract creation transaction across multiple chains for deploying a contract and also enables the contract to have the same address across chains.
+The main distinction relevant to this FIP is that legacy transactions do not contain a `ChainID` and so the transactions are not scoped to a specific chain. This allows replaying the same signed contract creation transaction across multiple chains for deploying a contract and also enables the contract to have the same address across chains.
 
 Support for legacy transactions on Filecoin will be enabled by prepending an extra marker byte `0x01` to the signature of legacy transactions. This will allow Filecoin to detect that a transaction is a legacy transaction and process and execute it accordingly.
 
