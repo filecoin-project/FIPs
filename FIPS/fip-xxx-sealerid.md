@@ -1,56 +1,27 @@
+---
+fip: "xxx"
+title: Introducing sealerID
+author: irene (@irenegia), luca (@lucaniz), kuba (@Kubuxu)
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/890 
+status: Draft
+type: Technical
+category: Core
+dependency: FIP0090
+created: 2023-04-18
+---
 
-# FIPxxxx: Introducing SealerID
 
 
-## Public doc
-
-
-<table>
-  <tr>
-   <td><strong>fip</strong>
-   </td>
-   <td><strong>title</strong>
-   </td>
-   <td><strong>author</strong>
-   </td>
-   <td><strong>discussion-to</strong>
-   </td>
-   <td><strong>status</strong>
-   </td>
-   <td><strong>type</strong>
-   </td>
-   <td><strong>category</strong>
-   </td>
-   <td><strong>created</strong>
-   </td>
-  </tr>
-  <tr>
-   <td>xxxx
-   </td>
-   <td>Introducing sealerID
-   </td>
-   <td>kuba (@kubuku), irene (@irenegia), luca (@lucaniz)
-   </td>
-   <td><a href="https://github.com/filecoin-project/FIPs/discussions/890">https://github.com/filecoin-project/FIPs/discussions/890</a>
-   </td>
-   <td>Draft
-   </td>
-   <td>Technical
-   </td>
-   <td>Core
-   </td>
-   <td> 17th April 2024
-   </td>
-  </tr>
-</table>
-
+# FIPxxxx: Introducing sealerID
 
 
 ## Simple Summary
 
-Add the notion of `sealerID` and use it for the sealing process for NI-PoRep. In particular:
-* We add a new actor, the Sealer Actor so that for SealerIDs can be registered;
-* SealerID can be used in the method `ProveCommitSectorsNI` to seal sectors.
+Add the notion of `sealerID` and use it for the sealing process of NI-PoRep. In particular:
+* We add a new actor, the Sealer Actor so that SealerIDs can be registered;
+* `sealerID` can be used to create `ReplicaID` by parting running the SDR labeling algorithm;
+* `sealerID` is added to the parameters of the method `ProveCommitSectorsNI`.
+
 
 
 ## Abstract 
@@ -65,10 +36,11 @@ We consider the scenario where Storage Providers want to delegate some of their 
 In particular, we call **Sealing-as-a-Service (SaaS) Provider** an entity that runs all PoRep operations (labeling the graph, column commitments, MT generation, vanilla proofs and SNARKs generation) needed to get a replica and onboard the sector that contains it.
 
 The SaaS then transfers the replica and the proofs to a **SaaS Client.** This is an SP that will onboard the sector with the replica R (ie, call a ProveCommit method) and will be responsible for storing R and proving validity of the corresponding sector (ie, running window- and winning-PoSt), and/or adding data to the committed capacity sector via SnapDeals.
+
 ### Addressed issues:
 
 1. [solved already] With interactive PoRep the SaaS Provider and Client needs coordination and agreement (therefore trust) about the intermediate interaction with the chain (ie, sending commR on chain) and locking down PCD (PreCommitDeposit). This is resolved by using NI-PoRep [FIP0090](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0090.md) that requires no chain interaction and no deposit.
-2. [solved by this FIP] Even with NI-PoRep, some coordination between the SaaS Provider and their client (SP) remains. Indeed during the labeling phase the SaaS Provider creates `ReplicaID` and for this needs to use the `minerID` and `sectorNumber`from the SaaS Client who will receive the replica to be stored. If these values are not correctly used then the SNARK proof will not be valid. This means that a SaaS Provider needs to “wait” for the request (and info) from a SaaS client to seal sectors. In other words, this prevents a SaaS Provider from sealing sectors in advance using its HW at max capacity (and therefore reducing sealing cost for everyone).
+3. [solved by this FIP] Even with NI-PoRep, some coordination between the SaaS Provider and their client (SP) remains. Indeed during the labeling phase the SaaS Provider creates `ReplicaID` and for this needs to use the `minerID` and `sectorNumber`from the SaaS Client who will receive the replica to be stored. If these values are not correctly used then the SNARK proof will not be valid. This means that a SaaS Provider needs to “wait” for the request (and info) from a SaaS client to seal sectors. In other words, this prevents a SaaS Provider from sealing sectors in advance using its HW at max capacity (and therefore reducing sealing cost for everyone).
 
 
 ## Specification
