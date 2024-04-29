@@ -1,7 +1,7 @@
 ---
 fip: "xxx"
 title: Introducing sealerID
-author: irene (@irenegia), luca (@lucaniz), kuba (@Kubuxu)
+author: nicola (@nicola), irene (@irenegia), luca (@lucaniz), kuba (@Kubuxu)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/890 
 status: Draft
 type: Technical
@@ -12,12 +12,12 @@ created: 2023-04-18
 
 
 
-# FIPxxxx: Introducing sealerID
+# FIPXXXX: Introducing sealerID
 
 
 ## Simple Summary
 
-Add the notion of `sealerID` and use it for the sealing process of NI-PoRep. In particular:
+This adds the notion of `sealerID`, which is used in the sealing process of NI-PoRep. In particular:
 * We add a new actor, the Sealer Actor so that SealerIDs can be registered;
 * `sealerID` can be used to create `ReplicaID` by parting running the SDR labeling algorithm;
 * `sealerID` is added to the parameters of the method `ProveCommitSectorsNI`.
@@ -40,24 +40,24 @@ The SaaS then transfers the replica and the proofs to a **SaaS Client.** This is
 ### Addressed issues:
 
 1. [solved already] With interactive PoRep the SaaS Provider and Client needs coordination and agreement (therefore trust) about the intermediate interaction with the chain (ie, sending commR on chain) and locking down PCD (PreCommitDeposit). This is resolved by using NI-PoRep [FIP0090](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0090.md) that requires no chain interaction and no deposit.
-3. [solved by this FIP] Even with NI-PoRep, some coordination between the SaaS Provider and their client (SP) remains. Indeed during the labeling phase the SaaS Provider creates `ReplicaID` and for this needs to use the `minerID` and `sectorNumber`from the SaaS Client who will receive the replica to be stored. If these values are not correctly used then the SNARK proof will not be valid. This means that a SaaS Provider needs to “wait” for the request (and info) from a SaaS client to seal sectors. In other words, this prevents a SaaS Provider from sealing sectors in advance using its HW at max capacity (and therefore reducing sealing cost for everyone).
+2. [solved by this FIP] Even with NI-PoRep, some coordination between the SaaS Provider and their client (SP) remains. Indeed during the labeling phase the SaaS Provider creates `ReplicaID` and for this needs to use the `minerID` and `sectorNumber`from the SaaS Client who will receive the replica to be stored. If these values are not correctly used then the SNARK proof will not be valid. This means that a SaaS Provider needs to “wait” for the request (and info) from a SaaS client to seal sectors. In other words, this prevents a SaaS Provider from sealing sectors in advance using its HW at max capacity (and therefore reducing sealing cost for everyone).
 
 
 ## Specification
 
 1. We add a new type of actor: the Sealer Actor (to be used for SaaS Providers);
-    1. This can be a “disposable” actor, no need for an owner key. If something bad happens, create a new id. This is okay because no tokens are locked for this actor;
+   - This can be a “disposable” actor, no need for an owner key. If something bad happens, create a new id. This is okay because no tokens are locked for this actor;
 2. Add the method to create and register `SealerID`
-    2. The list of SealerIDs is disjoint from the MinerID list
-    3. Add a new map `SealerID -> [SectorNumber]` to the chain state (that is, we have a list of used sector numbers for each sealer);
-        1. ie, the actor needs `SectorNumber` facilities.
+   - The list of SealerIDs is disjoint from the MinerID list
+   - Add a new map `SealerID -> [SectorNumber]` to the chain state (that is, we have a list of used sector numbers for each sealer);
+     - ie, the actor needs `SectorNumber` facilities.
 3. Modify the method `ProveCommitSectorsNI` to accept the sealerID to create `ReplicaID` .
-    4. Add the `SealerID` field to `SectorNIActivactionInfo`
-        2. if empty, use the the minerID
-        3. if the sealer id is passed, use it for `ReplicaID` (in the place of miner id)
-        4. the method updates the right map of used sector numbers (note that this is needed only if we want to have onchain info about sectors grouped by miner;
+    - Add the `SealerID` field to `SectorNIActivactionInfo`
+     - if empty, use the the minerID
+     - if the sealer id is passed, use it for `ReplicaID` (in the place of miner id)
+       - the method updates the right map of used sector numbers (note that this is needed only if we want to have onchain info about sectors grouped by miner;
 4. [Access control, needed to avoid front-run attacks]
-    5. Store in the Sealer Actor another address: this is an address to a proxy contract that can be used to implement ACL
+    - Store in the Sealer Actor another address: this is an address to a proxy contract that can be used to implement ACL
 
 When an SP onboards a sector (ie, call to method `ProveCommitSectorsNIParams` in the Miner Actor), then call to the Sealer Actor. If the ACL is enabled, then call the ACL contract.
 
@@ -65,7 +65,9 @@ When an SP onboards a sector (ie, call to method `ProveCommitSectorsNIParams` in
 
 ## Rationale 
 
-The design aimed to minimize changes with respect to the status quo (in particular, we respect the fact that  `ReplicaID` is a unique identifier in the entire Fileocin system) and to provide future programmability. In particular, as regards the access control feature we decide to implement it using a proxy contract (instead of implementing it directly in the actor) in order to have the possibility of the final users (ie, SaaS providers) to personalize it. 
+The design aims to 
+* Minimize changes with respect to the status quo, particularly maintaining 'ReplicaID' as a unique identifier within the entire Filecoin ecosystem;
+* Provide future programmability. In particular, as regards the access control feature we decide to implement it using a proxy contract (instead of implementing it directly in the actor) in order to have the possibility of the final users (ie, SaaS providers) to personalize it. 
 
 
 ## Backwards Compatibility
@@ -80,7 +82,7 @@ TODO
 
 ## Security Considerations
 
-* For the storage providers, this FIP does not add any security risks respect to the status quo;
+* For Storage Providers, this FIP does not introduce additional security risks compared to the status quo;
 * For the SaaS provider: in order to have control on who can “activate” (ie, prove commit) their sealed sectors, SaaS providers use the ACL proxy contract.
 
 ## Incentive Considerations
