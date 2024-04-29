@@ -1,6 +1,6 @@
 ---
 fip: "xxx"
-title: Introducing sealerID
+title: Introducing SealerID
 author: nicola (@nicola), irene (@irenegia), luca (@lucaniz), kuba (@Kubuxu)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/890 
 status: Draft
@@ -45,17 +45,19 @@ The SaaS then transfers the replica and the proofs to a **SaaS Client.** This is
 
 ## Specification
 
-1. We add a new type of actor: the Sealer Actor (to be used for SaaS Providers);
+1. We add a new type of actor: the Sealer Actor;
    - This can be a “disposable” actor, no need for an owner key. If something bad happens, create a new id. This is okay because no tokens are locked for this actor;
-2. Add the method to create and register `SealerID`
-   - The list of SealerIDs is disjoint from the MinerID list
-   - Add a new map `SealerID -> [SectorNumber]` to the chain state (that is, we have a list of used sector numbers for each sealer);
-     - ie, the actor needs `SectorNumber` facilities.
-3. Modify the method `ProveCommitSectorsNI` to accept the sealerID to create `ReplicaID` .
-    - Add the `SealerID` field to `SectorNIActivactionInfo`
-     - if empty, use the the minerID
-     - if the sealer id is passed, use it for `ReplicaID` (in the place of miner id)
-       - the method updates the right map of used sector numbers (note that this is needed only if we want to have onchain info about sectors grouped by miner;
+   - The Sealer Actor is multiple instance type: Anyone can create a Sealer Actor and `sealerID` will simply be the actor ID. This ensures that the list of sealerIDs is disjoint from the list of minerIDs.
+   - The new actor needs `sectorNumber` facilities: There is a map `sealerID -> [sealerSectorNumber]` in the state (that is, we have a list of used sector numbers for each sealer); Concretely this sector number list would be a bitfield as is the case of the miner actor.
+
+2. Modify the method `ProveCommitSectorsNI` to accept the sealerID to create `ReplicaID` .
+    - Add a new field to `SectorNIActivactionInfo` for passing the sealerID info:
+      - if empty, use the the minerID when creating the `ReplicaID`
+      - if a value is passed, use this for `ReplicaID` (in the place of `minerID`)
+    - Add a new field to `SectorNIActivactionInfo` for passing `sealerSectorNumber`:
+      - again, if we are in the case EMPTY_SEALER_ID, then `sealerSectorNumber` could either be ignored or enforced to be 0, otherwis eit is used for `ReplicaID`;
+      - note that the miner actor claims its own sector number in its internal state along side with the sealer's sector number. This means that the structure `{minerID, sectorNumber}` is replaced by `{minerID, sectorNumber, minerSectorNumber}` where last value can be 0.
+       
 4. [Access control, needed to avoid front-run attacks]
     - Store in the Sealer Actor another address: this is an address to a proxy contract that can be used to implement ACL
 
