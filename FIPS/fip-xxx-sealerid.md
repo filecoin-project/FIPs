@@ -70,7 +70,7 @@ The SaaS then transfers the replica and the proofs to a **SaaS Client.** This is
 ## Rationale 
 
 The design aims to 
-* Minimize changes with respect to the status quo, particularly maintaining 'ReplicaID' as a unique identifier within the entire Filecoin ecosystem;
+* Minimize changes with respect to the status quo, particularly maintaining `ReplicaID` as a unique identifier within the entire Filecoin ecosystem;
 * Provide future programmability. In particular, as regards the access control feature we decide to implement it using a proxy contract (instead of implementing it directly in the actor) in order to have the possibility of the final users (ie, SaaS providers) to personalize it. 
 
 
