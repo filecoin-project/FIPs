@@ -63,7 +63,7 @@ The SaaS then transfers the replica and the proofs to a **SaaS Client.** This is
     - Option 1: Add a method to the Sealer Actor + add ACL hook;
       - TODOs: spec this method 
     - Option 2: Store in the Sealer Actor another address: this is an address to a proxy contract that can be used to implement ACL. When an SP onboards a sector, then call to the Sealer Actor. If the ACL is enabled, then call the ACL contract. 
-      - TODOs:  write the concrete interface to the ACL contract (eg, `check(sectorNumber, minerID) bool`); write a basic version of an ACL contract and document how to deploy it. ![Sealer ID](https://github.com/filecoin-project/FIPs/assets/23217773/4852d5eb-6c81-4fc7-9f7e-dd7a351ed943)
+      - TODOs:  write the concrete interface to the ACL contract (eg, `check(sectorNumber, minerID) bool`) ![Sealer ID](https://github.com/filecoin-project/FIPs/assets/23217773/4852d5eb-6c81-4fc7-9f7e-dd7a351ed943)
 
 
 
@@ -87,7 +87,7 @@ TODO
 ## Security Considerations
 
 * *Front-running Attacks* :
-  * These are possible also in tyhe current protocol but they are not rational (ie, termination fee will be paid by the front-runner SP);
+  * These are not rational (ie, termination fee will be paid by the front-runner SP);
   * If needed, we can implement ACL (see point 3 in the spec) to make this kind of attacks impossible.
 
 * *Double spending a Sector*: TODO (add a signature done by sealer to make “double-spending” sectors detectable on chain);
