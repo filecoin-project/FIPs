@@ -60,10 +60,8 @@ The SaaS then transfers the replica and the proofs to a **SaaS Client.** This is
    
        
 3. [optional/future] ACL (the sealer has control on who can activate their sealed sectors)
-    - Option 1: Add a method to the Sealer Actor + add ACL hook;
-      - TODOs: spec this method 
-    - Option 2: Store in the Sealer Actor another address: this is an address to a proxy contract that can be used to implement ACL. When an SP onboards a sector, then call to the Sealer Actor. If the ACL is enabled, then call the ACL contract. 
-      - TODOs:  write the concrete interface to the ACL contract (eg, `check(sectorNumber, minerID) bool`) ![Sealer ID](https://github.com/filecoin-project/FIPs/assets/23217773/4852d5eb-6c81-4fc7-9f7e-dd7a351ed943)
+    -  Store in the Sealer Actor another address: this is an address to a proxy contract that can be used to implement ACL. When an SP onboards a sector, then call to the Sealer Actor. If the ACL is enabled, then call the ACL contract. 
+    - TODOs:  write the concrete interface to the ACL contract (eg, `check(sectorNumber, minerID) bool`) ![Sealer ID](https://github.com/filecoin-project/FIPs/assets/23217773/4852d5eb-6c81-4fc7-9f7e-dd7a351ed943)
 
 
 
