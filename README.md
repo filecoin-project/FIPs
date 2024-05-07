@@ -126,5 +126,5 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0086](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0086.md) | Fast Finality in Filecoin (F3) | FIP | @stebalien, @mb1896, @hmoniz, @anorth, @matejpavlovic, @arajasek, @ranchalp, @jsoares, @Kubuxu, @vukolic | Draft |
 |[0087](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0087.md) | FVM-Enabled Deal Aggregation | FRC | @aashidham, @honghao, @raulk, @nonsense | Draft |
 |[0089](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0089.md) | A Finality Calculator for Filecoin | FRC | @guy-goren, @jsoares | Draft |
-|[0090](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0090.md) | Non-Interactive PoRep | FIP |luca (@lucaniz), kuba (@Kubuxu), nicola (@nicola), nemo (@cryptonemo), volker (@vmx), irene (@irenegia) | Last Call |
+|[0090](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0090.md) | Non-Interactive PoRep | FIP |luca (@lucaniz), kuba (@Kubuxu), nicola (@nicola), nemo (@cryptonemo), volker (@vmx), irene (@irenegia) | Accepted |
 |[0091](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0091.md) | Add support for legacy Homestead Ethereum Transactions | FIP | Aarsh (@aarshkshah1992)| Draft |
