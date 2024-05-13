@@ -26,7 +26,7 @@ This adds the notion of `sealerID`, which is used in the sealing process of NI-P
 
 ## Abstract 
 
-With the current protocol, the party creates the `ReplicaID` needs to use the same `minerID` that will be used for PoRep verifications. This implies that “pre-sealing” sectors is not a viable option: no sector can be sealed (ie, replica created) ahead of time, before knowing the identity of the miner actor who will own it. To enable this scenario, we introduce the concept of `sealerID` to be used in place of the `minerID` only during sealing.
+With the current protocol, the party that creates the `ReplicaID` needs to use the same `minerID` that will be used for PoRep verifications. This implies that “pre-sealing” sectors is not a viable option: no sector can be sealed (ie, replica created) ahead of time, before knowing the identity of the miner actor who will own it. To enable this scenario, we introduce the concept of `sealerID` to be used in place of the `minerID` only during sealing.
 
 
 ## Motivation
@@ -37,24 +37,24 @@ In particular, we call **Sealing-as-a-Service (SaaS) Provider** an entity that r
 
 The SaaS then transfers the replica and the proofs to a **SaaS Client.** This is an SP that will onboard the sector with the replica R (ie, call a ProveCommit method) and will be responsible for storing R and proving validity of the corresponding sector (ie, running window- and winning-PoSt), and/or adding data to the committed capacity sector via SnapDeals.
 
-### Addressed issues:
+### Addressed issues
 
 1. [solved already] With interactive PoRep the SaaS Provider and Client needs coordination and agreement (therefore trust) about the intermediate interaction with the chain (ie, sending commR on chain) and locking down PCD (PreCommitDeposit). This is resolved by using NI-PoRep [FIP0090](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0090.md) that requires no chain interaction and no deposit.
-2. [solved by this FIP] Even with NI-PoRep, some coordination between the SaaS Provider and their client (SP) remains. Indeed during the labeling phase the SaaS Provider creates `ReplicaID` and for this needs to use the `minerID` and `sectorNumber`from the SaaS Client who will receive the replica to be stored. If these values are not correctly used then the SNARK proof will not be valid. This means that a SaaS Provider needs to “wait” for the request (and info) from a SaaS client to seal sectors. In other words, this prevents a SaaS Provider from sealing sectors in advance using its HW at max capacity (and therefore reducing sealing cost for everyone).
+2. [solved by this FIP] Even with NI-PoRep, some coordination between the SaaS Provider and their client (SP) remains. Indeed during the labelling phase the SaaS Provider creates `ReplicaID` and for this it needs to use the `minerID` and `sectorNumber` from the SaaS Client who will receive the replica to be stored. If these values are not correctly used then the SNARK proof will not be valid. This means that a SaaS Provider needs to “wait” for the request (and info) from a SaaS client to seal sectors. In other words, this prevents a SaaS Provider from sealing sectors in advance using its HW at max capacity (and therefore reducing sealing cost for everyone).
 
 
 ## Specification
 
 1. We add a new type of actor: the Sealer Actor;
    - This can be a “disposable” actor, no need for an owner key. If something bad happens, create a new id. This is okay because no tokens are locked for this actor;
-   - The Sealer Actor is multiple instance type: Anyone can create a Sealer Actor and `sealerID` will simply be the actor ID. This ensures that the list of sealerIDs is disjoint from the list of minerIDs.
+   - The Sealer Actor is a multiple instance type: Anyone can create a Sealer Actor and `sealerID` will simply be the actor ID. This ensures that the list of sealerIDs is disjoint from the list of minerIDs.
    - The new actor needs `sectorNumber` facilities: There is a map `sealerID -> [sealerSectorNumber]` in the state (that is, we have a list of used sector numbers for each sealer); Concretely this sector number list would be a bitfield as is the case of the miner actor.
 
 2. Modify the method `ProveCommitSectorsNI` to accept the sealerID to create `ReplicaID` .
     - Add a new field to `SectorNIActivactionInfo` for passing the sealerID info:
       - if empty, use the the minerID when creating the `ReplicaID`
       - if a value is passed, use this for `ReplicaID` (in the place of `minerID`)
-    - Add a new field to `SectorNIActivactionInfo` for passing `sealerSectorNumber`:
+    - Add a new field to `SectorNIActivationInfo` for passing `SealerSectorNumber`:
       - again, if we are in the case EMPTY_SEALER_ID, then `sealerSectorNumber` could either be ignored or enforced to be 0, otherwis eit is used for `ReplicaID`;
       - note that the miner actor claims its own sector number in its internal state along side with the sealer's sector number. This means that the structure `{minerID, sectorNumber}` is replaced by `{minerID, sectorNumber, minerSectorNumber}` where last value can be 0.
    
