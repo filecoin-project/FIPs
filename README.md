@@ -128,3 +128,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 |[0089](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0089.md) | A Finality Calculator for Filecoin | FRC | @guy-goren, @jsoares | Draft |
 |[0090](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0090.md) | Non-Interactive PoRep | FIP |luca (@lucaniz), kuba (@Kubuxu), nicola (@nicola), nemo (@cryptonemo), volker (@vmx), irene (@irenegia) | Accepted |
 |[0091](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0091.md) | Add support for Homestead and EIP-155 Ethereum Transactions ("legacy" Ethereum Transactions) | FIP | Aarsh (@aarshkshah1992)| Last Call |
+|[XXXX](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-xxxx-proving-deadline.md) | Caller-specified proving deadline for NI-PoRep | FIP | @anorth | Draft      |
