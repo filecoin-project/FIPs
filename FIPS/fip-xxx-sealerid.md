@@ -51,12 +51,12 @@ The SaaS then transfers the replica and the proofs to a **SaaS Client.** This is
    - The new actor needs `sectorNumber` facilities: There is a map `sealerID -> [sealerSectorNumber]` in the state (that is, we have a list of used sector numbers for each sealer); Concretely this sector number list would be a bitfield as is the case of the miner actor.
 
 2. Modify the method `ProveCommitSectorsNI` to accept the sealerID to create `ReplicaID` .
-    - Add a new field to `SectorNIActivactionInfo` for passing the sealerID info:
+    - Add a new field to `SectorNIActivationInfo` for passing the `SealerID`:
       - if empty, use the the minerID when creating the `ReplicaID`
       - if a value is passed, use this for `ReplicaID` (in the place of `minerID`)
     - Add a new field to `SectorNIActivationInfo` for passing `SealerSectorNumber`:
       - again, if we are in the case EMPTY_SEALER_ID, then `sealerSectorNumber` could either be ignored or enforced to be 0, otherwis eit is used for `ReplicaID`;
-      - note that the miner actor claims its own sector number in its internal state along side with the sealer's sector number. This means that the structure `{minerID, sectorNumber}` is replaced by `{minerID, sectorNumber, minerSectorNumber}` where last value can be 0.
+      - note that the miner actor identifies sectors internally using a `SectorID` structure with a `{minerID, sectorNumber}` pair. This is replaced by `{minerID, sectorNumber, minerSectorNumber}` where last value can be 0.
    
        
 3. [optional/future] ACL (the sealer has control on who can activate their sealed sectors)
