@@ -60,7 +60,7 @@ In NI-PoRep, since randomness is derived locally, there is no link anymore betwe
 - Consensus attacks are not a concern anymore for NI-PoRep security;
 - PoRep can now work “agnostically” with any consensus protocol.
 
-## Backward compatibility
+## Backward Compatibility
 
 - NI-PoRep would be a separate proof type with a different on-chain flow as current PoRep. Anyone can decide whether to use NI-PoRep or not.
 - No need for a new trusted setup.
