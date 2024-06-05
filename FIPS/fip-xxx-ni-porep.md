@@ -209,7 +209,7 @@ The new onboarding method `ProveCommitSectorsNI` is restricted to CC-sectors. We
 
 ## Backwards Compatibility
 
-NI-PoRep would become a new proof type with a different on-chain flow as current PoRep (due to the removal of the `PreCommit` step). A new method, `ProveCommitSectorNI` is added and the existing ProveCommit methods (ie, `ProveCommitSector`, `ProveCommitAggregate`, `ProveCommitSectors3`) will not accept NI-PoRep proof. 
+NI-PoRep would become a new proof type with a different on-chain flow than the current PoRep (due to the removal of the `PreCommit` step). A new method, `ProveCommitSectorNI,` is added, and the existing ProveCommit methods (i.e., `ProveCommitSector`, `ProveCommitAggregate`, `ProveCommitSectors3`) will not accept NI-PoRep proof. 
 
 ## Test Cases
 
