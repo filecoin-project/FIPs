@@ -62,7 +62,7 @@ In NI-PoRep, since randomness is derived locally, there is no link anymore betwe
 
 ## Backward Compatibility
 
-- NI-PoRep would be a separate proof type with a different on-chain flow as current PoRep. Anyone can decide whether to use NI-PoRep or not.
+- NI-PoRep would be a separate proof type with a different on-chain flow as the current PoRep. Anyone can decide whether to use NI-PoRep or not.
 - No need for a new trusted setup.
 
 ## Specification
