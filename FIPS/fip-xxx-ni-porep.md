@@ -271,7 +271,7 @@ The SNARK phase consists of two distinct steps:
 
 The SupraSeal implementation only targets the proving, where we observe speedups between 6-10x. When the synthesis is also taken into account, then the overall improvements are 3-5x. This means that NI-PoRep with SupraSeal is only 2.5-4.5x slower than Interactive PoRep without SupraSeal.
 
-The ratio between synthesis and proving time depends on the GPU, and consequently so does the speedup. In particular, synthesis time tends to be dominant in newer GPUs, reducing the overall speedup.
+The ratio between synthesis and proving time depends on the GPU, and consequently, so does the speedup. In particular, synthesis time tends to be dominant in newer GPUs, reducing the overall speedup.
 
 For benchmark data, see: [SupraSeal C2 benchmarks](../resources/fip-0090/benchmarks.pdf).
 
