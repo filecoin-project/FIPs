@@ -232,7 +232,7 @@ NI-PoRep is based on the well-known Fiat-Shamir Heuristic, which allows for a no
 
 The epoch in which sealing took place is identified by the corresponding chain reference, called `SealRandomness` which is the anchor of the sector to the chain. `SealRandomness` must be taken from the VRF chain, in order to ensure that no other fork can replay the Seal.
 
-On one hand, `SealRandomness` needs to be taken from finalized blocks, but on the other hand it can not be taken farther back than necessary (in order to protect against long-range attacks). This means that `SealRandomness` needs to be verified.
+On the one hand, `SealRandomness` needs to be taken from finalized blocks, but it can not be taken farther back than necessary (to protect against long-range attacks). This means that `SealRandomness` needs to be verified.
 
 Given that NI-PoRep removes on-chain interaction, `SealRandomness` verification becomes more difficult, but it is still necessary to protect the chain against the same class of attacks mentioned above.
 
