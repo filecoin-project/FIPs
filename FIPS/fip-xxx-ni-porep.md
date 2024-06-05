@@ -236,7 +236,7 @@ On one hand, `SealRandomness` needs to be taken from finalized blocks, but on 
 
 Given NI-PoRep removes onchain interaction, `SealRandomness` verification becomes more difficult, but still necessary to protect the chain against the same class of attacks mentioned above.
 
-We set up a validity time window which holds for all the sectors committed onchain together. We call this time window to be  `sealChallengeEarliest` epochs and set its value to be the number of epochs in 180 days.
+We set up a validity time window which holds for all the sectors committed onchain together. We set this window, called `sealChallengeEarliest`, to be the number of epochs in 180 days.
 
 This means that, if PC1, PC2, C1, C2 happen locally over time resulting into different sectors sealed in different moments in time and committed on-chain at the end of the process, all sectors committed together should have a randomness which is not older than  `sealChallengeEarliest` epochs in the past. As a result, a NI-PoRep step needs to be completed within `sealChallengeEarliest` epochs overall to be valid.
 
