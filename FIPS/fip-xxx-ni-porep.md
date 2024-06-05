@@ -44,7 +44,7 @@ PoRep is currently interactive (in order to complete sealing, an SP has to wait 
 
 NI-PoRep enables the full separation between computation and storage tasks. In particular, no `PCD` ([PreCommit Deposit](https://spec.filecoin.io/#section-systems.filecoin_mining.storage_mining.balance-requirements)) is needed, which brings the following benefits:
 - Currently a SaaS Provider (the entity running the PoRep steps) needs to put down the PCD for the sector, along with the PreCommit message. The PCD will be re-paid or prepaid by the SP sending the final SNARK proof on the chain (i.e., the SP that will store the sector for the following PoST). With NI-PoRep, this level of payment interaction is not needed. In particular, this kind of simplification helps SPs and SaaS providers to delegate computation tasks (ie, PoRep can be split into specialized subtasks that get outsourced to specialized entities).
-- Enabling HDD wholesale: for an SP it would be possible to receive brand new drives with `sectorKeys ` pre-generated using its `miner_id`.
+- Enabling HDD wholesale: it would be possible for an SP to receive brand new drives with `sectorKeys ` pre-generated using its `miner_id`.
 
 ### Allow Storage Providers to specify proving deadline
 
