@@ -244,7 +244,7 @@ A Window PoST for every sector must still be submitted every 24 hours.
 
 The Window PoST dispute window is 1800 epochs (15 hours). The worst case impact on the minimum cost to dispute a Window PoST is thus when all partitions are scheduled uniformly across a 15-hour period: then a dispute for the first deadline must compete with PoST submissions in the last (or some prior deadline). This would affect gas availability only if the network were above 67% of capacity for Window PoST throughput. Window PoST today is <10% of gas utilisation.
 
-## Addressing concerns **due to interaction removal**
+## Addressing concerns regarding the removal of interactivity
 
 Concerns were raised over the possibility that a malicious party wanting to take over the network could potentially keep accumulating sectors locally before onboarding them to the network all at once. [Our analysis](../resources/fip-0090/interactionRemoval.pdf) shows that no additional security risks are introduced with respect to Interactive PoRep. The security of both pathways can be improved by decoupling the power table lookback from consensus, which may be a subject for a future FIP.
 
