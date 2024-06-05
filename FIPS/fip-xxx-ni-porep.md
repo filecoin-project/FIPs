@@ -228,7 +228,7 @@ Run the code for NI-PoRep and check if the resulting proof cryptographically ver
 
 NI-PoRep is based on the well-known Fiat-Shamir Heuristic, which allows for having a non interactive protocol starting from any 3-message interactive protocol. However, the heuristic requires the original interactive protocol to have at least 80 [bits of security](https://en.wikipedia.org/wiki/Security_level) (instead of the current 10), and preferably 128. In order to have long term security we propose to opt for 128 bits: since the security level in PoRep is given by the number of challenges, this means that for NI-PoRep we need  `NIChallengesNumber` to be at least 2253. 
 
-### How to take `SealRandomness` for ensuring sectors are anchored to the chain
+### How to take `SealRandomness` to ensure sectors are anchored to the chain
 
 The epoch in which sealing took place is identified by the corresponding chain reference, called `SealRandomness` which is the anchor of the sector to the chain. `SealRandomness` must be taken from the VRF chain, in order to ensure that no other fork can replay the Seal.
 
