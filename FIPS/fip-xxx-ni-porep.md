@@ -113,6 +113,8 @@ Note that, same as with interactive PoRep, each sector has a `SealRandEpoch` tha
   struct ProveCommitSectorsNIParams {
      // Information about sealing of each sector.
      Sectors: []SectorNIActivationInfo
+     // Proof type for each seal (must be an NI-PoRep variant)
+     SealProofType: RegisteredSealProof,
      // Aggregate proof for all sectors.
      AggregateProof: []byte,
      // Proof type for aggregation
