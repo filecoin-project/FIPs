@@ -263,7 +263,7 @@ As already mentioned above, NI-PoRep is a prerequisite to unblock new use cases 
 
 ### Comparison against Interactive PoRep
 
-In order to have a good cost estimation, we ran benchmarks on different systems. We observe that the SNARK phase of NI-PoRep is consistently 12.5x-13x slower than Interactive PoRep, in line with expectations.
+We ran benchmarks on different systems to estimate costs accurately. We observe that the SNARK phase of NI-PoRep is consistently 12.5x-13x slower than Interactive PoRep, which is in line with expectations.
 
 ### Impact of SupraSeal
 
