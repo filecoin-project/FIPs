@@ -238,7 +238,7 @@ We set up a validity time window which holds for all the sectors committed oncha
 
 This means that, if PC1, PC2, C1, C2 happen locally over time resulting into different sectors sealed in different moments in time and committed on-chain at the end of the process, all sectors committed together should have a randomness which is not older than  `sealChallengeEarliest` epochs in the past. As a result, a NI-PoRep step needs to be completed within `sealChallengeEarliest` epochs overall to be valid.
 
-### Impact of Caller-Specified Proving Deadlines on Network Load
+### Impact of caller-specified proving deadlines on network load
 
 Automatic proving scheduling was motivated by a caution about overloading the network at particular times of day with too many Window PoSTs due at the same time. However, since the introduction of the FVM and a robust gas model, the network itself is not at much risk from this anymore. We might reasonably expect SPs to make reasonable scheduling decisions to optimize their own cost and risk profile, given knowledge and expectations about the scheduling of other SPs
 
