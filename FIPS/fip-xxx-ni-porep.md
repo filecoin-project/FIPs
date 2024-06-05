@@ -103,7 +103,7 @@ Note that, same as with interactive PoRep, each sector has a `SealRandEpoch` tha
       SealingNumber: SectorNumber, // Sector number used to generate replica id
       SealerID: ActorID, // Must be set to ID of receiving actor for now
       SealedCID: Cid, // CommR
-      SectorNumber: SectorNumber, // unique id of sector in actor state
+      SectorNumber: SectorNumber, // unique id of sector for the receiving actor
       SealRandEpoch: ChainEpoch,
       Expiration: ChainEpoch,
   }
