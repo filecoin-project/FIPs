@@ -56,7 +56,7 @@ The cryptographic security of sectors proven with NI-PoRep is increased: NI-PoRe
 
 ### PoRep security now independent from consensus
 
-Current PoRep is interactive and needs to get randomness from the chain. Moreover, in order to be secure, a 150-epochs-wait is needed between `PreCommit` and `ProveCommit`([WaitSeed](https://lotus.filecoin.io/storage-providers/get-started/tasks/#waitseed)). This is due to the fact that some consensus attacks need to be made infeasible (as putting those attacks in place would allow for faking storage).
+The current PoRep is interactive and needs to get randomness from the chain. Moreover, in order to be secure, a 150-epochs-wait is needed between `PreCommit` and `ProveCommit`([WaitSeed](https://lotus.filecoin.io/storage-providers/get-started/tasks/#waitseed)). This is due to the fact that some consensus attacks need to be made infeasible (as putting those attacks in place would allow for faking storage).
 In NI-PoRep, since randomness is derived locally, there is no link anymore between PoRep and consensus attacks. This means that
 
 - Consensus attacks are not a concern anymore for NI-PoRep security;
