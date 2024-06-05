@@ -234,7 +234,7 @@ The epoch in which sealing took place is identified by the corresponding chain r
 
 On one hand, `SealRandomness` needs to be taken from finalized blocks, but on the other hand it can not be taken farther back than necessary (in order to protect against long-range attacks). This means that `SealRandomness` needs to be verified.
 
-Given NI-PoRep removes onchain interaction, `SealRandomness` verification becomes more difficult, but still necessary to protect the chain against the same class of attacks mentioned above.
+Given that NI-PoRep removes on-chain interaction, `SealRandomness` verification becomes more difficult, but it is still necessary to protect the chain against the same class of attacks mentioned above.
 
 We set up a validity time window which holds for all the sectors committed onchain together. We set this window, called `sealChallengeEarliest`, to be the number of epochs in 180 days.
 
