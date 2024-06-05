@@ -154,7 +154,7 @@ Note that, same as with interactive PoRep, each sector has a `SealRandEpoch` tha
     }
     ```  
 
-NI-PoRep is an *optional* feature that can be opt-in for those interested. The previously available proofs types can be used with existing onboarding methods to continue interactive PoRep behavior.
+NI-PoRep is an *optional* feature that can be opt-in for those interested. The previously available proof types can be used with existing onboarding methods to continue interactive PoRep behavior.
 
 ### Gas calculations
 
