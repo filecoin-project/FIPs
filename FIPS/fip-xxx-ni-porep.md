@@ -251,9 +251,6 @@ Concerns were raised over the possibility that a malicious party wanting to take
 ## Incentive Considerations
 
 NI-PoRep will implement the batch balancer currently in place. See [FIP-0013](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md) and the Section "Gas calculations" above for details.
-
-
-
 ## Product Considerations
 
 NI-PoRep represents another step forward after the introduction of Synthetic PoRep (see [FIP-0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)). 
