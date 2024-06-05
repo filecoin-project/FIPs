@@ -194,7 +194,7 @@ Usually `GasUsed * BaseFee` is burned for every message. However, for aggregated
 
 ## Design Rationale
 
-Current PoRep is interactive, and it is composed of two steps: PreCommit and ProveCommit. At PreCommit, SP puts down a collateral (PCD) and waits 150 epochs in order to receive a challenge seed from the chain, which enables the ProveCommit step. 
+The current PoRep is interactive, and it is composed of two steps: PreCommit and ProveCommit. At PreCommit, the SP puts down a collateral (PCD) and waits 150 epochs in order to receive a challenge seed from the chain, which enables the ProveCommit step. 
 A first step to mitigate the downsides of the waiting time was the introduction of Synthetic PoRep (See [FIP-0059](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0059.md)), which reduces the size of the temporary data stored between PreCommit and ProveCommit. 
 NI-PoRep is a further step forward, completely foregoing on-chain interaction (ie, the waiting time) and the need of PCD by allowing SP to locally generate challenges instead of using on-chain randomness. 
 
