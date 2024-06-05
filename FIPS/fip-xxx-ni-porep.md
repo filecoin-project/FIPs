@@ -242,7 +242,7 @@ This means that, if PC1, PC2, C1, C2 happen locally over time resulting into dif
 
 ### Impact of caller-specified proving deadlines on network load
 
-Automatic proving scheduling was motivated by a caution about overloading the network at particular times of day with too many Window PoSTs due at the same time. However, since the introduction of the FVM and a robust gas model, the network itself is not at much risk from this anymore. We might reasonably expect SPs to make reasonable scheduling decisions to optimize their own cost and risk profile, given knowledge and expectations about the scheduling of other SPs
+Automatic proving scheduling was motivated by caution about overloading the network at particular times of day with too many Window PoSTs due at the same time. However, since the introduction of the FVM and a robust gas model, the network itself is not at much risk from this anymore. We might reasonably expect SPs to make reasonable scheduling decisions to optimize their own cost and risk profile, given knowledge and expectations about the scheduling of other SPs
 
 A Window PoST for every sector must still be submitted every 24 hours.
 
