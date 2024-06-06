@@ -97,7 +97,7 @@ Note that, same as with interactive PoRep, each sector has a `SealRandEpoch` tha
 - Add two new proof types to the list of proof types that can be used when submitting a new sector
     - `StackedDrg32GiBV1_1_Feat_NiPoRep`
     - `StackedDrg64GiBV1_1_Feat_NiPoRep`
-- Introduce a new method `ProveCommitSectorsNI` (method 36), which performs a non-interactive proof for CC sectors, without a preceding PreCommitSector message (ie, this method rejects sectors that were already pre-committed. Such sectors must be activated with one of the existing ProveCommit methods). The method can be used with seal proofs or aggregate proof (but only one option can be chosen per call); the return type is the same as `ProveCommitAggregate`.
+- Introduce a new method `ProveCommitSectorsNI` (method 36), which performs a non-interactive proof for CC sectors, without a preceding PreCommitSector message (ie, this method rejects sectors that were already pre-committed. Such sectors must be activated with one of the existing ProveCommit methods). The method can be used with aggregate proofs, even if there is only a single sector to prove. Individual or batched seal proofs are not supported. The return type includes a bitfield indicating the success of activating each referenced sector.
   
   ```go
   // Note no UnsealedCID because it must be "zero" data.
