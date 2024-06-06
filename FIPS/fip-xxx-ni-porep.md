@@ -48,7 +48,7 @@ NI-PoRep enables the full separation between computation and storage tasks. In p
 
 ### Allow Storage Providers to specify proving deadline
 
-Sectors onboarded with NI-PoRep allow storage providers to specify which proving deadline they want their sectors to be allocated to. This provides storage providers with greater operational flexibility compared to spreading the Window PoST workload over 24 hours.
+Storage providers can specify the proving deadline they want their NI-PoRep sectors to be allocated to upon onboarding. This provides storage providers with greater operational flexibility compared to having the WindowPoST workload spread over 24 hours.
 
 ### PoRep secured cryptographically and not rationally
 
