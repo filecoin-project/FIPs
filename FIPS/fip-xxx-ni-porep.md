@@ -11,7 +11,7 @@ created: 2024-06-04
 
 ## Simple Summary
 
-This proposal presents a new PoRep protocol (Non-Interactive PoRep) that removes `PreCommit` when onboarding Committed Capacity (CC) sectors. This document is designed to replace the existing, accepted [FIP-0090: Non-Interactive PoRep](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0090.md) in its entirety.
+This proposal presents a new PoRep protocol (Non-Interactive PoRep) that removes `PreCommit` when onboarding Committed Capacity (CC) sectors. This proposal builds on and supersedes  [FIP-0090: Non-Interactive PoRep](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0090.md).
 
 As a result, we have
 
