@@ -33,11 +33,13 @@ The JSON-RPC interface provided by Filecoin node implementations is the primary 
 
 Ultimately the [Lotus RPC API](https://github.com/filecoin-project/lotus/blob/b73d4e0481517b395a0e9aa9af5dab8bedc18285/documentation/en/api-v1-unstable-methods.md#mpoolpushmessage) is the defacto specification currently, which includes 280+ methods. Based on our exploration and discussions with the Lotus team we have established that some methods provide duplicated functionality (eg. `ChainGetGenesis()` is equivalent to`ChainGetTipSetByHeight(0)`). Another subset of methods are related to implementation-specific internals (eg. `ChainHotGC`). And yet another subset are for the purpose of configuring the instance, which could be exposed through other means (eg. CLI, config file) depending on the design principles of a node implementation. This leads us to conclude that the canonical RPC interface should only include a subset of the methods currently supported by Lotus.
 
-The defacto Lotus specification is lacking in several features: complete JSON schemas, descriptions for each method, and reliable consistency with the implementation. This motivates us to propose a normative OpenRPC schema for the purpose of defining this interface in a machine readable format. This format in turn enables:
+The defacto Lotus specification is lacking in several features: complete JSON schemas, descriptions for each method, and reliable consistency with the implementation[^1]. This motivates us to propose a normative OpenRPC schema for the purpose of defining this interface in a machine readable format. This format in turn enables:
 1. Compliance checks - enable implementations of the interface to verify the syntax
 2. Specificity - it provides a language agnostic format for defining the ABI of the methods in the interface
 3. Discoverability - allow consumers to dynamically interact with providers
 4. Lack of desire to reinvent the wheel - It's not perfect, but it works...
+
+[^1]: https://github.com/filecoin-project/lotus/issues/12164
 
 Additionally, by establishing a specification we seek to establish a greater responsibility on implementers and encourage more discourse for future iterations and further interfaces. The present API shows signs of rapid iteration and the resulting technical debt.
 
@@ -53,37 +55,93 @@ Categories have been assigned to indicate the identified use case (see Design Ra
 Node implementers must include all specified methods in their API without any modifications. Implementers may choose to provide additional methods beyond what is included in this specification. The endpoint used to serve RPC requests must be versioned acccording the majo
 
 ## Subscription methods
-The `ChainNotify` method is not a simple request/response, but rather a bidirectional exchange of JSON-RPC-like messages as follows:
+Certain methods like `ChainNotify` are not oneshot request/response exchanges,
+but bidirectional method calls and [notifications](https://www.jsonrpc.org/specification#notification).
 
-1. Caller sends a JSON-RPC request to the endpoint, with no parameters.
-    ```json
-    { "jsonrpc": "2.0", "id": 1, "method": "Filecoin.ChainNotify" }
-    ```
-2. Callee sends a JSON-RPC response with an integer Channel ID
-    ```json
-    { "jsonrpc": "2.0", "id": 1, "result": 2}
-    ```
-3. Callee sends JSON-RPC notifications, with a pair of positional parameters. The first is the Channel ID, the second is the actual payload
-    ```json
-    { "jsonrpc": "2.0", "method": "xrpc.ch.val", params: [2, {}] }
-    ```
-4. Caller sends a JSON-RPC request to cancel the subscription, with their Channel ID
-    ```json
-    { "jsonrpc": "2.0", "id": 1, "method": "xrpc.cancel", params: [2] }
-    ```
-5. Callee responds with a JSON-RPC notification of cancellation
-    ```json
-    { "jsonrpc": "2.0", "id": 1, "method": "xrpc.ch.close", params: [2] }
-    ```
+We intend to provide schemas for these exchanges as an [OpenRPC extension](https://spec.open-rpc.org/#specification-extensions) in a future iteration of this FIP.
+The following is an outline of the protocol for subscriptions as a set of
+[Method Object](https://spec.open-rpc.org/#method-object) fragments.
+Both the `User` and the `Node` act as JSON-RPC [Client and Server](https://www.jsonrpc.org/specification#conventions)
+simulataneously, with transport-level correlation agreed out-of-band.
 
+1. Initial subscription (bidirectional JSON-RPC method call).
+   `User` acts as a JSON-RPC Client, and `Node` as a JSON-RPC Server.
+   ```json
+   {
+    "name": "<subscriptionMethod>",
+    "params": [
+      /* <subscriptionParams> */
+    ],
+    "paramStructure": "by-position",
+    "result": {
+      "name": "channelID",
+      "required": true,
+      "schema": {
+        "type": "int"
+      }
+    }
+   }
+   ```
+   `subscriptionMethod` and `subscriptionParams` will vary by method.
+2. Subscription item delivery (JSON-RPC notification).
+   `User` acts as a JSON-RPC Server, and `Node` as a JSON-RPC Client.
+   ```json
+   {
+    "name": "xrpc.ch.val",
+    "params": [
+      {
+        "name": "channelID",
+        "required": true,
+        "schema": { "type": "int" }
+      },
+      {
+        "name": "channelContent",
+        "required": true,
+        "schema": { "$ref": "<notificationSchema>" }
+      }
+    ],
+    "paramStructure": "by-position"
+   }
+   ```
+   `notificationSchema>` will vary by method.
+3. Initiate subscription cancellation (JSON-RPC notification).
+   `User` acts as a JSON-RPC Client, and `Node` as a JSON-RPC Server.
+   ```json
+   {
+    "name": "xrpc.cancel",
+    "params": [
+      {
+        "name": "channelID",
+        "required": true,
+        "schema": { "type": "int" }
+      }
+    ],
+    "paramStructure": "by-position"
+   }
+   ```
+4. Complete subscription cancellation (JSON-RPC notification).
+   `User` acts as a JSON-RPC Server, and `Node` as a JSON-RPC Client.
+   ```json
+   {
+    "name": "xrpc.ch.close",
+    "params": [
+      {
+        "name": "channelID",
+        "required": true,
+        "schema": { "type": "int" }
+      }
+    ],
+    "paramStructure": "by-position"
+   }
+   ```
 
 ## Methods
 
 > Current list here (TBC): https://docs.google.com/spreadsheets/d/1fFkQuEjvFAd2s1dGX5zGmhxsEMLMUZ4uQFnIXgSZA5w/edit?usp=drivesdk
 
-| Method | Tag | Description |
-|---|---|---|
-|MethodName|Tags | Description of method|
+| Method     | Tag  | Description           |
+| ---------- | ---- | --------------------- |
+| MethodName | Tags | Description of method |
 
 
 
@@ -179,7 +237,6 @@ A better API, one that is well defined and carefully constructed, will ease the 
 - [ ] Change link to be an issue for the inconsistency
 - [ ] Add a note on URIs (eg. `/rpc/v1`)
 - [ ] Publish two versions of the document, one per URI
-- [ ] Describe ChainNotify in OpenRPC
 - [ ] Make ChainNotify definition more generic
 - [ ] Add link to playground
 - [ ] @ansermino look into contentdescriptors
