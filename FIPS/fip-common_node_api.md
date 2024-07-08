@@ -4,7 +4,7 @@ title: Filecoin Common Node Interface V1
 author: "David Ansermino (@ansermino), Aatif Syed (@aatifsyed)"
 discussions-to: <URL>
 status: Draft
-type: FTP
+type: FIP - Interface
 category (*only required for Standard Track): Interface
 created: 2024-06-25
 
