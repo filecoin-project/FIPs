@@ -2,7 +2,7 @@
 fip: "<to be assigned>"
 title: Filecoin Common Node Interface V1
 author: "David Ansermino (@ansermino), Aatif Syed (@aatifsyed)"
-discussions-to: <URL>
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/1032
 status: Draft
 type: FIP - Interface
 category (*only required for Standard Track): Interface
