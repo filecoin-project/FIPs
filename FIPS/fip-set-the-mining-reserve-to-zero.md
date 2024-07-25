@@ -34,21 +34,24 @@ There are a number of reasons why we believe the mining reserve is a net cost:
 
 ## Spec
 
-1. Set balance of `f090` to 0. 
+1. Set balance of `f090` to 0.
 
 ## Rationale 
 
 The proposal aims to move away from relying a fixed amount of tokens in the mining reserve that might be used for new mining, to having new FIPs be proposed explicitly creating (or redistributing existing) incentives.
 
-
 ## Incentive Considerations
 
-The proposed change requires new proposals (aiming to incentivize new forms of mining) to explicitly mint new tokens. This should not change the difficulty of making such proposals, as both (using the mining reserve, creating new tokens) would have the short term effect of diluting stakeholders. 
+The proposed change requires future explicit proposals (aiming to incentivize new forms of mining) to explicitly mint new tokens. This should not change the difficulty of making such proposals, as both (using the mining reserve, creating new tokens) would have the short term effect of diluting stakeholders. 
 
+## Product Considerations
+
+TODO
 
 ## Implementations
 
-TODO
+1. Set the balance of f090 to 0 (in lieu of burning it)
+2. Adjust all circulating supply dependencies and the invariant checks to recognize the total supply is no longer 2b
 
 
 ## Copyright Waiver
