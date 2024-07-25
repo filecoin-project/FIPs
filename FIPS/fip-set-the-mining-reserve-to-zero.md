@@ -25,11 +25,11 @@ The [mining reserve](https://spec.filecoin.io/systems/filecoin_token/token_alloc
 
 ## Change Motivation
 
-There are a number of reasons why we believe the mining reserve is a net cost: 
-1. The role of the mining reserve is non-standard - as far as we are aware, no other L1 has this amount of supply left up to potential release (~50% of the current supply, 15% of the total max supply). This uncertainty creates confusion aroud Filecoin's FDV vs MCap.
+There are a number of reasons why the mining reserve can be viewed as a net cost: 
+1. The role of the mining reserve is non-standard - at the time of authoring, no other L1 has this amount of supply left up to potential release (~50% of the current supply, 15% of the total max supply) which creates a large gap between the FDV and Market Cap.
 2. The mining reserve reinforces an anchor around Filecoin being a fixed supply currency. Given there is always the ability for the community to fork to change the supply, this is an unnecessary meme to reinforce - but constricts discussion.
-3. The mining reserve requires a FIP to use (the same process for creating new tokens) - in the event these tokens are needed; its unclear we would face any _less_ pushback in the community if we were to create new sources of dilution.
-4. Filecoin's inflation is already quite high relative to other ecosystems - we should not default to creating net new sources of inflation to bring new value flows into the ecosystem (vs optimizing the inflation we already have)
+3. The mining reserve requires a FIP to use (the same process for creating new tokens) - in the event these tokens are needed; its unclear there would be any _less_ pushback in the community if were to create new sources of dilution.
+4. Filecoin's inflation is already quite high relative to other ecosystems - removing the mining reserve should change the default from creating net new sources of inflation to bring new value flows into the ecosystem (vs optimizing the inflation already in the network)
 
 
 ## Spec
