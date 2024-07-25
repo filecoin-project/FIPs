@@ -35,6 +35,7 @@ There are a number of reasons why we believe the mining reserve is a net cost:
 ## Spec
 
 1. Set balance of `f090` to 0.
+2. Adjust all circulating supply dependencies and the invariant checks to recognize the total supply is no longer 2b.
 
 ## Rationale 
 
@@ -50,7 +51,7 @@ TODO
 
 ## Implementations
 
-1. Set the balance of f090 to 0 (in lieu of burning it)
+1. Set the balance of `f090` to 0.
 2. Adjust all circulating supply dependencies and the invariant checks to recognize the total supply is no longer 2b
 
 
