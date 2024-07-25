@@ -16,7 +16,7 @@ created: 2024-07-25
 
 ## Simple Summary
 
-This proposal aims to remove the mining reserve tokens (282.9m)[https://filfox.info/en/address/f090] by setting its value to 0. This does not preclude other FIPs from being proposed to create new tokens (as future incentives, funding iniatives etc).
+This proposal aims to remove the mining reserve tokens [282.9m](https://filfox.info/en/address/f090) by setting its value to 0. This does not preclude other FIPs from being proposed to create new tokens (as future incentives, funding iniatives etc).
 
 
 ## Abstract 
