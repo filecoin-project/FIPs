@@ -1,6 +1,6 @@
 ---
 fip: "xxx"
-title: Remove Mining Reserve
+title: Set the Mining Reserve to Zero
 author: jnthnvctr (@jnthnvctr)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/1030 
 status: Draft
@@ -21,7 +21,9 @@ This proposal aims to remove the mining reserve tokens [282.9m](https://filfox.i
 
 ## Abstract 
 
-The [mining reserve](https://spec.filecoin.io/systems/filecoin_token/token_allocation/) was intended to be a reserve of tokens to incentivize future types of mining. Even in the spec, this is noted to potentially "not be enough" and the "community [will] decide whether this reserve is enough". This proposal seeks to remove the mining reserve. This does not preclude new tokens from being created - rather that any new incentives should be created at the point when new forms of mining are introduced.
+The [mining reserve](https://spec.filecoin.io/systems/filecoin_token/token_allocation/) was intended to be a reserve of tokens to incentivize future types of mining. In the spec, this is noted to potentially "not be enough" and that the community will "decide whether to make adjustments with unmined tokens". 
+
+This proposal seeks to remove the mining reserve. This does not preclude new tokens from being created - rather that any new incentives should be created at the point when new forms of mining are introduced rather than relying on a set of pre-minted tokens.
 
 ## Change Motivation
 
