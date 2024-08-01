@@ -16,7 +16,7 @@ created: 2024-07-25
 
 ## Simple Summary
 
-This proposal aims to remove the mining reserve tokens [282.9m](https://filfox.info/en/address/f090) by setting its balance to 0. This does not preclude other FIPs from being proposed to create new tokens (as future incentives, funding iniatives etc). After this FIP, the total supply of FIL should be 1717066618.96 (2b minus the current amt in [f090](https://filfox.info/en/address/f090)).
+This proposal aims to remove the mining reserve tokens [282.9m](https://filfox.info/en/address/f090) by setting its balance to 0. This does not preclude other FIPs from being proposed to create new tokens (as future incentives, funding iniatives etc). After this FIP, the total supply of FIL should be ~1717066618.96 (2b minus the current amt in [f090](https://filfox.info/en/address/f090)).
 
 
 ## Abstract 
@@ -66,7 +66,7 @@ The proposed change requires future explicit proposals (aiming to incentivize ne
 ## Implementations
 
 1. Set the balance of `f090` to 0.
-2. Adjust all circulating supply dependencies and the invariant checks to recognize the total supply is no longer 2b given the mining reserve has been set to 0. The total supply of the token should be the total supply of FIL should be 1717066618.96 (2b minus the current amt in [f090](https://filfox.info/en/address/f090)).
+2. Adjust all circulating supply dependencies and the invariant checks to recognize the total supply is no longer 2b given the mining reserve has been set to 0. The total supply of the token should be the total supply of FIL should be ~1717066618.96 (2b minus the current amt in [f090](https://filfox.info/en/address/f090)).
 
 
 ## Copyright Waiver
