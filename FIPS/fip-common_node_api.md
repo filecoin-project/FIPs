@@ -49,6 +49,9 @@ Additionally, by establishing a specification we seek to establish a greater res
 Using the OpenRPC specification format we define several groups of methods. These methods are defined in the OpenRPC specification found here: https://github.com/ChainSafe/filecoin-openrpc-spec. A list of the methods is included below for posterity.
 
 All methods are reproduced identically to their present implementation in Lotus 1.26.1.
+Note that Lotus hosts two different API's at HTTP paths [`/rpc/v0`](https://github.com/filecoin-project/lotus/blob/v1.28.0-rc5/documentation/en/api-v0-methods.md) and [`/rpc/v1`](https://github.com/filecoin-project/lotus/blob/v1.28.0-rc5/documentation/en/api-v1-unstable-methods.md),
+with the latter being marked as _unstable_.
+This document aims to specify the `v1` API.
 
 Categories have been assigned to indicate the identified use case (see Design Rationale).
 
@@ -330,17 +333,7 @@ A better API, one that is well defined and carefully constructed, will ease the 
 ## TODO
 <!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a “Last Call” status once all these items have been resolved.-->
 
-- [x] Confirm methods that are included
 - [ ] Improve descriptions for included methods
-- [ ] Change link to be an issue for the inconsistency
-- [ ] Add a note on URIs (eg. `/rpc/v1`)
-- [ ] Publish two versions of the document, one per URI
-- [x] Make ChainNotify definition more generic
-- [ ] Add link to playground
-- [ ] Perform proper spellcheck
-- [ ] Determine if this should be FIP or FRC
-- [ ] Setup discussion forum and add to header
-- [ ] Reach out to Venus to establish the state of their RPC
 - [ ] Transfer spec repo to filecoin-project and update links above
 - [ ] Add examples to all methods in spec
 
