@@ -1,0 +1,73 @@
+---
+fip: "<to be assigned>"
+title: Add Support for EIP-5656 (MCOPY Opcode) in the FEVM
+author: Michael Seiler (@snissn), Raúl Kripalani (@raulk), Steven Allen (@stebalien)
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/1025#discussioncomment-9885809
+status: Draft
+type: Technical
+category: Core
+created: 2024-08-22
+spec-sections:
+  - MCOPY
+---
+
+# FIP-XXXX: Add Support for EIP-5656 (MCOPY Opcode) in the FEVM
+
+## Simple Summary
+This proposal aims to introduce the `MCOPY` opcode, as defined in [EIP-5656](https://eips.ethereum.org/EIPS/eip-5656), into the Filecoin Ethereum Virtual Machine (FEVM). This opcode allows for efficient memory copying within the FEVM, enhancing performance for smart contracts.
+
+## Abstract
+The `MCOPY` opcode provides a more efficient mechanism for memory copying within smart contracts. This proposal suggests integrating `MCOPY` into the FEVM, ensuring compatibility with Solidity versions v0.8.25 and later, which rely on this opcode for certain operations.
+
+## Change Motivation
+As Solidity continues to evolve, the use of the `MCOPY` opcode becomes increasingly common. Without support for this opcode, developers may face compatibility issues when deploying smart contracts to the Filecoin network, particularly if they use the latest Solidity compiler versions. This proposal addresses the need for maintaining compatibility with Ethereum's tooling and runtime.
+
+## Specification
+
+### Opcode Description
+
+- **Opcode:** `MCOPY`
+- **Opcode Hex:** `0x5E`
+- **Stack Input:**
+  - `dst`: Destination offset in memory
+  - `src`: Source offset in memory
+  - `length`: Number of bytes to copy
+- **Output:** None
+
+### Implementation Details
+
+The `MCOPY` opcode is implemented within the FEVM interpreter. It performs memory copying operations similar to the existing memory manipulation opcodes (`MLOAD`, `MSTORE`, etc.). It handles overlapping memory regions appropriately, ensuring that data is copied as expected, even in edge cases. The implementation follows the specification laid out in [EIP-5656](https://eips.ethereum.org/EIPS/eip-5656).
+
+#### Remarks on MCOPY Implementation
+
+Similar to other memory manipulation operations, `MCOPY` interacts with the FEVM's memory management system. It is designed to handle the following scenarios:
+
+1. **Memory Expansion:** If the destination or source memory regions extend beyond the currently allocated memory, the memory is expanded as necessary to accommodate the operation.
+   
+2. **Overlapping Regions:** `MCOPY` ensures correct behavior when the source and destination regions overlap, copying data in a manner that avoids corruption.
+
+3. **Error Handling:** The opcode includes checks to prevent out-of-bounds memory access, raising appropriate errors if invalid memory regions are specified.
+
+## Design Rationale
+The addition of the `MCOPY` opcode in the FEVM aligns with the need for compatibility with the latest Solidity features and optimizations. The decision to implement this opcode reflects the broader goal of maintaining parity with Ethereum’s EVM while ensuring that Filecoin remains a viable platform for developers using modern Solidity compilers.
+
+## Backwards Compatibility
+The introduction of the `MCOPY` opcode does not affect existing contracts that do not utilize this opcode. Contracts compiled with Solidity versions prior to v0.8.25 will continue to function as intended without modification. However, contracts using `MCOPY` will require the opcode to be present in the FEVM to execute correctly.
+
+## Test Cases
+A series of test cases will be provided to ensure that the `MCOPY` opcode functions as expected under various scenarios. These test cases will include non-overlapping memory copy, overlapping memory copy, out-of-bounds source handling, and memory expansion.
+
+## Security Considerations
+Security implications for the `MCOPY` opcode are similar to other memory manipulation operations. Special care will be taken to ensure that overlapping memory regions are handled safely, preventing data corruption. Additionally, the implementation will include checks to prevent out-of-bounds memory access, which could otherwise lead to unexpected behavior or security vulnerabilities.
+
+## Incentive Considerations
+The addition of the `MCOPY` opcode is expected to enhance the performance of smart contracts running on the FEVM, indirectly contributing to more efficient and reliable use of Filecoin's resources. By enabling more efficient memory operations, this opcode supports the development of complex contracts without incurring unnecessary performance penalties.
+
+## Product Considerations
+Implementing the `MCOPY` opcode aligns with the goal of making Filecoin a more attractive platform for developers by ensuring compatibility with Ethereum's latest features. This change supports the development of advanced storage-related applications and services, as developers can rely on the latest Solidity optimizations without concern for compatibility issues.
+
+## Implementation
+The reference implementation for the `MCOPY` opcode is available in the following pull request: https://github.com/filecoin-project/builtin-actors/pull/1572. The implementation is designed to handle various edge cases, including overlapping memory regions and out-of-bounds memory access, ensuring robust and reliable operation.
+
+## Copyright
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
