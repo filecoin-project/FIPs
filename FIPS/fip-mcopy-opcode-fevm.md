@@ -2,7 +2,7 @@
 fip: "<to be assigned>"
 title: Add Support for EIP-5656 (MCOPY Opcode) in the FEVM
 author: Michael Seiler (@snissn), Raúl Kripalani (@raulk), Steven Allen (@stebalien)
-discussions-to: https://github.com/filecoin-project/FIPs/discussions/1025#discussioncomment-9885809
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/1025
 status: Draft
 type: Technical
 category: Core
