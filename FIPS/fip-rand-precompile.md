@@ -2,6 +2,7 @@
 fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
 title: get_randomness filecoin precompile for EVM actor 
 author: @anorth, @ZenGround0
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/1051
 status: Draft
 type: Technical Core
 created: 2024-08-26
