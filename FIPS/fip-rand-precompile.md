@@ -1,6 +1,6 @@
 ---
 fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
-title: rand filecoin precompile for EVM actor 
+title: get_randomness filecoin precompile for EVM actor 
 author: @anorth, @ZenGround0
 status: Draft
 type: Technical Core
@@ -10,7 +10,7 @@ created: 2024-08-26
 <!--You can leave these HTML comments in your merged FIP and delete the visible duplicate text guides, they will not appear and may be helpful to refer to if you edit it again. This is the suggested template for new FIPs. Note that a FIP number will be assigned by an editor. When opening a pull request to submit your FIP, please use an abbreviated title in the filename, `fip-draft_title_abbrev.md`. The title should be 44 characters or less.-->
 
 
-# FIP-00XX: rand filecoin precompile for EVM actor 
+# FIP-00XX: get_randomness filecoin precompile for EVM actor 
 
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
@@ -47,7 +47,7 @@ We propose a simpler variant of the previous implementation.
 /// Errors if unable to fetch randomness
 ```
 
-This will be defined at precompile address `0xfe00..05` and named rand
+This will be defined at precompile address `0xfe00..06` and named get_randomness
 
 ## Design Rationale
 <!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
