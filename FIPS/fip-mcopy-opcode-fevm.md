@@ -20,7 +20,7 @@ This proposal aims to introduce the `MCOPY` opcode, as defined in [EIP-5656](htt
 The `MCOPY` opcode provides a more efficient mechanism for memory copying within smart contracts. This proposal suggests integrating `MCOPY` into the FEVM, ensuring compatibility with Solidity versions v0.8.25 and later, which rely on this opcode for certain operations.
 
 ## Change Motivation
-As Solidity continues to evolve, the use of the `MCOPY` opcode becomes increasingly common. Without support for this opcode, developers may face compatibility issues when deploying smart contracts to the Filecoin network, particularly if they use the latest Solidity compiler versions. This proposal addresses the need for maintaining compatibility with Ethereum's tooling and runtime.
+As Solidity continues to evolve, the use of the `MCOPY` opcode has become increasingly common. Without support for this opcode, developers may face compatibility issues when deploying smart contracts to the Filecoin network, particularly if they use the latest Solidity compiler versions. This proposal addresses the need for maintaining compatibility with Ethereum's tooling and runtime.
 
 ## Specification
 
