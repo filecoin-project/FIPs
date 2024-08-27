@@ -39,7 +39,7 @@ The concrete use case motivating the authors is to make it possible to build a p
 ## Specification
 A new precompile is added to the built-in EVM actor, which implements all user-deployed smart contracts.
 
-The precompile is callable at address `0xfe00..04`.
+The precompile is callable at address `0xfe00..06`.
 
 | Param            | Value                     |
 |------------------|---------------------------|
