@@ -72,6 +72,7 @@ As part of implementation we should have:
 2. Integration tests on a lotus devent with a simple solidity contract that uses the precompile.
 3. Integration tests that validate that gas costs are as expected
 4. Integration tests that validate that very deep lookback has computational cost in proportion to the gas cost (linear).
+5. Integration tests that validate that requesting future randomness results in an error.
 
 ## Security Considerations
 Inspecting early chain history can involve increasing computational cost.
