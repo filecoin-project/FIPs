@@ -43,9 +43,9 @@ The precompile is callable at address `0xfe00..04`.
 
 | Param            | Value                     |
 |------------------|---------------------------|
-| randomness_epoch | U256 - low i64             |
+| epoch            | U256 - low i64            |
 
-The call errors with `PrecompileError::InvalidInput` if the epoch is invalid.
+The call errors with `PrecompileError::InvalidInput` if the epoch is not a valid, prior epoch number.
 
 This calls directly to the FVMs `get_beacon_randomness` syscall, which returns a Blake2b hash digest of the 
 randomness value from the drand beacon at the associated Filecoin epoch.
