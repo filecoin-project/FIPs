@@ -119,7 +119,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0079](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0079.md) | Add BLS Aggregate Signatures to FVM | FIP | Jake (@drpetervannostrand) | Final |
 | [0080](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0080.md) | Phasing Out Fil+ and Restoring Deal Quality Multiplier to 1x | FIP | @Fatman13, @ArthurWang1255, @stuberman, @Eliovp, @dcasem, @The-Wayvy | Draft |
 | [0081](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0081.md) | Introduce lower bound for sector initial pledge | FIP | @anorth, @vkalghatgi | Last Call |
-| [0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md) | Add support for aggregated replica update proofs | FIP | nemo (@cryptonemo), Jake (@drpetervannostrand), @anorth | Final |
+| [0082](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0082.md) | Add support for aggregated replica update proofs | FIP | nemo (@cryptonemo), Jake (@drpetervannostrand), @anorth | Accepted |
 | [0083](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0083.md) | Add built-in Actor events in the Verified Registry, Miner and Market Actors | FIP | Aarsh (@aarshkshah1992)| Final |
 | [0084](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0084.md) | Remove Storage Miner Actor Method `ProveCommitSectors` | FIP | Jennifer Wang (@jennijuju)| Final |
 | [0085](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0085.md) | Convert f090 Mining Reserve actor to a keyless account actor | FIP | Jennifer Wang (@jennijuju), Jon Victor (@jnthnvctr)| Final |
