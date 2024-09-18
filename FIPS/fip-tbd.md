@@ -47,7 +47,7 @@ Expose the following APIs, following the FIP-0050 specification for exported bui
 
 To allow caller (storage providers, stake pools and etc) to have more precise control over the amount of the sectors to be terminated based on their operational needs, this FIP introduces a new `TerminateSector2` method. This method follows most of the behaviour of the existing `TerminateSectors` method (method 9), notably:
 - Only a control address of the miner actor can call this method.
-- Attempt to terminate sectors that is in the current or the next proving deadline will fail with `USR_ILLEGAL_ARGUMENT`.
+- Attempt to terminate sectors that are in the current or the next proving deadline will fail with `USR_ILLEGAL_ARGUMENT`.
 - The method will always process the sector(s) that are already in the `early_termination` queue before processing newly submitted sectors.
 
 This FIP proposes the following behaviour changes:
