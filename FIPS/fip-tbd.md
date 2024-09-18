@@ -20,9 +20,12 @@ Expose `TerminateSectors2` method for invocation by user actors, so to enable mo
 
 ## Abstract
 
-Upon the FEVM launch, [FIP-0050](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0050.md) was also introduced with a list of the builtin actor methods that are exposed as callables from user actors. Since then,  we’ve seen a number of protocols build lending or leasing applications around Miner Actors collateral & rewards. As common practice in DeFi, protocols often introduce a “liquidation” procedure that liquidates a borrower’s collateral to derisk the liquidity providers from losing lent out funds. In the process of Filecoin leasing applications, a liquidation means termination of a miner’s active sectors, facing a penalty, but recovering pledged collateral to return to liquidity providers.  Economic security of applications being built on the FEVM is important for developing trust and attracting outside capital / liquidity / investors, and understanding precise collateral values for any given miner actor is critical for a DeFi protocol’s economic security. 
+Following FEVM launch, [FIP-0050](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0050.md) introduced a list of builtin actor methods that are exposed as callables from user actors. Since then, we have seen a number of protocols use miner actor collateral and/or rewards to build lending and leasing applications. 
 
-This FIP aims to introduce an exported sector termination method in miner actor for supporting onchain liquidation procedures for decentralized staking protocol. 
+It is a common practice in DeFi applications to manage risk for liquidity providers (i.e., those lending money) by "liquidating" collateral supplied by borrowers. In the Filecoin ecosystem, 'liquidation' is achieved when Storage Providers terminate a miner's active sectors, pay the required penalty, recover their pledged collateral, and repay liquidity providers. This process is a critical part of FEVM economic security, as is understanding the precise value of existing collateral. 
+
+
+This FIP aims to introduce an exported sector termination method in miner actor to support on-chain liquidation procedures. 
 
 ## Change Motivation
 
