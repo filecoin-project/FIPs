@@ -76,7 +76,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0034](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0034.md) | Fix pre-commit deposit independent of sector content | FIP | @anorth, @Kubuxu | Final |
 | [0035](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0035.md) | Support actors as built-in storage market clients | FIP | @anorth | Withdrawn |
 | [0036](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0036.md) | Introducing a Sector Duration Multiple for Longer Term Sector Commitment | FIP | @AxCortesCubero, @jbenet, @misilva73, @momack2, @tmellan, @vkalghatgi, @zixuanzh | Rejected |
-| [0037](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0037.md) | Gas model adjustment for user programmability | FIP | @raulk, @stebalien | Draft |
+| [0037](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0037.md) | Gas model adjustment for user programmability | FIP | @raulk, @stebalien | Withdrawn |
 | [0038](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0038.md) | Indexer Protocol for Filecoin Content Discovery | FRC | @willscott, @gammazero, @honghaoq | Draft |
 | [0039](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0039.md) | Filecoin Message Replay Protection | FIP | @q9f | Draft |
 | [0040](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0040.md) | Boost - Filecoin Storage Deals Market Protocol | FRC | @dirkmc, @nonsense, @jacobheun, @brendalee | Draft |
