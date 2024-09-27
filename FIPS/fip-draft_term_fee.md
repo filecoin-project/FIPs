@@ -1,0 +1,114 @@
+---
+fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
+title: Simplify termination fee calculation to a fixed percentage of initial pledge
+author: @anorth, @Schwartz10
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/1036
+status: Draft
+type: Technical
+category (*only required for Standard Track): Core
+created: 2024-09-26
+---
+
+<!--You can leave these HTML comments in your merged FIP and delete the visible duplicate text guides, they will not appear and may be helpful to refer to if you edit it again. This is the suggested template for new FIPs. Note that a FIP number will be assigned by an editor. When opening a pull request to submit your FIP, please use an abbreviated title in the filename, `fip-draft_title_abbrev.md`. The title should be 44 characters or less.-->
+
+# FIP-Number: Simplify termination fee calculation to a fixed percentage of initial pledge
+
+## Simple Summary
+
+<!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
+
+Computing the collateral value for a miner actor is critical for making economically secure defi protocols on filecoin; however, computing the collateral value correctly is hard on its own, and impossible in a small time frame and/or from inside the FEVM. The variance in termination fees relative to initial pledge for different miners on the network vary so significantly that DeFi protocols cannot safely use heuristics to estimate miner collateral values.
+
+This FIP intends to significantly simplify the termination fee calculation by using a fixed "percentage-of-pledge" method. The termination fee for any given sector is calculated as a fixed percentage of the initial pledge held by that sector.
+
+## Abstract
+
+<!--A short (~200 word) description of the technical issue being addressed.-->
+
+Today, it is overly sophisticated and computationally expensive to compute termination fees for miner actors. As a result, DeFi applications that leverage miner actors must make major security and/or performance sacrifices in order to operate.
+
+This FIP addresses the issue by simplifying the calculation of the miner actor termination fee. The proposed new termination fee calculation uses a "percentage of pledge" strategy - where `termination fee = initial pledge * termination penalty %`. The proposed new termination penalty % is 6%.
+
+As a result, DeFi applications on Filecoin can operate with significantly better performance, UX, and economic security. Additionally, Filecoin economics and code implementations will be significantly simplified, as well as state bloat removed.
+
+## Change Motivation
+
+<!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
+
+In the year+ since FEVM’s launch, we’ve seen a number of protocols use Miner Actors as collateral for lending or leasing applications. Economic security of applications being built on the FEVM is important for developing trust, and understanding precise collateral values for any given miner actor is critical for a DeFi protocol’s economic security.
+
+Today, it is: (1) computationally expensive, (2) economically sophisticated, and (3) impossible in a FEVM runtime to compute the maximum termination fee for a miner actor’s sectors. As a result, FEVM applications need to either (a) use heuristics to determine a collateral value for a miner (economically insecure), or (b) use off-chain solutions to compute collateral values (significantly bloating the surface area of attack vectors for any lending / leasing protocol). Both of these approaches make major sacrifices towards the economic security of FEVM applications that use miner actors as collateral.
+
+Two of the original motivations for termination fees are:
+
+1. Create a more resilient storage network for storage clients, such that if an SP stores a client's data, the client isn't just suddenly left out to dry and their data lost
+2. Network stability
+
+This FIP intends to keep those original motivations in tact for the Filecoin network.
+
+## Specification
+
+<!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
+
+The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations.
+
+## Design Rationale
+
+<!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
+
+There are a few different approaches one could take to accomplish the same end result:
+
+1. Optimize data structures based on the current methodology to make an aggregate termination sector method feasible in constant time lookup
+   - Problems:
+     - Unsure if this is technically feasible, and if so, most likely a lot of sophistication and ugly accounting
+     - Would most likely add state to the Filecoin blockchain
+2. Use a "multiple of daily rewards" approach, which computes a termination fee based on a % or multiple of expected daily rewards for a period of time based on the current block rewards
+   - Problems:
+     - Unpredictable - DeFi apps now have to be extremely knowledgeable on the future of Filecoin block rewards in order to safely underwrite DeFi loans
+     - Computing block rewards is still a non-trivial task, and most likely requires more/new solidity FEVM precompiles
+
+The current design is the simplest and most predictable approach to accomplishing the end goal.
+
+## Backwards Compatibility
+
+<!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
+
+This FIP would introduce backwards incompatibility with how previous tipsets calculate their termination fees. As a result, previous statistical data collected about Filecoin termination fees (which I don't think there's much of), would become incorrect. It's possible to maintain the historical state, but it seems like a lot of work for a little gain.
+
+## Test Cases
+
+<!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
+
+- When terminating a single sector, the realized termination fee should equal the expected % of pledge termination fee
+- When terminating all sectors on a miner, the realized termination fee should equal the expected % of pledge termination fee
+
+## Security Considerations
+
+<!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
+
+The security concern with introducing this FIP is that Storage Providers will not face a severe enough penalty to leave the network very quickly, which could cause major power volatility on the network. We don't believe this is a major concern for the following reasons:
+
+1. As Filecoin matures, the average Storage Provider will likely be accepting paid deals in some form according to an SLA in addition to the SLA guaranteed by PoRep. These additional SLAs can/will enforce their own termination clauses, which should provide adequate motivation and verification to achieve a good experience for the average storage client.
+2. It seems appropriate to charge an exit fee for breaking a commitment to the network, but we also do not want to charge a capture fee. Storage Providers who do not wish to use Filecoin anymore shouldn't have prohibitively high expenses for leaving the network early - ultimately for the network, burning some of this SPs tokens through sector terminations is better than 18 months of selling.
+3. The 6% proposed termination penalty percentage is what the network is currently charging (on average) for terminations.
+4. Governance can always choose to increase the termination penalty percentage.
+
+## Incentive Considerations
+
+<!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
+
+It is important that Storage Providers are incentivized to honor their commitments to the network - this prevents major network volatility. It makes sense to maintain a disincentive for breaking commitments to the network, but this FIP doesn't change the incentive to provide useful storage to the network, it makes it somewhat easier.
+
+## Product Considerations
+
+<!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
+
+From a product perspective, the network will massively simplify its UX. Potential Storage Providers can calculate their risk of mining on the back of a napkin, whereas today it takes a team of highly trained Filecoin experts. Developers can integrate safer DeFi practices.
+
+## Implementation
+
+<!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
+
+## Copyright
+
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
