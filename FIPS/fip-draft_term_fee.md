@@ -52,7 +52,7 @@ This FIP intends to keep those original motivations in tact for the Filecoin net
 
 A new constant variable called `TERM_PENALTY_PLEDGE_PERCENTAGE` should be created, which is fixed for the whole network and configurable by future governance.
 
-Refactor the `pledge_penalty_for_termination` method to:
+Refactor the [`pledge_penalty_for_termination`](https://github.com/filecoin-project/builtin-actors/blob/12d9af8a00d0909598c67e1a18dc1577e0833137/actors/miner/src/monies.rs#L179) method to:
 
 1. Take the sector's `initial_pledge` `TokenAmount` as an argument
 2. Return `initial_pledge * TERM_PENALTY_PLEDGE_PERCENTAGE`
