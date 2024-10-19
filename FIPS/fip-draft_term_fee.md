@@ -50,7 +50,14 @@ This FIP intends to keep those original motivations in tact for the Filecoin net
 
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
 
-The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations.
+A new constant variable called `TERM_PENALTY_PLEDGE_PERCENTAGE` should be created, which is fixed for the whole network and configurable by future governance.
+
+Refactor the `pledge_penalty_for_termination` method to:
+
+1. Take the sector's `initial_pledge` `TokenAmount` as an argument
+2. Return `initial_pledge * TERM_PENALTY_PLEDGE_PERCENTAGE`
+
+We may also be able to remove `expected_storage_pledge` from the `SectorOnChainInfo` struct type as I believe this is only used in computing termination penalties.
 
 ## Design Rationale
 
