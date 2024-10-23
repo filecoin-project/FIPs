@@ -1,11 +1,11 @@
 ---
 fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
 title: Simplify termination fee calculation to a fixed percentage of initial pledge
-author: @anorth, @Schwartz10
+author: @Schwartz10, @anorth
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/1036
 status: Draft
 type: Technical
-category (*only required for Standard Track): Core
+category: Core
 created: 2024-09-26
 ---
 
@@ -17,9 +17,7 @@ created: 2024-09-26
 
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 
-Computing the collateral value for a miner actor is critical for making economically secure defi protocols on filecoin; however, computing the collateral value correctly is hard on its own, and impossible in a small time frame and/or from inside the FEVM. The variance in termination fees relative to initial pledge for different miners on the network vary so significantly that DeFi protocols cannot safely use heuristics to estimate miner collateral values.
-
-This FIP intends to significantly simplify the termination fee calculation by using a fixed "percentage-of-pledge" method. The termination fee for any given sector is calculated as a fixed percentage of the initial pledge held by that sector.
+The termination fee for any given sector is calculated as a fixed percentage of the initial pledge held by that sector. The proposed penalty as a percentage of initial pledge is 6%.
 
 ## Abstract
 
@@ -39,12 +37,16 @@ In the year+ since FEVM’s launch, we’ve seen a number of protocols use Miner
 
 Today, it is: (1) computationally expensive, (2) economically sophisticated, and (3) impossible in a FEVM runtime to compute the maximum termination fee for a miner actor’s sectors. As a result, FEVM applications need to either (a) use heuristics to determine a collateral value for a miner (economically insecure), or (b) use off-chain solutions to compute collateral values (significantly bloating the surface area of attack vectors for any lending / leasing protocol). Both of these approaches make major sacrifices towards the economic security of FEVM applications that use miner actors as collateral.
 
-Two of the original motivations for termination fees are:
+The two primary motivations to this FIP proposal are:
 
-1. Create a more resilient storage network for storage clients, such that if an SP stores a client's data, the client isn't just suddenly left out to dry and their data lost
-2. Network stability
+1. Enabling a more efficient termination penalty calculation such that termination penalties can be computed (or returned by an FEVM precompile) in an FEVM runtime. This is important because it enables FEVM protocols that use Miner Actors as collateral to operate with better economic security because they can precisely estimate the value of Miner Actor collateral on-chain. 
+2. Changing the formula for calculating termination penalties to be simpler to compute. This is important because it allows both Storage Providers and FEVM actors that use Miner Actors as collateral to easily predict their economic riskiness. 
 
-This FIP intends to keep those original motivations in tact for the Filecoin network.
+Additionally, this FIP intends to maintain the original motivations behind termination fees:
+
+1. Create a more resilient storage network for storage clients, such that if an SP stores a client's data, the client isn't just suddenly left out to dry and their data lost.
+2. Network stability - disincentivize large power swings caused by rapid on/off-boarding of power and pledge.
+
 
 ## Specification
 
@@ -57,7 +59,17 @@ Refactor the [`pledge_penalty_for_termination`](https://github.com/filecoin-proj
 1. Take the sector's `initial_pledge` `TokenAmount` as an argument
 2. Return `initial_pledge * TERM_PENALTY_PLEDGE_PERCENTAGE`
 
-We may also be able to remove `expected_storage_pledge` from the `SectorOnChainInfo` struct type as I believe this is only used in computing termination penalties.
+This change would immediately apply to all sectors, including historical sectors.
+
+The following sector info fields are used exclusively for the termination fee calculation, and are unused by the built-in actors code:
+
+- expected day reward
+- expected storage pledge
+- replaced day reward
+
+For all new sectors or snapped sectors, these three values are set to zero.
+
+These redundant fields can be removed from state in a future migration.
 
 ## Design Rationale
 
@@ -65,22 +77,28 @@ We may also be able to remove `expected_storage_pledge` from the `SectorOnChainI
 
 There are a few different approaches one could take to accomplish the same end result:
 
-1. Optimize data structures based on the current methodology to make an aggregate termination sector method feasible in constant time lookup
+1. Use a "multiple of daily rewards" approach, which computes a termination fee based on a % or multiple of expected daily rewards for a period of time based on the current block rewards
+   - Problems:
+     - Less predictable - in order to estimate the collateral value of a Miner Actor, the protocol needs to be able to estimate what the future daily block reward will be for the network. If the network grows quickly and unexpectedly, this could dangerously impact a DeFi protocol as the daily block rewards may increase due to increasing baseline, thus increasing the termination penalty and decreasing the collateral value for a given Miner Actor. 
+2. Optimize data structures based on the current methodology to make an aggregate termination sector method feasible in constant time lookup
    - Problems:
      - Unsure if this is technically feasible, and if so, most likely a lot of sophistication and ugly accounting
      - Would most likely add state to the Filecoin blockchain
-2. Use a "multiple of daily rewards" approach, which computes a termination fee based on a % or multiple of expected daily rewards for a period of time based on the current block rewards
-   - Problems:
-     - Unpredictable - DeFi apps now have to be extremely knowledgeable on the future of Filecoin block rewards in order to safely underwrite DeFi loans
-     - Computing block rewards is still a non-trivial task, and most likely requires more/new solidity FEVM precompiles
 
-The current design is the simplest and most predictable approach to accomplishing the end goal.
+The %-of-pledge method is:
+
+ 1. simple to calculate
+ 2. predictable
+ 3. fixed while the sector's pledge is constant
+ 4. will not decay towards zero as block rewards decline, thus more effectively protecting against churn
 
 ## Backwards Compatibility
 
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
 
-This FIP would introduce backwards incompatibility with how previous tipsets calculate their termination fees. As a result, previous statistical data collected about Filecoin termination fees (which I don't think there's much of), would become incorrect. It's possible to maintain the historical state, but it seems like a lot of work for a little gain.
+This FIP would introduce backwards incompatibility with how previous tipsets calculate their termination fees. As a result, previous statistical data collected about Filecoin termination fees (which I don't think there's much of), would become incorrect. Off-chain tooling that estimates termination penalties must change how they work too. It's possible to maintain the historical state, but it seems like a lot of work for a little gain.
+
+This FIP requires a network upgrade because it intends to change built-in actor code.
 
 ## Test Cases
 
@@ -105,6 +123,10 @@ The security concern with introducing this FIP is that Storage Providers will no
 <!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
 
 It is important that Storage Providers are incentivized to honor their commitments to the network - this prevents major network volatility. It makes sense to maintain a disincentive for breaking commitments to the network, but this FIP doesn't change the incentive to provide useful storage to the network, it makes it somewhat easier.
+
+The termination fee for sectors committed a long time ago will immediately and significantly decrease, but only to match the fee:pledge ratio of new sectors. This will increase the incentive for some SPs with high-pledge sectors to terminate and re-onboard to gain more power for the same amount of pledge (but more hardware).
+
+In contrast to the current system, the termination penalty for a sector will be constant regardless of its age. Currently the termination penalty starts low and increases with age up to a max. This presents is a change in the incentive structure for short-term-view SPs.
 
 ## Product Considerations
 
