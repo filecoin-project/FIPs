@@ -13,12 +13,12 @@ created: 2024-07-10
 
 ## Simple Summary
 
-Similar to [#901](https://github.com/filecoin-project/FIPs/discussions/901), covert fundraising remainder address [f0122](https://filfox.info/en/address/f0122) type from a multisig to account that is keyless (like f099).
+Similar to [#901](https://github.com/filecoin-project/FIPs/discussions/901), covert fundraising remainder address [f0122](https://filfox.io/en/address/f0122) type from a multisig to account that is keyless (like f099).
 
 
 ## Abstract
 
-At the moment, the actor holding the fundraising remainder is a _multisig_ actor. All signers are account actors, secured by corresponding wallet keys. This setup leaves the ownership and control over the fundraising remainder to signers of the _multisig_ actor, which undermines the decentralized governance principle over network funds, and creates potential security leaks.
+At the moment, the actor holding the fundraising remainder is a _multisig_ actor. All signers are account actors, secured by corresponding wallet keys. This setup leaves the ownership and control over the fundraising remainder to signers of the _multisig_ actor, which undermines the decentralized governance principle over network funds, and creates potential security leaks. Although the amount in the fundraising remainder account is feable to institute any meaningful Sybil attack, breaching of spec still greatly undermines the security of a decentralized network by dimishing the network's credibility and unevenly favoring one party of the network participants, which both inflict profound long-term damage to the network. 
 
 This FIP proposes to alter the type of the fundraising remainder actor from the aforementioned multisig to a keyless account actor, and further transfer the ownership, control and governance of the funds reserved from the signers of the multisig back to the network's participants via community governance.
 
@@ -89,12 +89,12 @@ This change is not backwards compatible. Upon the activation of this FIP in a ne
 
 ## Security Considerations
 
-This proposal improves the network security by removing the ownership and control of whatever it is the remaining of the 2.5% of the total network token supply in `f0122` from individuals and putting it under the control of network participants via the appropriate governance processes.
+This proposal improves the network security by removing the ownership and control of whatever it is the remaining of the 2.5% of the total network token supply in `f0122` from individuals and putting it under the control of network participants via the appropriate governance processes. Again, the proposal acknowledges that the security threats from Sybil attack perspective is slim, but not following spec is considered a much bigger threat as attackers don't really need to buy out the network, just the governance.
 
 
 ## Product Considerations
 
-This proposal places governance of the fundraising remainder funds entirely in hands of the network participants rather than key owners, thus providing greater transparency and assurance of community consultation and deliberation in appropriate future disbursement of the funds.
+This proposal places governance of the fundraising remainder funds entirely in hands of the network participants rather than key owners, thus providing greater transparency and assurance of community consultation and deliberation in appropriate future disbursement of the funds. And thus, the proposal sends out a strong signal that this is a network where spec is respected by words and by code, and restores some of the credibility lossed for failing to comply with the spec.
 
 ## Implementation
 
