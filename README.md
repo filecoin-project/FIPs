@@ -131,3 +131,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0092](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0092.md) | Non-Interactive PoRep | FIP | luca (@lucaniz), kuba (@Kubuxu), nicola (@nicola), nemo (@cryptonemo), volker (@vmx), irene (@irenegia), Alex North (@anorth), orjan (@Phi-rjan) | Final |
 | [0094](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0094.md) | Add Support for EIP-5656 (MCOPY Opcode) in the FEVM | FIP | Michael Seiler (@snissn), Raúl Kripalani (@raulk), Steven Allen (@stebalien) | Accepted |
 | [0095](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0095.md) | Add FEVM precompile to fetch beacon digest from chain history | FIP | @ZenGround0, Alex North (@anorth) | Accepted |
+| [0096](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0096.md) | Convert fundraising remainder address(es) to keyless account actor(s) | FIP | @Fatman13 | Draft |
