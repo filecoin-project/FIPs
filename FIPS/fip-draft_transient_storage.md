@@ -2,7 +2,7 @@
 fip: "<to be assigned>"  
 title: Add Support for EIP-1153 (Transient Storage) in the FEVM  
 author: Michael Seiler (@snissn), Steven Allen (@stebalien)  
-discussions-to: <URL>  
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/855
 status: Draft  
 type: Technical  
 category: Core  
