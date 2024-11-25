@@ -70,6 +70,7 @@ The addition of transient storage is fully backward-compatible. Existing contrac
 2. **Lifecycle Validation:**
    - Verify that transient storage is automatically cleared and becomes inaccessible after the transaction ends.
    - Verify that transient storage is properly cleared at the end of each transaction and any out-of-lifecycle data does not interfere with subsequent transaction operations.
+   - Verify that memory remains accessible and stable after contract reentry.
 
 ---
 
