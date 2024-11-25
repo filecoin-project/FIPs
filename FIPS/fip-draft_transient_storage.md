@@ -65,6 +65,7 @@ The addition of transient storage is fully backward-compatible. Existing contrac
 1. **Basic Functionality:**
    - Verify `TLOAD` retrieves the correct value.
    - Verify `TSTORE` writes data to the transient storage correctly.
+   - Verify `TLOAD` from an unitialized location returns the zero value.
 
 2. **Lifecycle Validation:**
    - Verify that transient storage is automatically cleared and becomes inaccessible after the transaction ends.
