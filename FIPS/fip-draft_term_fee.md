@@ -1,7 +1,7 @@
 ---
 fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
 title: Simplify termination fee calculation to a fixed percentage of initial pledge
-author: @Schwartz10, @anorth
+author: @Schwartz10, @anorth, @jimpick
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/1036
 status: Draft
 type: Technical
@@ -17,7 +17,7 @@ created: 2024-09-26
 
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 
-The termination fee for any given sector is calculated as a fixed percentage of the initial pledge held by that sector. The proposed penalty as a percentage of initial pledge is 6%.
+The termination fee for any given sector is calculated as a fixed percentage of the initial pledge held by that sector. The proposed penalty as a percentage of initial pledge is 8.5%.
 
 ## Abstract
 
@@ -25,7 +25,7 @@ The termination fee for any given sector is calculated as a fixed percentage of 
 
 Today, it is overly sophisticated and computationally expensive to compute termination fees for miner actors. As a result, DeFi applications that leverage miner actors must make major security and/or performance sacrifices in order to operate.
 
-This FIP addresses the issue by simplifying the calculation of the miner actor termination fee. The proposed new termination fee calculation uses a "percentage of pledge" strategy - where `termination fee = initial pledge * termination penalty %`. The proposed new termination penalty % is 6%.
+This FIP addresses the issue by simplifying the calculation of the miner actor termination fee. The proposed new termination fee calculation uses a "percentage of pledge" strategy - where `termination fee = initial pledge * termination penalty %`. The proposed new termination penalty % is 8.5%.
 
 As a result, DeFi applications on Filecoin can operate with significantly better performance, UX, and economic security. Additionally, Filecoin economics and code implementations will be significantly simplified, as well as state bloat removed.
 
@@ -115,7 +115,7 @@ The security concern with introducing this FIP is that Storage Providers will no
 
 1. As Filecoin matures, the average Storage Provider will likely be accepting paid deals in some form according to an SLA in addition to the SLA guaranteed by PoRep. These additional SLAs can/will enforce their own termination clauses, which should provide adequate motivation and verification to achieve a good experience for the average storage client.
 2. It seems appropriate to charge an exit fee for breaking a commitment to the network, but we also do not want to charge a capture fee. Storage Providers who do not wish to use Filecoin anymore shouldn't have prohibitively high expenses for leaving the network early - ultimately for the network, burning some of this SPs tokens through sector terminations is better than 18 months of selling.
-3. The 6% proposed termination penalty percentage is what the network is currently charging (on average) for terminations.
+3. The 8.5% proposed termination penalty percentage is what the network is currently charging (on average) for steady state terminations.
 4. Governance can always choose to increase the termination penalty percentage.
 
 ## Incentive Considerations
