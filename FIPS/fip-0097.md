@@ -79,6 +79,7 @@ The addition of transient storage is fully backward-compatible. Existing contrac
 Transient storage introduces minimal additional risk compared to existing state storage. Lifecycle validation ensures storage is inaccessible outside the originating transaction. Security measures include:
 - Preventing out-of-bounds memory access.
 - Ensuring transient storage clears properly after a transaction ends.
+- Ensuring nested contracts do not have access to eachother's memory spaces.
 
 ---
 
