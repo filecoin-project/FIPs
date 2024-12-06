@@ -215,9 +215,17 @@ Annotated version as produced by https://cbor.me:
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
 
-[Retrieval Requirements](#retrieval-requirements) document the current status minus Graphsync and Bitswap protocols.
+[Retrieval Requirements](#retrieval-requirements) document the current status and remove Graphsync and Bitswap protocols. Existing miner operations need to enable/configure [IPFS Trustless HTTP Gateway protocol](https://specs.ipfs.tech/http-gateways/trustless-gateway/) retrievals to meet the new requirements.
 
-[Retrieval Checking Requirements](#retrieval-checking-requirements) introduce the following breaking changes: miner software must construct IPNI `ContextID` values in a specific way. Because ContextIDs are scoped per piece (not per deal), miner software must de-duplicate advertisements for deals storing the same piece.
+|Miner Software|Supports HTTP retrievals|Notes
+|-|:-:|-|
+|Boost|✅| Manual setup required: [docs](https://boost.filecoin.io/retrieving-data-from-filecoin/http-retrieval#payload-retrievals-car-and-raw).
+|Curio|✅| ?
+|Venus Droplet| ? | ?
+
+[Retrieval Checking Requirements](#retrieval-checking-requirements) introduce the following breaking changes:
+- Miner software must construct IPNI `ContextID` values in a specific way.
+- Because such ContextIDs are scoped per piece (not per deal), miner software must de-duplicate advertisements for deals storing the same piece.
 
 ## Test Cases
 
@@ -238,7 +246,11 @@ Attack vector: When a piece is stored with SP1 and SP2, then SP1 can advertise r
 ## Incentive Considerations
 <!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
 
-_TBD_
+Reliable retrieval (data availability) is a necessary condition for Filecoin to reach product-market fit. We need tools to measure and report service-level indicators related to data availability (retrieval success rate, time to first byte, and so on) to allow storage deal clients understand the quality of service offered by different SPs (and Filecoin in general).
+
+The data produced by retrieval checker networks like Spark can be integrated into existing and new incentive mechanisms like FIL+, Filecoin Web Services, paid storage deals, and more.
+
+In mid-2024, the FIL+ allocator compliance process started to require SPs to meet a certain threshold in Spark Retrieval Success Rate score. Since then, we have seen a steady increase in the retrieval success rate as measured by Spark. In May 2024, less than 2% of retrieval requests performed by the Spark network succeeded. In early December 2024, more than 15% retrievals succeeded. The number of SPs that are serving payload retrievals has increased from 60 in June 2024 to more than 200 in early December 2024.
 
 ## Product Considerations
 <!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
