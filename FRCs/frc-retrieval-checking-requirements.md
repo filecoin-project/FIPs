@@ -21,7 +21,7 @@ created: 2024-12-02
 
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 
-In order to make Filecoin a usable data storage offering, we need the content to be retrievable. It's difficult to improve what you don't measure, and therefore, we need to measure quality of retrieval service provided by each storage provider. To allow 3rd-party networks like [Spark](https://filspark.com) to sample active deals from the on-chain activity and check whether the SP is serving retrievals for the stored content, we need SPs to meet the following requirements:
+To make Filecoin a usable data storage offering, we need the content to be retrievable. It's difficult to improve what you don't measure; therefore, we need to measure the quality of retrieval service provided by each storage provider. To allow 3rd-party networks like [Spark](https://filspark.com) to sample active deals from the on-chain activity and check whether the SP is serving retrievals for the stored content, we need SPs to meet the following requirements:
 
 1. Link on-chain MinerId and IPNI provider identity ([spec](#link-on-chain-minerid-and-ipni-provider-identity)).
 2. Provide retrieval service using the [IPFS Trustless HTTP Gateway protocol](https://specs.ipfs.tech/http-gateways/trustless-gateway/).
@@ -210,7 +210,52 @@ Annotated version as produced by https://cbor.me:
 ## Design Rationale
 <!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
 
-**_TBD_**
+The major challenge of sampling data stored on Filecoin is how to discover the payload CIDs. By
+convention, clients making StorageMarket (`f05`) deals should put the payload root CID into
+`DealProposal.Label` field. After the introduction of direct data onboarding that's optimized for
+low gas fees, there is no longer such a field.
+
+Secondly, the information about the root CID is not sufficient. It allows retrieval checkers have to either
+fetch the root IPLD block only or the entire content. Downloading the entire content is impractical
+for light clients and puts too much load on the storage/retrieval provider. We want checkers to sample the data, not perform stress testing of SPs.
+
+To meet the above requirements, we need a solution for sampling from payload blocks in a given deal.
+
+The natural option is to scan the piece bytes to find individual CARv1 blocks and extract payload
+block CIDs. This requires the checker node to fetch the piece and implement a CAR scanner. Storage
+providers are already scanning pieces for payload CIDs to be advertised to IPNI, running another
+scan in every retrieval checker node is redundant and wasteful. It also makes it more involved to
+implement alternate retrieval checker networks.
+
+IPNI already contains a list of payload CIDs contained in every advertised Filecoin deal, therefore
+we propose leveraging this existing infrastructure.
+
+- Storage Providers keep advertising payload CIDs to IPNI as they do now.
+- IPNI implements reverse index lookup allowing retrieval checkers to sample CIDs in a given deal.
+- Retrieval checkers can easily get a sample of payload CIDs and then retrieve only the selected CID(s).
+- Retrieval checking does not add any extra network bandwidth overhead to SPs beyond the actual retrieval.
+
+### Alternatives considered
+
+Assuming there is a limit on the size of any CAR block in a Piece, it's possible to sample one payload block using the following algorithm:
+
+1. Let's assume the maximum CAR block size is 4 MB and we have deal's `PieceCID` and `PieceSize`.
+2. Pick a random offset $o$ in the piece so that $0 <= o <= PieceSize - 2*4 MB$.
+3. Send an HTTP range-retrieval request to retrieve the bytes in the range`(o, o+2*4MB)`.
+4. Parse the bytes to find a sequence that looks like a CARv1 block header.
+5. Extract the CID from the CARv1 block header.
+6. Hash the block's payload bytes and verify that the digest equals to the CID.
+
+The reasons why we rejected this approach:
+
+ 1. It's inefficient.
+
+    1. Each retrieval check requires two requests - one to download ~8MB chunk of a piece, the second one to download the payload block found in that chunk.
+
+    1. Spark typically repeats every retrieval check 40-100 times. Scanning CAR byte range 40-100 times does not bring enough value to justify the network bandwidth & CPU cost.
+
+ 1. It's not clear how can retrieval checkers discover the address where the SP serves piece retrievals.
+
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
@@ -220,8 +265,8 @@ Annotated version as produced by https://cbor.me:
 |Miner Software|Supports HTTP retrievals|Notes
 |-|:-:|-|
 |Boost|✅| Manual setup required: [docs](https://boost.filecoin.io/retrieving-data-from-filecoin/http-retrieval#payload-retrievals-car-and-raw).
-|Curio|✅| ?
-|Venus Droplet| ? | ?
+|Curio|✅| TODO: OOTB or manual setup?
+|Venus Droplet| ? | TODO: OOTB or manual setup?
 
 [Retrieval Checking Requirements](#retrieval-checking-requirements) introduce the following breaking changes:
 - Miner software must construct IPNI `ContextID` values in a specific way.
@@ -255,17 +300,39 @@ In mid-2024, the FIL+ allocator compliance process started to require SPs to mee
 ## Product Considerations
 <!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
 
-_TBD_
+To make Filecoin a usable data storage offering, we need the content to be retrievable. It's difficult to improve what you don't measure; therefore, we need to measure the quality of retrieval service provided by each storage provider.
+
+This FRC enables retrieval checks based on payload sampling with support for all kinds of storage deals (f05, direct data onboarding, etc.).
+
+The service-level indicators produced by retrieval checker networks can be integrated into incentive mechanisms like FIL+ or paid storage deals to drive improvements in the availability and reliability of retrieval service offered by individual SPs and Filecoin as a whole.
+
 
 ## Implementation
 <!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
 
-_TBD_
+### Storage Provider Software
+
+|Requirement|Boost|Curio|Venus
+|-|:-:|:-:|:-:
+|Advertises payload retrieval to IPNI|✅|✅|✅
+|Trustless HTTP GW retrievals|✅|✅|?|
+|Link on-chain MinerId and IPNI provider identity|✅|❌|✅
+|Construct IPNI ContextID from (PieceCID, PieceSize)|❌|✅|❌
+
+### IPNI Reverse Index
+
+Status: design phase
+
+### Spark Retrieval Checkers
+
+Status: not started yet
 
 ## TODO
 <!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a “Last Call” status once all these items have been resolved.-->
 
-_TBD_
+How do we want to mitigate the following attack vectors?
+- We trust SPs to honestly advertise Piece payload blocks to IPNI.
+- Free-rider problem when a piece is stored with more than one SP.
 
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
