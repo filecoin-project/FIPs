@@ -325,7 +325,8 @@ Status: design phase
 
 ### Spark Retrieval Checkers
 
-Status: not started yet
+- Status: design phase
+- Progress tracking: https://github.com/space-meridian/roadmap/issues/115
 
 ## TODO
 <!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a “Last Call” status once all these items have been resolved.-->
