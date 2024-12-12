@@ -113,10 +113,10 @@ This FIP requires a network upgrade because it intends to change built-in actor 
 
 The security concern with introducing this FIP is that Storage Providers will not face a severe enough penalty to leave the network very quickly, which could cause major power volatility on the network. We don't believe this is a major concern for the following reasons:
 
-1. As Filecoin matures, the average Storage Provider will likely be accepting paid deals in some form according to an SLA in addition to the SLA guaranteed by PoRep. These additional SLAs can/will enforce their own termination clauses, which should provide adequate motivation and verification to achieve a good experience for the average storage client.
-2. It seems appropriate to charge an exit fee for breaking a commitment to the network, but we also do not want to charge a capture fee. Storage Providers who do not wish to use Filecoin anymore shouldn't have prohibitively high expenses for leaving the network early - ultimately for the network, burning some of this SPs tokens through sector terminations is better than 18 months of selling.
-3. The 8.5% proposed termination penalty percentage is what the network is currently charging (on average) for steady state terminations.
-4. Governance can always choose to increase the termination penalty percentage.
+1. The 8.5% proposed termination penalty percentage is what the network is currently charging (on average) for steady state terminations.
+2. Governance can always choose to increase the termination penalty percentage.
+3. It seems appropriate to charge an exit fee for breaking a commitment to the network, but we also do not want to charge a capture fee. Storage Providers who do not wish to use Filecoin anymore shouldn't have prohibitively high expenses for leaving the network early - ultimately for the network, burning some of this SPs tokens through sector terminations is better than 18 months of selling.
+4. As Filecoin matures, the average Storage Provider will likely be accepting paid deals in some form according to an SLA in addition to the SLA guaranteed by PoRep. These additional SLAs can/will enforce their own termination clauses, which should provide adequate motivation and verification to achieve a good experience for the average storage client.
 
 ## Incentive Considerations
 
