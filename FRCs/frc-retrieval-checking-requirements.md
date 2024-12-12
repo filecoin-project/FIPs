@@ -262,11 +262,11 @@ The reasons why we rejected this approach:
 
 [Retrieval Requirements](#retrieval-requirements) document the current status and remove Graphsync and Bitswap protocols. Existing miner operations need to enable/configure [IPFS Trustless HTTP Gateway protocol](https://specs.ipfs.tech/http-gateways/trustless-gateway/) retrievals to meet the new requirements.
 
-|Miner Software|Supports HTTP retrievals|Notes
-|-|:-:|-|
-|Boost|✅| Manual setup required: [docs](https://boost.filecoin.io/retrieving-data-from-filecoin/http-retrieval#payload-retrievals-car-and-raw).
-|Curio|✅| Works out of the box
-|Venus Droplet| ? | TODO: OOTB or manual setup?
+|Miner Software|Advertises payload to IPNI|Supports HTTP retrievals|Notes
+|-|:-:|:-:|-|
+|Boost|✅|✅| Manual setup required: [docs](https://boost.filecoin.io/retrieving-data-from-filecoin/http-retrieval#payload-retrievals-car-and-raw).
+|Curio|✅|✅| Works out of the box
+|Venus Droplet| ✅ | ? | TODO: OOTB or manual setup?
 
 [Retrieval Checking Requirements](#retrieval-checking-requirements) introduce the following breaking changes:
 - Miner software must construct IPNI `ContextID` values in a specific way.
