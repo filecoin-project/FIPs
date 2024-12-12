@@ -265,7 +265,7 @@ The reasons why we rejected this approach:
 |Miner Software|Supports HTTP retrievals|Notes
 |-|:-:|-|
 |Boost|✅| Manual setup required: [docs](https://boost.filecoin.io/retrieving-data-from-filecoin/http-retrieval#payload-retrievals-car-and-raw).
-|Curio|✅| TODO: OOTB or manual setup?
+|Curio|✅| Works out of the box
 |Venus Droplet| ? | TODO: OOTB or manual setup?
 
 [Retrieval Checking Requirements](#retrieval-checking-requirements) introduce the following breaking changes:
@@ -281,12 +281,22 @@ Not applicable, but see the examples in [Specification](#specification).
 ## Security Considerations
 <!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
 
-_TODO: add more details._
+
 
 We trust SPs to honestly advertise Piece payload blocks to IPNI. Attack vector: a malicious SP can always advertise the same payload block for all pieces persisted.
 
+TODO: describe our plan to mitigate this risk.
+
 Free-rider problem when a piece is stored with more than one SP.
 Attack vector: When a piece is stored with SP1 and SP2, then SP1 can advertise retrievals with metadata pointing to SP2's multiaddr.
+
+We don't view this as a problem. Spark is testing that the provider is able to serve the content
+from a deal on behalf of the network. IPFS and Filecoin is based on content addressing, which is
+about the network’s ability to serve content, not about the ability to fetch it from a specific
+location. However, clients need to know which node to at least ask for the hot copy. This is what we
+can get from IPNI. What's more, this fact leaves space for SPs to try to save costs on hot storage -
+they can cooperate with other SPs to guarantee that at least one hot copy is available nearby that
+can be served back to the client.
 
 ## Incentive Considerations
 <!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
@@ -321,7 +331,8 @@ The service-level indicators produced by retrieval checker networks can be integ
 
 ### IPNI Reverse Index
 
-Status: design phase
+- Status: design phase
+- Progress tracking: https://github.com/ipni/roadmap/issues/1
 
 ### Spark Retrieval Checkers
 
@@ -331,9 +342,8 @@ Status: design phase
 ## TODO
 <!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a “Last Call” status once all these items have been resolved.-->
 
-How do we want to mitigate the following attack vectors?
+How do we want to mitigate the following attack vector(s):
 - We trust SPs to honestly advertise Piece payload blocks to IPNI.
-- Free-rider problem when a piece is stored with more than one SP.
 
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
