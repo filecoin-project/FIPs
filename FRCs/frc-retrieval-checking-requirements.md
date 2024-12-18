@@ -89,7 +89,6 @@ Example IPNI `ProviderResult` describing retrieval provider offering IPFS Trustl
     }]
   }]
 }
-
 ```
 
 ### Retrieval Requirements
@@ -99,6 +98,24 @@ Example IPNI `ProviderResult` describing retrieval provider offering IPFS Trustl
 2. Whenever SP stops storing a Piece (e.g. because the last deal for the Piece has expired or was slashed), the SP SHOULD advertise removal of all payload block CIDs included in this Piece.
 
 3. The SP MUST provide retrieval of the IPFS/IPLD payload blocks via the [IPFS Trustless HTTP Gateway protocol](https://specs.ipfs.tech/http-gateways/trustless-gateway/).
+
+
+### Retrieval Checking Process
+
+The on-chain state does not provide any information about payload stored in a deal. Observers like
+retrieval checking networks can see only miner (provider) ID, `PieceCID` and `PieceSize`. Retrieval
+checkers need a way to sample payload block in a given deal. In this FRC, we assume the following algorithm leveraging IPNI:
+
+1. Start with a tuple `(MinerID, PieceCID, PieceSize)` identifying an active storage deal (sector).
+2. Map `MinerID` to IPNI index `ProviderID`.
+3. Map `(PieceCID, PieceSize)` to IPNI `ContextID` value.
+4. Query IPNI reverse index for a sample of payload blocks advertised by `ProviderID` with
+`ContextID` (see the [proposed API
+spec](https://github.com/ipni/xedni/blob/526f90f5a6001cb50b52e6376f8877163f8018af/openapi.yaml)).
+5. Pick a payload block CID to retrieve.
+6. Query IPNI to obtain retrieval providers for the selected payload CID.
+7. Find the record advertised by the SP under test using the `Provider.ID` field.
+8. Request the payload CID at the advertised address.
 
 ### Retrieval Checking Requirements
 
@@ -281,11 +298,47 @@ Not applicable, but see the examples in [Specification](#specification).
 ## Security Considerations
 <!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
 
-
+(1)
 
 We trust SPs to honestly advertise Piece payload blocks to IPNI. Attack vector: a malicious SP can always advertise the same payload block for all pieces persisted.
 
-TODO: describe our plan to mitigate this risk.
+We see this as a broader problem with the lack of trust & verifiability in the IPNI architecture.
+How can the network verify that parties storing content (Filecoin SPs, IPFS nodes) are honestly advertising
+all content?
+
+To flag Filecoin SPs that are not advertising all deal payload, we can build a small network of validator nodes performing the following algorithm:
+
+1. Let's assume the maximum CAR block size is 4 MB and we have deal's `PieceCID` and `PieceSize`.
+
+   _(E.g. validators can walk IPNI advertisement chains and extract piece information by parsing `ContextID`.)_
+
+2. Pick a random offset $o$ in the piece so that $0 <= o <= PieceSize - (2*4 MB)$.
+
+3. Send an HTTP range-retrieval request to retrieve the bytes in the range $[o, o+(2*4MB)]$.
+
+   _We need the server to return an inclusion proof up to the PieceCID root._
+
+4. Parse the bytes to find a sequence that looks like a CARv1 block header.
+
+5. Extract the CID from the CARv1 block header.
+
+6. Hash the block's payload bytes and verify that the digest equals to the CID.
+
+7. Verify that the discovered payload CID was advertised to IPNI.
+
+8. If the payload CID was not advertised, then submit a report flagging the SP and include the following information:
+   - Provider identification, PieceCID, PieceSize,
+   - Byte range requested
+   - Server response (the inclusion proof)
+   - Offset of the CARv1 block header and the payload CID discovered
+
+9. Collect and aggregate these records to produce a reputation score for each SP.
+
+10. Implement incentives penalizing non-compliant SPs. In the extreme, IPNI can even de-list
+non-compliant index providers.
+
+
+(2)
 
 Free-rider problem when a piece is stored with more than one SP.
 Attack vector: When a piece is stored with SP1 and SP2, then SP1 can advertise retrievals with metadata pointing to SP2's multiaddr.
@@ -342,8 +395,7 @@ The service-level indicators produced by retrieval checker networks can be integ
 ## TODO
 <!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a “Last Call” status once all these items have been resolved.-->
 
-How do we want to mitigate the following attack vector(s):
-- We trust SPs to honestly advertise Piece payload blocks to IPNI.
+- Find out whether Venus Droplet supports retrieval using  [IPFS Trustless HTTP Gateway protocol](https://specs.ipfs.tech/http-gateways/trustless-gateway/).
 
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
