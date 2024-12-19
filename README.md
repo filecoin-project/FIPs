@@ -134,3 +134,5 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0096](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0096.md) | Convert fundraising remainder address(es) to keyless account actor(s) | FIP | @Fatman13 | Draft |
 | [0097](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0097.md) | Add Support for EIP-1153 (Transient Storage) in the FEVM | FIP | Michael Seiler (@snissn), Steven Allen (@stebalien) | Draft |
 | [0098](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0098.md) | Simplify termination fee calculation to a fixed percentage of initial pledge | FIP | Jonathan Schwartz (@Schwartz10), Alex North (@anorth), Jim Pick (@jimpick) | Draft |
+| [XXXX](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0098.md) | Remove Batch Fee For Precommit and Lower batchBalancer | FIP | Irene (@irenegia), AX (@AxCortesCubero), ZX (@zixuanzh) | Draft |
+
