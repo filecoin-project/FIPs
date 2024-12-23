@@ -26,23 +26,23 @@ This mechanism makes batching in precommit and aggregation in provecommit ration
 Since August 2024, gas used for onboarding methods has been higher than in the past year (see [#1092](https://github.com/filecoin-project/FIPs/discussions/1092) for more details on data and causes).  A simple mechanism to reduce gas consumption is batching: at times of high demand for network gas, storage providers (SPs) should be incentivized to batch as much as possible for both precommit and provecommit.  
 
 ### Precommit
-Due to the batch fee, currently precommit batching is only rational when the base fee exceeds 0.09 nanoFIL. Removing this fee will eliminate this obstacle, enabling more batching and therefore gas saving. To have a rough estimate of the saving, we can compare two recent messages (no deal)
+Due to the batch fee, currently precommit batching is only rational when the base fee exceeds 0.09 nanoFIL. Removing this fee will eliminate this obstacle, enabling more batching and therefore gas saving. To have a rough estimate of the saving, we can compare two PreCommitSector messages without deals from the same miner: 
 - [Msg 1](https://www.filutils.com/en/message/bafy2bzacedrbvzzcea3uwtqmas7zp5moxxpbceywukxux5fvgnbi2pj25hkjs): PreCommiSectorBatch2 for 1 sector : 16.5 M gas used
 - [Msg 2](https://www.filutils.com/en/message/bafy2bzacebbc5pdzweouhvopgfvlc4trlips4ynszut774fxkv5omz3cicd3e): PreCommitSectorBatch2 for 4 sectors):  17.7 M/ 4 =  ~4.4 M gas used (per sector)
 
-Which indicates that batching can bring a ~70% of gas saving.
+The two messages are posted to the same miner actor with little difference in the number of sectors when the message landed. The difference in gas usage indicates batching can bring a ~70% of gas saving. 
 
 
 
 ### Provecommit
-At precommit there are two options: (1) "simple" batching as in precommit (ie, one message for ≥ 2 sectors) where there is a porep proof for each sector in the batch, and (2) batching with aggregation, where there is one unique aggregated porep proof.
+There are two options for ProveCommitSector3: (1) "simple" batching as in precommit (ie, one message for ≥ 2 sectors) where there is a porep proof for each sector in the batched message, and (2) aggregating proofs of multiple sectors and post in one message. 
 Batching for provecommit is already rational (cost-effective), as the batch fee applies only to aggregated proofs (opposed to precommit, where the batch balancer applies to batching). 
 
 On the other hand, aggregation is rational only when the base fee exceeds 0.065 nanoFIL. Lowering the value of `batchBalancer` from 5 to 2 nanoFIL will reduce the crossover point to 0.026 nanoFIL, making the aggregation rational across a broader range of base fee values.
 
 To have a rough estimate of the gas saving, we compared these messages (no deals)
 - [Msg 1](https://www.filutils.com/en/message/bafy2bzaceaddryxumxg35givyt7pe745wlsmrlrx7bj4sdb56nho4akyi5tzu): ProveCommitSectors3 for 1 sector (no deals): 78.4 M 
-- [Msg 2](https://www.filutils.com/en/message/bafy2bzaceah7m6jzravjoswo2pljzit36euu3sgz5jzbnpkcfp23b76texiv6): ProveCommitSectors3 for 4 sectors, batched (no aggregation): 96.M/4 = 24M per sector 
+- [Msg 2](https://www.filutils.com/en/message/bafy2bzaceah7m6jzravjoswo2pljzit36euu3sgz5jzbnpkcfp23b76texiv6): ProveCommitSectors3 for 4 sectors, batched (no aggregation): 96.4 M/4 = ~24.1 M per sector 
 - [Msg 3](https://www.filutils.com/en/message/bafy2bzacedeh74ds4x4l5nlfahmlvwn4obfukhgqnf6rxlaargvsm56sljune): ProveCommitSectors3 for 4 sectors, aggregated[^*]: 217.4 M/4 = ~54.4 M per sector 
 
 [^*]: In practice, aggregation is currently giving less gas saving respect to batching due to a bug causing single proofs to be charged an incorrect amount of gas units. So currently, batching is to be preferred with respect to aggregation. Once this code bug is fixed, batching will cost more gas units and aggregation would be the option with the largest gas unit saving per sector. 
@@ -88,9 +88,9 @@ By lowering the BatchBalancer value, the network is incentivizing more aggregati
 
 ## Product Considerations
 From a product perspective, this FIP is expected to:
-- By removing barriers to precommit batching (e.g., precommit batch proof fees), SPs will have lower onboarding costs;
+- Lower onboarding costs for SPs by removing barriers to precommit batching (e.g., precommit batch proof fees);
 - Encouraging batching and aggregation reduces block space consumption, reducing the risk of higher base fee values;
-- The removal of precommit aggregated proof fees simplifies analyst and cost calculations for SPs.
+- Simplify analysis and cost calculations for SPs by removing of precommit aggregated proof fees.
 
 
 
