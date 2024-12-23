@@ -19,7 +19,7 @@ This FIP proposes to:
 
 ## Abstract
 `batchBalancer` and the batch gas fee were introduced in [FIP13](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md) for provecommit and later updated in [FIP24](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0024.md), where the fee was added to the precommit step as well. 
-This mechanism makes batching in precommit and aggregation in provecommit rational (ie, cost-effective) only when the base fee is above a given threshold (which depends on `batchBalancer`, other parameters used in the mechanism and the gas used). This FIP proposes to revert to no fee for precommit and lower the value of `batchBalancer` to 2 nanoFIL in order to have no BaseFee threshold for batching precommit and a lower BaseFee threshold for aggregating provecommit.
+This mechanism makes batching in precommit and aggregation in provecommit rational (ie, cost-effective) only when the base fee is above a given threshold (which depends on `batchBalancer`, other parameters used in the mechanism and the gas used). This FIP proposes to revert to no fee for precommit and lower the value of `batchBalancer` to 2 nanoFIL, from the current 5 nanoFIL, in order to have no BaseFee threshold for batching precommit and a lower BaseFee threshold for aggregating provecommit.
 
 
 ## Change Motivation
@@ -41,7 +41,7 @@ Batching for provecommit is already rational (cost-effective), as the batch fee 
 On the other hand, aggregation is rational only when the base fee exceeds 0.065 nanoFIL. Lowering the value of `batchBalancer` from 5 to 2 nanoFIL will reduce the crossover point to 0.026 nanoFIL, making the aggregation rational across a broader range of base fee values.
 
 To have a rough estimate of the gas saving, we compared these messages (no deals)
-- [Msg 1](https://www.filutils.com/en/message/bafy2bzaceaddryxumxg35givyt7pe745wlsmrlrx7bj4sdb56nho4akyi5tzu): ProveCommitSectors3 for 1 sector (no deals): 78.5M 
+- [Msg 1](https://www.filutils.com/en/message/bafy2bzaceaddryxumxg35givyt7pe745wlsmrlrx7bj4sdb56nho4akyi5tzu): ProveCommitSectors3 for 1 sector (no deals): 78.4 M 
 - [Msg 2](https://www.filutils.com/en/message/bafy2bzaceah7m6jzravjoswo2pljzit36euu3sgz5jzbnpkcfp23b76texiv6): ProveCommitSectors3 for 4 sectors, batched (no aggregation): 96.M/4 = 24M per sector 
 - [Msg 3](https://www.filutils.com/en/message/bafy2bzacedeh74ds4x4l5nlfahmlvwn4obfukhgqnf6rxlaargvsm56sljune): ProveCommitSectors3 for 4 sectors, aggregated[^*]: 217M/4 = 54M per sector 
 
