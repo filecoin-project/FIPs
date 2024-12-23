@@ -9,12 +9,12 @@ category: Core
 created: 2024-12-19
 ---
 
-# FIP-00XX:Remove Batch Fee For Precommit and Lower batchBalancer
+# FIP-00XX: Remove Batch Fee For Precommit and Lower batchBalancer
 
 ## Simple Summary
 This FIP proposes to:
 - Remove the batch fee from `PreCommitSectorBatch2` to incentivize batching during the precommit step;
-- Revert `batchBalancer` to the original value of 2 nanoFIL to make aggregation rational for a larger range of base fee value with respect to today.
+- Revert `batchBalancer` to the original value of 2 nanoFIL to make aggregation rational for a larger range of base fee value with respect to today's network conditions.
 
 
 ## Abstract
