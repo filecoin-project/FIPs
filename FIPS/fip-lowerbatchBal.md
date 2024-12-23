@@ -19,8 +19,7 @@ This FIP proposes to:
 
 ## Abstract
 BatchBalancer and the batch gas fee were introduced in [FIP13](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0013.md) for provecommit and later updated in [FIP24](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0024.md), where the fee was added to the precommit step as well. 
-This mechanism makes batching in precommit and aggregation in provecommit rational (ie, cost-effective) only when the base fee is above a given threshold (which depends on BatchBalancer, other parameters used in the mechanism and the gas used). This FIP proposes to revert to no fee for precommit and lower the value of BatchBalancer to 2 nanoFIL, from the current 5 nanoFIL, in order to have no BaseFee threshold for batching precommit and a lower BaseFee threshold for aggregating provecommit.
-
+This mechanism makes batching precommit multiple sectors in one `PreCommitSectorBatch2` message and aggregating proofs for multiple sectors and post in one `ProveCommitSectors3` message rational (i.e., cost-effective) only when the base fee is above a given threshold (which depends on `batchBalancer`, other parameters used in the mechanism and the gas used). This FIP proposes to revert to no fee for precommit and lower the value of `batchBalancer` to 2 nanoFIL in order to have no BaseFee threshold for batching precommit of mutiple sectors in one `PreCommitSectorBatch2` message and a lower BaseFee threshold for aggregating proofs for provecommit.
 
 ## Change Motivation
 Since August 2024, gas used for onboarding methods has been higher than in the past year (see [#1092](https://github.com/filecoin-project/FIPs/discussions/1092) for more details on data and causes).  A simple mechanism to reduce gas consumption is batching: at times of high demand for network gas, storage providers (SPs) should be incentivized to batch as much as possible for both precommit and provecommit.  
