@@ -23,12 +23,12 @@ This mechanism makes batching in precommit and aggregation in provecommit ration
 
 
 ## Change Motivation
-Since August, gas used for onboarding methods has been higher than in the past year (see [#1092](https://github.com/filecoin-project/FIPs/discussions/1092) for more details on data and causes).  A simple mechanism to reduce gas consumption is batching: at times of high demand for network gas, storage providers (SPs) should be incentivized to batch as much as possible for both precommit and provecommit.  
+Since August 2024, gas used for onboarding methods has been higher than in the past year (see [#1092](https://github.com/filecoin-project/FIPs/discussions/1092) for more details on data and causes).  A simple mechanism to reduce gas consumption is batching: at times of high demand for network gas, storage providers (SPs) should be incentivized to batch as much as possible for both precommit and provecommit.  
 
 ### Precommit
 Due to the batch fee, currently precommit batching is only rational when the base fee exceeds 0.09 nanoFIL. Removing this fee will eliminate this obstacle, enabling more batching and therefore gas saving. To have a rough estimate of the saving, we can compare two recent messages (no deal)
 - [Msg 1](https://www.filutils.com/en/message/bafy2bzacedrbvzzcea3uwtqmas7zp5moxxpbceywukxux5fvgnbi2pj25hkjs): PreCommiSectorBatch2 for 1 sector : 16.5 M gas used
-- [Msg 2](https://www.filutils.com/en/message/bafy2bzacebbc5pdzweouhvopgfvlc4trlips4ynszut774fxkv5omz3cicd3e): PreCommitSectorBatch2 for 4 sectors):  177 M/ 4 =  ~4.5 gas used (per sector)
+- [Msg 2](https://www.filutils.com/en/message/bafy2bzacebbc5pdzweouhvopgfvlc4trlips4ynszut774fxkv5omz3cicd3e): PreCommitSectorBatch2 for 4 sectors):  17.7 M/ 4 =  ~4.4 M gas used (per sector)
 
 Which indicates that batching can bring a ~70% of gas saving.
 
@@ -43,7 +43,7 @@ On the other hand, aggregation is rational only when the base fee exceeds 0.065 
 To have a rough estimate of the gas saving, we compared these messages (no deals)
 - [Msg 1](https://www.filutils.com/en/message/bafy2bzaceaddryxumxg35givyt7pe745wlsmrlrx7bj4sdb56nho4akyi5tzu): ProveCommitSectors3 for 1 sector (no deals): 78.4 M 
 - [Msg 2](https://www.filutils.com/en/message/bafy2bzaceah7m6jzravjoswo2pljzit36euu3sgz5jzbnpkcfp23b76texiv6): ProveCommitSectors3 for 4 sectors, batched (no aggregation): 96.M/4 = 24M per sector 
-- [Msg 3](https://www.filutils.com/en/message/bafy2bzacedeh74ds4x4l5nlfahmlvwn4obfukhgqnf6rxlaargvsm56sljune): ProveCommitSectors3 for 4 sectors, aggregated[^*]: 217M/4 = 54M per sector 
+- [Msg 3](https://www.filutils.com/en/message/bafy2bzacedeh74ds4x4l5nlfahmlvwn4obfukhgqnf6rxlaargvsm56sljune): ProveCommitSectors3 for 4 sectors, aggregated[^*]: 217.4 M/4 = ~54.4 M per sector 
 
 [^*]: In practice, aggregation is currently giving less gas saving respect to batching due to a bug causing single proofs to be charged an incorrect amount of gas units. So currently, batching is to be preferred with respect to aggregation. Once this code bug is fixed, batching will cost more gas units and aggregation would be the option with the largest gas unit saving per sector. 
 
