@@ -283,11 +283,13 @@ The reasons why we rejected this approach:
 |-|:-:|:-:|-|
 |Boost|✅|✅| Manual setup required: [docs](https://boost.filecoin.io/retrieving-data-from-filecoin/http-retrieval#payload-retrievals-car-and-raw).
 |Curio|✅|✅| Works out of the box
-|Venus Droplet| ✅ | ? | TODO: OOTB or manual setup?
+|Venus Droplet| ✅ | ✅  | Manual setup required: [docs](https://github.com/ipfs-force-community/droplet/blob/master/docs/zh/模拟官方机器人HTTP方式检索.md#开启-http-检索)
 
 [Retrieval Checking Requirements](#retrieval-checking-requirements) introduce the following breaking changes:
 - Miner software must construct IPNI `ContextID` values in a specific way.
 - Because such ContextIDs are scoped per piece (not per deal), miner software must de-duplicate advertisements for deals storing the same piece.
+
+[Implementation >> Storage Provider Software](#storage-provider-software) describes the current status of support for Retrieval Checking Requirements in miner software.
 
 ## Test Cases
 
@@ -378,7 +380,7 @@ The service-level indicators produced by retrieval checker networks can be integ
 |Requirement|Boost|Curio|Venus
 |-|:-:|:-:|:-:
 |Advertises payload retrieval to IPNI|✅|✅|✅
-|Trustless HTTP GW retrievals|✅|✅|?|
+|Trustless HTTP GW retrievals|✅|✅|✅|
 |Link on-chain MinerId and IPNI provider identity|✅|❌|✅
 |Construct IPNI ContextID from (PieceCID, PieceSize)|❌|✅|❌
 
@@ -394,8 +396,6 @@ The service-level indicators produced by retrieval checker networks can be integ
 
 ## TODO
 <!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a “Last Call” status once all these items have been resolved.-->
-
-- Find out whether Venus Droplet supports retrieval using  [IPFS Trustless HTTP Gateway protocol](https://specs.ipfs.tech/http-gateways/trustless-gateway/).
 
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
