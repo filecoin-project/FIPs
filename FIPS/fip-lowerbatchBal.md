@@ -1,6 +1,6 @@
 ---
 fip: "00XX"
-title: Remove Batch Fee For Precommit and Lower BatchBalancer
+title: Remove Batch Fee For Precommit, Lower BatchBalancer and Remove Gas-limited Constraints
 author: irene (@irenegia), ZX (@zixuanzh), AX (@AxCortesCubero), rvagg (@rvagg)
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/1092
 status: Draft
