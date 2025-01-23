@@ -44,9 +44,6 @@ For pull requests (PRs) that impact **protocol design/specifications** or includ
 
 - FIP Editors must ensure **at least two appropriate technical reviews and approvals** have been obtained before considering the PR ready to merge.
 
-For **all other PRs**:
-
-- A minimum of **two technical reviews and approvals** is required before merging.
 
 ### Additional Safeguards  
 
