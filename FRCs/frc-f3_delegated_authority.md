@@ -20,11 +20,11 @@ requires (*optional): FIP-0086
 
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
-Avoid a full network upgrade for setting F3 activation parameters by instead delegating parameter setting to the Lotus, Forest, and Venus implementation teams, who will set these parameters on-chain for one-time use on mainnet.
+Avoid a full network upgrade for setting F3 activation parameters by instead delegating parameter setting to the Lotus, Forest, and Venus implementation teams, who will set these parameters using a multi-signer-owned smart contract for one-time use on mainnet.
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
-This FRC proposes introducing an on-chain smart contract that can manage F3 parameters dynamically. This contract would be owned/controlled through a multi-signature mechanism requiring consensus from all three major Filecoin implementations (Lotus, Forest, and Venus). The contract would allow for a one-time parameter update based on mainnet passive test results, effectively combining what would have been two network upgrades into one while maintaining security through multiple stakeholder approval, full onchain transparency, and built-in time delays for community review.
+This FRC proposes introducing an on-chain smart contract that can manage F3 parameters dynamically. This contract would be owned/controlled through a multi-signature mechanism requiring consensus from all three major Filecoin implementations (Lotus, Forest, and Venus). The contract would allow for a one-time parameter update based on mainnet passive test results, effectively combining what would have been two network upgrades into one while maintaining security through multiple stakeholder approval, full onchain transparency, and built-in time delays for community review.  Additionally, the contract is designed to automatically disable itself after the F3 activation date or 2025-08-01, whichever comes first, ensuring that any changes are deliberate and well-considered, while preventing indefinite alterations.  
 
 ## Change Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
@@ -36,9 +36,9 @@ The Fast Finality (F3) feature for Filecoin requires comprehensive testing under
 
 - nv25 - The network upgrade that will deliver the next batch of F3 protocol and code changes, which we also expect is the last network upgrade for activating F3 on mainnet.
 - "the implementations" - This means the main major Filecoin implementations: Lotus, Forest, and Venus.
-- “the smart contract” - This is the smart contract referred to in this proposal that contains the “good parameter set” and the bootstrap epoch.  The source code will live in [filecoin-project/f3-activation-contract](https://github.com/filecoin-project/f3-activation-contract) and its address and owner address will be hardcoded in Lotus/Forest/Venus nv25-compatible releases.  The owner address is "the multisig contract" discussed below.
+- “the smart contract” - This is the smart contract referred to in this proposal that contains the “good parameter set” and the bootstrap epoch.  The source code will live in [filecoin-project/f3-activation-contract](https://github.com/filecoin-project/f3-activation-contract) and its address will be hardcoded in Lotus/Forest/Venus nv25-compatible releases.  The owner address is "the multisig contract" discussed below.
 - “good parameter set” - This is the set of F3 configuration parameters that will be determined as part of [nv25 mainnet passive testing](https://github.com/filecoin-project/go-f3/issues/802).  This parameter set will have sustained demonstrated success in mainnet.  It will be stored in "the smart contract" as DEFLATE compressed JSON data, and it will be consumed by "the implementations".
-- “the multisig contract” - This is a standard off-the-shelf multisig EVM contract that will be the owner of “the smart contract”.  As a result, “the smart contract” will only accept updates from this multisig contract.  This is the mechanism by which we accomplish multi-stakeholder consensus of the Lotus, Forest, and Venus implementation teams.
+- “the multisig contract” - This is a standard off-the-shelf multisig EVM contract ([Gnosis Safe](https://safe.global)) that will be the owner of “the smart contract”.  As a result, “the smart contract” will only accept updates from this multisig contract.  This is the mechanism by which we accomplish multi-stakeholder consensus of the Lotus, Forest, and Venus implementation teams.
 
 
 ## Specification
@@ -50,20 +50,26 @@ To streamline this process and enhance flexibility, we propose delegating the au
 - This contract will live in a new public repo: [filecoin-project/f3-activation-contract](https://github.com/filecoin-project/f3-activation-contract)
   - Note: while we’ll restrict write access to the repo to Lotus, Forest, and Venus maintainers for general repo hygiene, repo write access isn’t the chief concern.  The key decision is the groups that have the ability to update the state of the published mainnet contract (discussed more below).
 
+### Key Verification
+- Key ownership is communicated by each implementation team adding their keys to this FRC via PR in the [Implementation section](#implementation).
+- One can then following the chain of _contract address hardcoded in implementations_ → _contract address owner_ → _inspect the multisig at https://safe.filecoin.io/home?safe=filecoin:ADDRESS_ → _ensure keys from [Implementation section](#implementation) are present_
+
 ### Controlled Update Mechanism
 - Parameter updates will require full consensus amongst each of the Filecoin implementations: Lotus, Forest, and Venus.  This is implemented with a multisig requiring 3 of 3.
 - Each of the three implementation teams will send signed messages to authorize changes, ensuring security and agreement among stakeholders.
 
 ### Finalization and Self-Disabling
 - This would have “used once finalization”.  The contract does not permit further updates if the currently set bootstrap epoch is in the past.
-- It is designed to automatically disable itself after a period of six months from contract creation, ensuring that any changes are deliberate and well-considered, while preventing indefinite alterations.
-  - This means the bootstrap epoch must be within 6 months months of the contract creation.
-  - If for some reason F3 still isn’t activated within this 6 month window, a network upgrade will be required to update client software to point to a new or updated contract.
+- Assuming bootstrap hasn't already finalized the contract, it is designed to automatically disable itself on 2025-08-01TOO:OO:OOZ, ensuring that any changes are deliberate and well-considered, while preventing indefinite alterations.
+  - This means the bootstrap epoch must be before 2025-08-01.
+  - There is no contingency plan beyond another network upgrade.  If for some reason F3 still isn’t activated within this ~6 month window, a network upgrade will be required to update client software to point to a new contract.
 
 ### Content of the Dynamic Manifest
-- The expected content of the dynamic manifest is expected to comply with the [schema below](#dynamic-manifest-schema).
+- The content of the dynamic manifest is expected to comply with or be similar to [schema below](#dynamic-manifest-schema).  (There may be some shifts in the parameters based on testing from before the nv25 upgrade.)
 - Some of the most important attributes include:
-  - **Bootstrap Epoch:** Specifies the activation time, set no sooner than 72 hours from message transmission. (This is intended to give the community an additional window to react in case there late-discovered issues with the parameters/rollout.  See [Proposed sequence / example timeline](#proposed-sequence--example-timeline) for more context.)
+  - **Bootstrap Epoch:** 
+    - Specifies the activation time, set no sooner than 72 hours from message transmission. This is intended to give the community an additional window to react in case there late-discovered issues with the parameters/rollout.  See [Proposed sequence / example timeline](#proposed-sequence--example-timeline) for more context.
+    - This should match the "activation epoch" that has been set/validated on the contract itself.  Implementations need to validate this or else they are susceptible to activating at a datetime that doesn't meet the restrictions in this proposal.
   - **EC.DelayMultiplier:** Adjusts the delay multiplier for the consensus mechanism.
   - **EC.BaseDecisionBackoffTable:** Defines the backoff strategy for consensus decisions.
   - **EC.HeadLookback:** Determines the how far behind EC is F3 running.
@@ -75,8 +81,11 @@ To streamline this process and enhance flexibility, we propose delegating the au
 - The manifest content that is stored in the contract will be DEFLATE-compressed JSON data.  
 
 #### Dynamic Manifest Schema
+
+> Note: The schema below is provided as an approximation to give readers an understanding of the expected structure. The actual schema may have adjustments based on testing results before the nv25 upgrade.
+
 <details>
-<summary>Click to expand Dynamic Manifest Schema</summary>
+<summary>Click to expand the Dynamic Manifest Schema estimate.</summary>
 
 ```json
 {
@@ -343,6 +352,100 @@ To streamline this process and enhance flexibility, we propose delegating the au
 ```
 </details>
 
+### ABI Sketch
+
+Below isn't the full ABI, but captures the key functions.  See the [implementation notes](#implementation) for links to the full ABI.
+
+```json
+[
+  // This will be invoked by the implementers to set the expiration as 2025-08-01T00:00:00Z
+  {
+    "name": "constructor",
+    "type": "constructor",
+    "inputs": [
+      {
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "name": "expiry", 
+        "type": "uint64"
+      }
+    ],
+    "outputs": []
+  },
+  // This will be invoked by the implementers to set the activation epoch and "good parameter set".
+  {
+    "name": "updateActivationInformation",
+    "type": "function",
+    "inputs": [
+      {
+        "name": "activationEpoch",
+        "type": "uint64"
+      },
+      {
+        "name": "manifestData",
+        "type": "bytes"
+      }
+    ],
+    "outputs": []
+  },
+  // This is the main read method used by implementations.
+  // It will be polled for determining the activation epoch and "the good parameter set".
+  {
+    "name": "activationInformation",
+    "type": "function",
+    "inputs": [],
+    "outputs": [
+      {
+        // activationEpoch
+        "type": "uint64"
+      },
+      {
+        // manifestData
+        "type": "bytes"
+      }
+    ]
+  },
+  // Error cases
+  // Activation epoch is in the past or within 3 days of now.
+  {
+    "name": "UpdateActivationEpochInvalid",
+    "type": "error", 
+    "inputs": [
+      {
+        "name": "currentEpoch",
+        "type": "uint64"
+      },
+      {
+        "name": "activationEpoch",
+        "type": "uint64"
+      },
+      {
+        "name": "reason",
+        "type": "string"
+      }
+    ],
+    "outputs": []
+  },
+  // F3 has already been active.
+  {
+    "name": "UpdateAlreadyActive",
+    "type": "error",
+    "inputs": [],
+    "outputs": []
+  },
+  // It's after 2025-08-01T00:00:00Z
+  {
+    "name": "UpdateExpired",
+    "type": "error",
+    "inputs": [],
+    "outputs": []
+  }
+]
+```
+
+
 ### Proposed sequence / example timeline
 
 *This is an expected sequence of events for using this proposed functionality with an example timeline to aid with clarity on decision points and review periods.*
@@ -350,8 +453,8 @@ To streamline this process and enhance flexibility, we propose delegating the au
 | What? | When Starts? | When Completes? | Why? |
 | --- | --- | --- | --- |
 | create “the multisig contract” | whenever | before deploying “the smart contract” below | Serves as the owner of “the smart contract” and accomplishes multi-stakeholder consensus of the Lotus, Forest, and Venus implementation teams. |
-| deploy “the smart contract” that implements this proposal | by 1 week before nv25 Lotus code freeze | by nv25 Lotus code freeze  | Give community an opportunity to review/audit “the smart contract” before baking its address and owner address into nv25 Lotus/Forest/Venus versions.  It should follow the design in this proposal and comply with the constraints that have been outlined. |
-| update Lotus/Forest/Venus to hardcode “the smart contract” address and owner address | by nv25 Lotus code freeze  | by nv25 Lotus code freeze  | Prevent any tampering with “the smart contract”’s logic/constraints that were reviewed by the community.  |
+| deploy “the smart contract” that implements this proposal | by 1 week before nv25 Lotus code freeze | by nv25 Lotus code freeze  | Give community an opportunity to review/audit “the smart contract” before baking its address into nv25 Lotus/Forest/Venus versions.  It should follow the design in this proposal and comply with the constraints that have been outlined. |
+| update Lotus/Forest/Venus to hardcode “the smart contract” address | by nv25 Lotus code freeze  | by nv25 Lotus code freeze  | Prevent any tampering with “the smart contract”’s logic/constraints that were reviewed by the community.  |
 | nv25 activation |  | date X (ideally in Q1) | Filecoin mainnet nodes/miners now have code that has: 1) Improvements / learnings from the nv24 passive testing. 2) Additional knobs for [nv25 passive testing](https://github.com/filecoin-project/go-f3/issues/802). 3) Does a one-time setting of the F3 “good parameter set” based on querying “the smart contract” as discussed in this proposal. |
 | [nv25 passive testing](https://github.com/filecoin-project/go-f3/issues/802) | X + 1 or 2 days | X + 2 weeks | Empirical testing to ensure we have a “good parameter set” that works well on mainnet.  There will be daily updates on progress and findings, like with nv24, [here](https://github.com/filecoin-project/lotus/discussions/12287).  |
 | announce proposed f3 parameters, proposed activation date, and rationale for these | X+2.5 weeks (after [nv25 passive testing](https://github.com/filecoin-project/go-f3/issues/802)) | X + 2.5 weeks | Give community full visibility into the proposed f3 “good parameter set” that would be one-time-set via “the smart contract” so we can get input and determine whether we need to make any adjustments.  This would be both in English prose in a GitHub community discussion/issue and in PR as a ["task"](https://github.com/filecoin-project/f3-activation-contract/blob/master/tasks/F3Parameters.ts) to run against “the smart contract”. |
@@ -366,19 +469,12 @@ To streamline this process and enhance flexibility, we propose delegating the au
 We considered these options:
 * ❌ do an extra network upgrade - This was rejected for the reasons outlined in [Change Motivation](#change-motivation): too long on the calendar and too people-taxing on the network.
 * ❌ use the same mechanism as passive testing but affect consensus - With passive testing we've already got an ability to dynamically set the F3 parameters.  It is centrally owned and managed though by FilOz engineers that have been driving the F3 implementation.  Centralization for expediency seemed fine when consensus wasn't at play, but the moment that consensus is impacted, we expect network values of decentralization to be followed.
-* ❌ propagate manifest values with PubSub - rather than deliver "the good parameter set" via a smart contract, sign a message form pre-arranged and agreed upon libp2p peer id.  While this would enable multiple stakeholders, it would miss out on the easier transparency and tooling that we get from living with chain-stored state.
+* ❌ propagate manifest values with PubSub - rather than deliver "the good parameter set" via a smart contract, sign a message form pre-arranged and agreed upon libp2p peer id.  While this would enable multiple stakeholders, it would miss out on the easier transparency and tooling that we get from living with chain-stored state.  Specifically this approach doesn't have the stickiness/immutability that we get from state on chain.  It also doesn't have an easy way to canonically reference it.  
 * ✅ distribute via implementation-team owned smart contract - This idea has been shared at multiple [Filecoin Implementers Working Group](https://filecoindev.notion.site/Filecoin-Implementers-Working-Group-118dc41950c180d08a24f0869aae1c1c) meetings without concern, and the [public discussion](https://github.com/filecoin-project/FIPs/discussions/1102) has not raised opposition to the proposal.  We have taken this as approval (or at least acceptance) of this lighter-weight mechanism to move faster while still having a high amount of transparency and safety.
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
 There is no backward incompatibility introduced by this FRC.  Instead, this FRC may be the beginning of a new tool in the ecosystem's toolbelt for being able to make important changes at a faster rate at acceptable safety and transparency levels.  
-
-## Test Cases
-<!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
-* smart contract reading and writing: https://github.com/filecoin-project/f3-activation-contract/blob/master/test/F3Parameters.js
-* Lotus integration: TODO
-* Forest integration: TODO
-* Venus integration: TODO
 
 ## Security Considerations
 <!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
@@ -386,8 +482,8 @@ The following checks and balances are in place to avoid blind-siding anyone in t
 
 1. “the smart contract” code will be open for review for at least a week to help catch any potential vulnerabilities.
     1. Note: we are not planning for this contract to be formally audited because of its simple logic and no user assets being directly at stake.
-2. The nv25-compatible Lotus/Forest/Venus releases will hardcode “the smart contract” address and owner address such that getting clients to use a tampered-version would require a network version.  The PRs for hardcoding “the smart contract” address and owner address will be open for review for at least 2 days to allow for verification.  (And of course since implementations are open source, the contract and owner addresses can be verified at any point.)
-3. Updating the state of “the smart contract” with the bootstrap epoch and “good parameter set” will require signing from “the multiisig contract”, which has three separate but knowledgeable signing groups (Lotus, Forest, and Venus maintainers). The corresponding blockchain message id will be shared on Slack, GitHub, etc. for clear visibility.
+2. The nv25-compatible Lotus/Forest/Venus releases will hardcode “the smart contract” address such that getting clients to use a tampered-version would require a network version.  The PRs for hardcoding “the smart contract” address will be open for review for at least 2 days to allow for verification.  (And of course since implementations are open source, the contract can be verified at any point.)  See [below](#why-do-implementations-only-hardcode-the-contract-address-vs-other-metadata) for why other contract metadata isn't hardcoded.
+3. Updating the state of “the smart contract” with the bootstrap epoch and “good parameter set” will require signing from “the multisig contract”, which has three separate but knowledgeable signing groups (Lotus, Forest, and Venus maintainers). The corresponding blockchain message id will be shared on Slack, GitHub, etc. for clear visibility.
 4. The bootstrap epoch set in the message above will be at least 72 hours in the future, providing one more window to course correct.
 5. “the smart contract” code will disregard any bootstrap updates that are 6 months in future of the contract creation date, ensuring this one-time setting mechanism has an upper bound.  (It’s expected that its “used once finalization” will occur well before this “self-disablement”.) 
 6. The “good parameter set” and bootstrap epoch cannot be updated if “the smart contract” has a bootstrap epoch set that is in the past.  (This conforms to “use only once and then finalize”.)
@@ -407,17 +503,25 @@ For this proposed activation strategy, we believe the guardrails and transparenc
   * source code: https://github.com/filecoin-project/f3-activation-contract/blob/master/contracts/F3Parameters.sol
   * mainnet contract verification: TODO
 * multisig owning contract
-  * address: TODO
-  * Lotus public key: TODO
+  * address: [0x53bd89Ff2Ff97541f42ACC3AFC0C0030e7410422](https://safe.filecoin.io/address-book?safe=filecoin:0x53bd89Ff2Ff97541f42ACC3AFC0C0030e7410422)
+  * Lotus public key: [0x6743938A48fC8799A5608EF079C53f3cF3B84398](https://filecoin.blockscout.com/address/0x6743938A48fC8799A5608EF079C53f3cF3B84398)
   * Forest public key: TODO 
   * Venus public key: TODO
 * Lotus integration code: TODO ([tracking issue](https://github.com/filecoin-project/go-f3/issues/824))
 * Forest integration code: TODO
 * Venus integration code: TODO
 
+### Test Cases
+<!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
+* smart contract reading and writing: https://github.com/filecoin-project/f3-activation-contract/blob/master/test/F3Parameters.js
+* Lotus integration: TODO
+* Forest integration: TODO
+* Venus integration: TODO
+
 ## TODO
 <!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a “Last Call” status once all these items have been resolved.-->
 * Implementation and integration master tracking issue: https://github.com/filecoin-project/go-f3/issues/828
+* All the "TODO"s referenced above, which are largely related to implementation teams providing their keys, integration code, and test cases.
 
 
 ## FAQ
@@ -426,6 +530,9 @@ For this proposed activation strategy, we believe the guardrails and transparenc
 
 [F3 FIP-0086](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0086.md) focuses on the protocol changes, which already has community agreement to ship.  This was separated out because it's a discussion on _how_ to deliver the protocol changes that have already been approved.  We didn't want the community acceptance of FIP-0086 to be clouded by the delivery vehicle.  In addition, we forsee this proposed "delegated authority" approach being a potential pattern to learn from or use again in the future as the ecosystem seeks to move faster while still having safety and community transparency.  As a result, we thought this potential case study should be more easily addressed and referenced if it wasn't buried within an already very long FIP.  
 
+### Why do implementations only hardcode the contract address vs. other metadata?
+
+From a threat model perspective, the implementation teams are supposed to own the the smart contract.  In order to be malicious by changing ownership of the smart contract, the "good parameter set" stored within the contract or the contract's logic, they would need to collude.  If the implementation teams are all colluding for nefarious purposes, we have much bigger problems...  As a result, hard coding in the implementations the owner address or a hash of the of the smart contract code isn't actually buying any extra security.
 
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
