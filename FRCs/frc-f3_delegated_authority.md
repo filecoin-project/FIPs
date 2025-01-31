@@ -1,0 +1,431 @@
+---
+fip: "<to be assigned>" <!--keep the qoutes around the fip number, i.e: `fip: "0001"`-->
+title: Delegation of Authority for F3 Parameter Setting
+author: "@Kubuxu @BigLep"
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/1102
+status: Draft
+type: FRC
+created: 2025-01-30
+requires (*optional): FIP-0086
+# category: 
+# spec-sections: 
+#  - <section-id>
+#  - <section-id>
+#replaces (*optional): <FIP number(s)>
+---
+
+<!--You can leave these HTML comments in your merged FIP and delete the visible duplicate text guides, they will not appear and may be helpful to refer to if you edit it again. This is the suggested template for new FIPs. Note that a FIP number will be assigned by an editor. When opening a pull request to submit your FIP, please use an abbreviated title in the filename, `fip-draft_title_abbrev.md`. The title should be 44 characters or less.-->
+
+# FIP-Number: Title
+
+## Simple Summary
+<!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
+Avoid a full network upgrade for setting F3 activation parameters by instead delegating parameter setting to the Lotus, Forest, and Venus implementation teams, who will set these parameters on-chain for one-time use on mainnet.
+
+## Abstract
+<!--A short (~200 word) description of the technical issue being addressed.-->
+This FRC proposes introducing an on-chain smart contract that can manage F3 parameters dynamically. This contract would be owned/controlled through a multi-signature mechanism requiring consensus from all three major Filecoin implementations (Lotus, Forest, and Venus). The contract would allow for a one-time parameter update based on mainnet passive test results, effectively combining what would have been two network upgrades into one while maintaining security through multiple stakeholder approval, full onchain transparency, and built-in time delays for community review.
+
+## Change Motivation
+<!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
+The Fast Finality (F3) feature for Filecoin requires comprehensive testing under mainnet conditions to ensure its effectiveness and reliability. These live network conditions are challenging to replicate in test environments, and thus, the parameters for F3 are contingent upon the results of these mainnet tests. By default this necessitates two distinct network upgrades: one enabling Storage Providers to update their software for testing purposes, and a subsequent one for setting the finalized parameters.  At least as of 202501, network upgrades are "costly" in terms of the multiple party coordination and for good reasons take a couple of calendar months to fully execute in non-emergency situations.  Implementers who are taking on delivering F3, as already approved by the network in [FIP-0086](../FIPS/fip-0086.md), want to deliver the benefits of F3 network faster while minimize the "people resource" consumption on the network and their teams.  (See https://github.com/filecoin-project/go-f3/issues/800 for more info.)
+
+### Terminology
+
+*Below are common terms used through the rest of this document.*
+
+- nv25 - The network upgrade that will deliver the next batch of F3 protocol and code changes, which we also expect is the last network upgrade for activating F3 on mainnet.
+- "the implementations" - This means the main active Filecoin implementations: Lotus, Forest, and Venus.
+- “the smart contract” - This is the smart contract referred to in this proposal that contains the “good parameter set” and the bootstrap epoch.  The source code will live in [filecoin-project/f3-activation-contract](https://github.com/filecoin-project/f3-activation-contract) and its address and owner address will be hardcoded in Lotus/Forest/Venus nv25-compatible releases.  The owner address is "the multisig contract" discussed below.
+- “good parameter set” - This is the set of F3 configuration parameters that will be determined as part of [nv25 mainnet passive testing](https://github.com/filecoin-project/go-f3/issues/802).  This parameter set will have sustained demonstrated success in mainnet.  It will be stored in "the smart contract" as DEFLATE compressed JSON data, and it will be consumed by "the implementations".
+- “the multisig contract” - This is a standard off-the-shelf multisig EVM contract that will be the owner of “the smart contract”.  As a result, “the smart contract” will only accept updates from this multisg contract.  This is the mechanism by which we accomplish multi-stakeholder consensus of the Lotus, Forest, and Venus implementation teams.
+
+
+## Specification
+<!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
+To streamline this process and enhance flexibility, we propose delegating the authority for setting F3 parameters to an on-chain contract so F3 activation in mainnet can be accomplished with one network upgrade rather than two. This contract will be responsible for managing a predefined set of parameters and making go/no-go decisions regarding their implementation.
+
+### On-Chain Contract for Parameter Management
+- Move the parameter setting from the build phase to an on-chain contract, allowing for a singular dynamic update based on real-time test results.
+- This contract will live in a new public repo: [filecoin-project/f3-activation-contract](https://github.com/filecoin-project/f3-activation-contract)
+  - Note: while we’ll restrict write access to the repo to Lotus, Forest, and Venus maintainers for general repo hygiene, repo write access isn’t the chief concern.  The key decision is the groups that have the ability to update the state of the published mainnet contract (discussed more below).
+
+### Controlled Update Mechanism
+- Parameter updates will require full consensus amongst each of the Filecoin implementations: Lotus, Forest, and Venus.  This is implemented with a multisig requiring 3 of 3.
+- Each of the three implementation teams will send signed messages to authorize changes, ensuring security and agreement among stakeholders.
+
+### Finalization and Self-Disabling
+- This would have “used once finalization”.  The contract does not permit further updates if the currently set bootstrap epoch is in the past.
+- It is designed to automatically disable itself after a period of six months from contract creation, ensuring that any changes are deliberate and well-considered, while preventing indefinite alterations.
+  - This means the bootstrap epoch must be within 6 months months of the contract creation.
+  - If for some reason F3 still isn’t activated within this 6 month window, a network upgrade will be required to update client software to point to a new or updated contract.
+
+### Content of the Dynamic Manifest
+- The expected content of the dynamic manifest is expected to comply with the [schema below](#dynamic-manifest-schema).
+- Some of the most important attributes include:
+  - **Bootstrap Epoch:** Specifies the activation time, set no sooner than 72 hours from message transmission. (This is intended to give the community an additional window to react in case there late-discovered issues with the parameters/rollout.  See [Proposed sequence / example timeline](#proposed-sequence--example-timeline) for more context.)
+  - **EC.DelayMultiplier:** Adjusts the delay multiplier for the consensus mechanism.
+  - **EC.BaseDecisionBackoffTable:** Defines the backoff strategy for consensus decisions.
+  - **EC.HeadLookback:** Determines the how far behind EC is F3 running.
+  - **GPBFTConfig:** Configures the parameters for the GPBFT consensus protocol.
+  - **CxConfig:** Configuration of Chain Exchange protocol
+  - **PubSubConfig:** Configuration of F3’s usage of PubSub.
+  - **CatchUpAlignment:** Aligns catch-up processes with network requirements.
+- The smart contract itself will not do any conformance checking of the manifest data.  It is up to implementations to decompress and parse the data and defensively set the allowed parameters.
+- The manifest content that is stored in the contract will be DEFLATE-compressed JSON data.  
+
+#### Dynamic Manifest Schema
+<details>
+<summary>Click to expand Dynamic Manifest Schema</summary>
+
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": [
+    "Pause",
+    "ProtocolVersion",
+    "InitialInstance",
+    "BootstrapEpoch",
+    "NetworkName",
+    "CommitteeLookback",
+    "CatchUpAlignment",
+    "Gpbft",
+    "EC",
+    "CertificateExchange",
+    "PubSub",
+    "ChainExchange"
+  ],
+  "properties": {
+    "Pause": {
+      "type": "boolean",
+      "description": "Flag to pause the protocol"
+    },
+    "ProtocolVersion": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Version number of the protocol"
+    },
+    "InitialInstance": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Initial instance number"
+    },
+    "BootstrapEpoch": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Epoch number for bootstrapping"
+    },
+    "NetworkName": {
+      "type": "string",
+      "description": "Name of the network"
+    },
+    "ExplicitPower": {
+      "type": ["null", "object"],
+      "description": "Optional explicit power configuration"
+    },
+    "IgnoreECPower": {
+      "type": "boolean",
+      "description": "Flag to ignore EC power"
+    },
+    "InitialPowerTable": {
+      "type": ["null", "object"],
+      "description": "Optional initial power table configuration"
+    },
+    "CommitteeLookback": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of blocks to look back for committee"
+    },
+    "CatchUpAlignment": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Alignment value for catch-up process"
+    },
+    "Gpbft": {
+      "type": "object",
+      "required": [
+        "Delta",
+        "DeltaBackOffExponent",
+        "QualityDeltaMultiplier",
+        "MaxLookaheadRounds",
+        "ChainProposedLength",
+        "RebroadcastBackoffBase",
+        "RebroadcastBackoffExponent",
+        "RebroadcastBackoffSpread",
+        "RebroadcastBackoffMax"
+      ],
+      "properties": {
+        "Delta": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Base delta value"
+        },
+        "DeltaBackOffExponent": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Exponent for delta backoff calculation"
+        },
+        "QualityDeltaMultiplier": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Multiplier for quality delta"
+        },
+        "MaxLookaheadRounds": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum number of lookahead rounds"
+        },
+        "ChainProposedLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Proposed length of the chain"
+        },
+        "RebroadcastBackoffBase": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Base value for rebroadcast backoff"
+        },
+        "RebroadcastBackoffExponent": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Exponent for rebroadcast backoff"
+        },
+        "RebroadcastBackoffSpread": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Spread value for rebroadcast backoff"
+        },
+        "RebroadcastBackoffMax": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum rebroadcast backoff value"
+        }
+      }
+    },
+    "EC": {
+      "type": "object",
+      "required": [
+        "Period",
+        "Finality",
+        "DelayMultiplier",
+        "BaseDecisionBackoffTable",
+        "HeadLookback",
+        "Finalize"
+      ],
+      "properties": {
+        "Period": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Period duration"
+        },
+        "Finality": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Finality parameter"
+        },
+        "DelayMultiplier": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Multiplier for delay calculations"
+        },
+        "BaseDecisionBackoffTable": {
+          "type": "array",
+          "items": {
+            "type": "number",
+            "minimum": 0
+          },
+          "description": "Table of backoff values for base decisions"
+        },
+        "HeadLookback": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Number of blocks to look back from head"
+        },
+        "Finalize": {
+          "type": "boolean",
+          "description": "Flag to enable finalization"
+        }
+      }
+    },
+    "CertificateExchange": {
+      "type": "object",
+      "required": [
+        "ClientRequestTimeout",
+        "ServerRequestTimeout",
+        "MinimumPollInterval",
+        "MaximumPollInterval"
+      ],
+      "properties": {
+        "ClientRequestTimeout": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Timeout for client requests"
+        },
+        "ServerRequestTimeout": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Timeout for server requests"
+        },
+        "MinimumPollInterval": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Minimum interval between polls"
+        },
+        "MaximumPollInterval": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum interval between polls"
+        }
+      }
+    },
+    "PubSub": {
+      "type": "object",
+      "required": ["CompressionEnabled"],
+      "properties": {
+        "CompressionEnabled": {
+          "type": "boolean",
+          "description": "Flag to enable compression"
+        }
+      }
+    },
+    "ChainExchange": {
+      "type": "object",
+      "required": [
+        "SubscriptionBufferSize",
+        "MaxChainLength",
+        "MaxInstanceLookahead",
+        "MaxDiscoveredChainsPerInstance",
+        "MaxWantedChainsPerInstance",
+        "RebroadcastInterval",
+        "MaxTimestampAge"
+      ],
+      "properties": {
+        "SubscriptionBufferSize": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Size of the subscription buffer"
+        },
+        "MaxChainLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum length of the chain"
+        },
+        "MaxInstanceLookahead": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum number of instances to look ahead"
+        },
+        "MaxDiscoveredChainsPerInstance": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum number of discovered chains per instance"
+        },
+        "MaxWantedChainsPerInstance": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum number of wanted chains per instance"
+        },
+        "RebroadcastInterval": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Interval between rebroadcasts"
+        },
+        "MaxTimestampAge": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "Maximum age of timestamps"
+        }
+      }
+    }
+  }
+}
+```
+</details>
+
+### Proposed sequence / example timeline
+
+*This is an expected sequence of events for using this proposed functionality with an example timeline to aid with clarity on decision points and review periods.*
+
+| What? | When Starts? | When Completes? | Why? |
+| --- | --- | --- | --- |
+| create “the multisig contract” | whenever | before deploying “the smart contract” below | Serves as the owner of “the smart contract” and accomplishes multi-stakeholder consensus of the Lotus, Forest, and Venus implementation teams. |
+| deploy “the smart contract” that implements this proposal | by 1 week before nv25 Lotus code freeze | by nv25 Lotus code freeze  | Give community an opportunity to review/audit “the smart contract” before baking its address and owner address into nv25 Lotus/Forest/Venus versions.  It should follow the design in this proposal and comply with the constraints that have been outlined. |
+| update Lotus/Forest/Venus to hardcode “the smart contract” address and owner address | by nv25 Lotus code freeze  | by nv25 Lotus code freeze  | Prevent any tampering with “the smart contract”’s logic/constraints that were reviewed by the community.  |
+| nv25 activation |  | date X (ideally in Q1) | Filecoin mainnet nodes/miners now have code that has: 1) Improvements / learnings from the nv24 passive testing. 2) Additional knobs for [nv25 passive testing](https://github.com/filecoin-project/go-f3/issues/802). 3) Does a one-time setting of the F3 “good parameter set” based on querying “the smart contract” as discussed in this proposal. |
+| [nv25 passive testing](https://github.com/filecoin-project/go-f3/issues/802) | X + 1 or 2 days | X + 2 weeks | Empirical testing to ensure we have a “good parameter set” that works well on mainnet.  There will be daily updates on progress and findings, like with nv24, [here](https://github.com/filecoin-project/lotus/discussions/12287).  |
+| announce proposed f3 parameters, proposed activation date, and rationale for these | X+2.5 weeks (after [nv25 passive testing](https://github.com/filecoin-project/go-f3/issues/802)) | X + 2.5 weeks | Give community full visibility into the proposed f3 “good parameter set” that would be one-time-set via “the smart contract” so we can get input and determine whether we need to make any adjustments.  This would be both in English prose in a GitHub community discussion/issue and in PR as a ["task"](https://github.com/filecoin-project/f3-activation-contract/blob/master/tasks/F3Parameters.ts) to run against “the smart contract”. |
+| community review period | X+2.5 weeks (after public announcement / PR) | X + 3.5 weeks | Ensure there is buy-in (or at least not major active opposition) to the “good parameter set” and bootstrap epoch. |
+| set the bootstrap epoch and “good parameter set” on “the smart contract” with an activation epoch (which is at least 3 days in the future) | X + 3.5 weeks (after community review period) | X + 3.5 weeks | Nodes that are participating in nv25 will pick up the “good parameter set” and start using them at the bootstrap epoch.   Given the bootstrap epoch is sufficiently in the future, if an issue wasn’t caught in the previous review period, there is still time to abort by updating “the smart contract” with a bootstrap epoch further in the future and/or to deploy client software that ignores the “good parameter set” values in “the smart contract”.   |
+| (optional) publish new Lotus, Forest, and Venus versions with the f3 “good parameter set” inline and removal of delegated setting via smart contract | X + 3.5 weeks (after community review period) | X + 3.5 weeks | Operators aren’t required to update to this version, but it gives them a way to run code that no longer has an opening for delegated authority.   |
+| bootstrap epoch | X + 4 weeks (starts based on the bootstrap epoch that was set as part of publishing “the smart contract”.) | X + 4 weeks | This is what activates F3 on Mainnet.  This is what the network has been building towards for months 🙂 |
+| active mainnet monitoring | X + 4 weeks (after bootstrap epoch) | Indefinite | F3 in nainnet has now become a default aspect that is monitored and reviewed with other network metrics given its importance for the network.   |
+
+## Design Rationale
+<!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
+We considered these options:
+* ❌ do an extra network upgrade - This was rejected for the reasons outlined in [Change Motivation](#change-motivation): too long on the calendar and too people-taxing on the network.
+* ❌ use the same mechanism as passive testing but affect consensus - With passive testing we've already got an ability to dynamically set the F3 parameters.  It is centrally owned and managed though by FilOz engineers that have been driving the F3 implementation.  Centralization for expediency seemed fine when consensus wasn't at play, but the moment that consensus is impacted, we expect network values of decentralization to be followed.
+* ❌ propagate manifest values with PubSub - rather than deliver "the good parameter set" via a smart contract, sign a message form pre-arranged and agreed upon libp2p peer id.  While this would enable multiple stakehlders, it would miss out on the easier transparency and tooling that we get from living with chain-stored state.
+* ✅ distribute via implemenation-team owned smart contract - This idea has been shared at multiple [Filecoin Implementers Working Group](https://filecoindev.notion.site/Filecoin-Implementers-Working-Group-118dc41950c180d08a24f0869aae1c1c) meetings without concern, and the [public discussion](https://github.com/filecoin-project/FIPs/discussions/1102) has not raised opposition to the proposal.  We have taken this as approval (or at least acceptance) of this lighter-weight mechanism to move faster while still having a high amount of transparency and safety.
+
+## Backwards Compatibility
+<!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
+There is no backward incompatibility introduced by this FRC.  Instead, this FRC may be the beginning of a new tool in the ecosystem's toolbelt for being able to make important changes at a faster rate at acceptable safety and transparency levels.  
+
+## Test Cases
+<!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
+* smart contract reading and writing: https://github.com/filecoin-project/f3-activation-contract/blob/master/test/F3Parameters.js
+* Lotus integration: TODO
+* Forest integration: TODO
+* Venus integration: TODO
+
+## Security Considerations
+<!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
+The following checks and balances are in place to avoid blind-siding anyone in the network and to use the collective community to catch any potential mistakes or security issues:
+
+1. “the smart contract” code will be open for review for at least a week to help catch any potential vulnerabilities.
+    1. Note: we are not planning for this contract to be formally audited because of its simple logic and no user assets being directly at stake.
+2. The nv25-compatible Lotus/Forest/Venus releases will hardcode “the smart contract” address and owner address such that getting clients to use a tampered-version would require a network version.  The PRs for hardcoding “the smart contract” address and owner address will be open for review for at least 2 days to allow for verification.  (And of course since implementations are open source, the contract and owner addresses can be verified at any point.)
+3. Updating the state of “the smart contract” with the bootstrap epoch and “good parameter set” will require signing from “the multiisig contract”, which has three separate but knowledgeable signing groups (Lotus, Forest, and Venus maintainers). The corresponding blockchain message id will be shared on Slack, GitHub, etc. for clear visibility.
+4. The bootstrap epoch set in the message above will be at least 72 hours in the future, providing one more window to course correct.
+5. “the smart contract” code will disregard any bootstrap updates that are 6 months in future of the contract creation date, ensuring this one-time setting mechanism has an upper bound.  (It’s expected that its “used once finalization” will occur well before this “self-disablement”.) 
+6. The “good parameter set” and bootstrap epoch cannot be updated if “the smart contract” has a bootstrap epoch set that is in the past.  (This conforms to “use only once and then finalize”.)
+
+
+## Incentive Considerations
+<!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
+This proposal does not affect incentives.  In nv25 and the period immediately following, f3 participation will still be voluntary without any direct charge to SPs who opt out.  While we believe SPs have indirect incentivization in the long term to enable F3 because of the wider capabilities it brings to the network, direct incentivization will be designed and encouraged in followup network upgrades (see [current proposal discussion](https://github.com/filecoin-project/FIPs/discussions/1106)).
+
+## Product Considerations
+<!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
+For this proposed activation strategy, we believe the guardrails and transparency proposed should have no adverse product impact.  Instead, we expect the network will get the [F3 benefits](../FIPS/fip-0086.md#product-considerations) quicker and with less net effort than an additional network upgrade.
+
+## Implementation
+<!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
+* smart contract:
+  * source code: https://github.com/filecoin-project/f3-activation-contract/blob/master/contracts/F3Parameters.sol
+  * mainnet contract verification: TODO
+* multisig owning contract
+  * address: TODO
+  * Lotus public key: TODO
+  * Forest public key: TODO 
+  * Venus public key: TODO
+* Lotus integration code: TODO ([tracking issue](https://github.com/filecoin-project/go-f3/issues/824))
+* Forest integration code: TODO
+* Venus integration code: TODO
+
+## TODO
+<!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a “Last Call” status once all these items have been resolved.-->
+* Implementation and integration master tracking issue: https://github.com/filecoin-project/go-f3/issues/828
+
+
+## FAQ
+
+### Why was this done as an FRC rather than as addition to the F3 FIP?
+
+[F3 FIP-0086](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0086.md) focuses on the protocol changes, which already has community agreement to ship.  This was separated out because it's a discussion on _how_ to deliver the protocol changes that have already been approved.  We didn't want the community acceptance of FIP-0086 to be clouded by the delivery vehicle.  In addition, we forsee this proposed "delegated authority" appproach being a potential pattern to learn from or use again in the future as the ecosystem seeks to move faster while still having safety and community transparency.  As a result, we thought this potential case study should be more easily addressed and referenced if it wasn't buried within an already very long FIP.  
+
+
+## Copyright
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
