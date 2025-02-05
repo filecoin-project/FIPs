@@ -57,20 +57,19 @@ We propose a replacement mechanism that preserves these effects while adhering t
  - Enable future optimizations in the network’s execution layer.
 
 **Proposal Details**: We introduce a per-sector fee, whose value is proportional to a fixed fraction of the circulating supply value at that moment and to the sector duration. To prevent this fee from becoming a significant upfront cost that could hinder onboarding, we propose daily payments instead of an upfront fee. Moreover, as a safety measure for the highly-optimistically network growth scenarios, we propose capping the daily payment at a fixed percentage of the 24h expected per-sector block reward.
-More in details: at provecommit time we compute the value
+More in details: at provecommit time we compute the values 
 
-				 `dailyFee= k * CS(t)` 
-     
-Where `k= 7.4 E-15` is a system constant and `t` is the sector activation epoch. Then, the value 
+				 dailyFee= k * CS(t)
+where `k = 7.4 E-15` is a system constant and `t` is the sector activation epoch. Then, the value 
 
-			`dailyPayment = min (dailyFee,  m * 24hBR)` 
+			dailyPayment = min (dailyFee,  m * 24hBR) 
 is paid daily for each new sector onboarded after this FIP is deployed (`m= 0.5` is another system constant). 
 
 Note that the daily payment is due everyday until sector expiration. In particular:
-Even if a sector becomes faulty for the day, the payment is due. In other words, the dailyPayment is paid at windowPoSt time for all sectors in one the following state: active, faulty, recovered;
-The total fee per sector over its full sector lifetime is: sectorFee = dailyPayment sectorDurationInDays. If a sector is terminated, the remaining of sectorFee gets computed and paid at termination (can be paid together with termination fee); 
-If a sector is extended, the dailyPayment is not changed and the sector will keep paying the same value for the extended lifetime.
-
+- Even if a sector becomes faulty for the day, the payment is due. In other words, the dailyPayment is paid at windowPoSt time for all sectors in one the following state: active, faulty, recovered;
+- The total fee per sector over its full sector lifetime is: `sectorFee = dailyPayment sectorDurationInDays`. If a sector is terminated, the remaining of `sectorFee` gets computed and paid at termination (paid together with termination fee); 
+- If a sector is extended, the dailyPayment is not changed and the sector will keep paying the same value for the extended lifetime.
+- TODO: sector updates ? 
 
 ### Gas-limited constraints
 
@@ -99,26 +98,25 @@ We aimed for a design that is simple to understand and model, and relatively sim
 - **Upfront Payment vs. Ongoing Payment**: The first offers better predictability, while the second reduces the risk of creating an entry barrier. With this FIP, we chose a hybrid approach that captures the benefits of both by computing the fee upfront for predictability, but allowing it to be paid daily over sector lifetime instead of as a lump sum upfront.
 
 - **Flat Fee vs. Dynamic Fee**: A fixed per-sector fee provides predictability and consistency, while a fluctuating fee based on network congestion, onboarding rate, or other variables better captures value when the network is actively providing a service. We chose a model where the fee is a fixed fraction of a quantity that adjusts to economic conditions. We evaluated the following economic indicators for determining the per-sector fee: Initial Pledge (IP), per-sector Block Reward (BR) and Circulating Supply (CS). 
-  - The Initial Pledge was discarded to avoid complex system dependencies, as changes to IP in future FIPs could unintentionally impact the per-sector fee. 
+  - The IP-based fee was discarded to avoid complex system dependencies, as changes to IP in future FIPs could unintentionally impact the per-sector fee. 
   - The BR-based fee was discarded because the fee-to-reward ratio did not adjust properly to network growth, leading to high fees even when onboarding demand was low. See here for more details (TODO add link)
   - CS was ultimately chosen because it normalizes fees relative to the Filecoin economy, ensuring both adaptability and predictability.  
 
-We reached this conclusion through simulation-based analysis, modeling the impact of fees under different network conditions. Specifically, we evaluated multiple input trajectories—0.5×, 0.75×, 1×, and 2× the current onboarding, renewal, and FIL+ rates. Since both renewals and FIL+ are near 100%, we capped them at their current maximum. (See Fig. 1)
-
-<div style="text-align: center;">
-  <img src="https://github.com/user-attachments/assets/41d7a4e1-6203-41a7-ad8d-e3f44f71bde0" alt="Screenshot" width="600">
+We reached this conclusion through simulation-based analysis, modeling the impact of fees under different network conditions. Specifically, we evaluated multiple input trajectories: 0.5×, 0.75×, 1×, and 2× the current onboarding, renewal, and FIL+ rates. Since both renewals and FIL+ are near 100%, we capped them at their current maximum (see Fig. 1).
+<div align="center"">
+  <img src="https://github.com/user-attachments/assets/e4ac2327-e1bf-4512-8f7c-cee45a45218b" width="650">
+  <p><em>Fig 1: Network state evolution for each input trajectory. 
+</em></p>
 </div>
 
-
-
-
-For each trajectory, we analyzed the expected fee and related metrics over time. Fig. 2 presents these results for the CS-based fee, incorporating a daily cap at 50% of the per-sector block reward (BR). Notably, Fig. 2 confirms that the CS-based fee proposed in this FIP offers the following key advantages:
+For each trajectory, we analyzed the expected fee and related metrics over time. Fig. 2 presents these results for the CS-based fee, incorporating a daily cap at 50% of the per-sector block reward as a safety measure in high-growth scenarios. Notably, Fig. 2 confirms that the CS-based fee proposed in this FIP offers the following key advantages:
 - **Stable Economic Reference**: A fixed percentage of CS functions like a fixed USD fee if market cap remains stable, keeping costs predictable;
 - **Adapts to Market Conditions**: If Filecoin’s valuation rises, fees increase in FIL terms, scaling with the economy. If the market stagnates, fees stay economically consistent.
-
-![Screenshot 2025-02-04 at 18 53 21](https://github.com/user-attachments/assets/7be95ca1-d855-4c32-91c7-a8d48026e197)
-
-
+<div align="center">
+    <img src="https://github.com/user-attachments/assets/018fb429-de90-4a86-9c15-6c244a699487">
+    <p><em>Figure 2: CS-based fee evolution as a function of various network metrics. Here we considered a daily payment that is a fixed % of CS-based and capped at 50% of 24hBR as a safety measure.
+</em></p>
+</div>
 
 
 ## Backwards Compatibility
