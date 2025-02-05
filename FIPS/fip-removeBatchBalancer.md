@@ -133,12 +133,13 @@ This FIP does not affect underlying proofs or protocol security.
 
 Filecoin’s network revenue model is currently tied to the gas usage, and the most amount of gas is used by storage onboarding methods. This creates an incentive misalignment, where economic considerations lead to an incentive to not optimize the gas usage of onboarding methods, as this could hurt overall network revenue. 
 
-The Batch Balancer mechanism exemplifies this concept: batching and aggregating abilities were introduced to increase gas efficiency of onboarding methods, but the batch balancer mechanism was put in place to essentially turn off these abilities at times of low demand, to protect Filecoin’s economic interests.
+The Batch Balancer mechanism exemplifies this concept: batching and aggregating abilities were introduced to increase gas efficiency of onboarding methods, but the batch balancer mechanism restricted use of these abilities to when the network demand was high, to protect Filecoin’s economic interests.
 
-This FIP fixes this incentive misalignment by disconnecting the network revenue from gas usage. The removal of the batch balancer, allows for aggregation to occur even at current levels of demand. We expect this to lead to a reduction of about ~30% in per-sector onboarding gas. This would in turn result in a drop in base fee, and therefore a drop in gas-based network revenue. 
+This FIP fixes this incentive misalignment by disconnecting the network revenue from gas usage. The removal of the batch balancer allows for aggregation to occur at any level of demand regardless of network utilization rate (such as current levels of demand). We expect this to lead to a reduction of about ~30% in per-sector onboarding gas. This would in turn result in a drop in base fee, and therefore a drop in gas-based network revenue. 
 
-The explicit per-sector fee introduced by this FIP allows us to remove the batch balancer, and allow any other future gas usage optimizations, without adding macroeconomic risk. 
+The explicit per-sector fee introduced by this FIP allows us to remove the batch balancer, and support other future gas usage optimizations, without adding macroeconomic risk. 
 
+The removal of batch balancer and associated reduction in gas fees are up-front improvements to SP costs designed to unblock and support faster data onboarding. This up-front cost-reduction is balanced by the per-sector fee that is charged gradually over the sector lifetime, starting at a small fraction of daily block rewards and adjusting dynamically based on network economic growth rate. 
 
 
 ## Product Considerations 
