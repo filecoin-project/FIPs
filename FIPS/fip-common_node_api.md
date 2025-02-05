@@ -46,16 +46,28 @@ Additionally, by establishing a specification we seek to establish a greater res
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
 
-Using the OpenRPC specification format we define several groups of methods. These methods are defined in the OpenRPC specification found here: https://github.com/ChainSafe/filecoin-openrpc-spec. A list of the methods is included below for posterity.
+Using the [OpenRPC document](https://spec.open-rpc.org/#openrpc-document) format we define several groups of methods.
+This specification can be found here: https://github.com/ChainSafe/filecoin-openrpc-spec. A list of the methods is included below for posterity.
 
 All methods are reproduced identically to their present implementation in Lotus 1.26.1.
-Note that Lotus hosts two different API's at HTTP paths [`/rpc/v0`](https://github.com/filecoin-project/lotus/blob/v1.28.0-rc5/documentation/en/api-v0-methods.md) and [`/rpc/v1`](https://github.com/filecoin-project/lotus/blob/v1.28.0-rc5/documentation/en/api-v1-unstable-methods.md),
+> Note: Lotus hosts two different API's at HTTP paths [`/rpc/v0`](https://github.com/filecoin-project/lotus/blob/v1.
+> 28.0-rc5/documentation/en/api-v0-methods.md) and [`/rpc/v1`](https://github.com/filecoin-project/lotus/blob/v1.28.0-rc5/documentation/en/api-v1-unstable-methods.md),
 with the latter being marked as _unstable_.
 This document aims to specify the `v1` API.
 
 Categories have been assigned to indicate the identified use case (see Design Rationale).
 
-Node implementers must include all specified methods in their API without any modifications. Implementers may choose to provide additional methods beyond what is included in this specification. The endpoint used to serve RPC requests must be versioned acccording the majo
+Node implementations must include all specified methods in their API without any modifications. 
+
+Conformance to the specification requires the following conditions to be met:
+- For each method, the `name`, `paramStructure` and `deprecated` fields must match the specification. Additionally, the number and order of parameters much also match the specification.
+
+- For each parameter of a method, the `name`, `schema`, `required` and `deprecated` fields must all match the specification.
+
+- For the result of a method, the `name`, `schema`, `required` and `deprecated` fields must all match the specification.
+
+Implementations may include additional fields in their OpenRPC documents. Implementations may also expose additional 
+methods beyond what is included in this specification.
 
 ## Methods
 
@@ -171,7 +183,7 @@ This interface is contrived from the existing [Lotus RPC V1 interface](https://g
 We target two groups of users: *end users* and *node operators*. These each have their own requirements for particular data and access control. While no attempt is made in this FIP to specify considerations  for these groups (eg. access control), these groups are used to justify the need for particular methods.
 
 
-Methods included in the API fall into one of these categories:
+The methods in the API are divided into these categories:
 
 - State Queries
   - These primarily concern the chain state, actor state or network (p2p) state. They are read-only methods that are necessary to expose all elements of global state.
@@ -250,9 +262,7 @@ A better API, one that is well defined and carefully constructed, will ease the 
 ## TODO
 <!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a “Last Call” status once all these items have been resolved.-->
 
-- [ ] Improve descriptions for included methods
-- [ ] Transfer spec repo to filecoin-project and update links above
-- [ ] Add examples to all methods in spec
+- [ ] Update spec repo to include final spec
 
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
