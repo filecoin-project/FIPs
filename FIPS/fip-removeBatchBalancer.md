@@ -56,20 +56,18 @@ We propose a replacement mechanism that preserves these effects while adhering t
  - Avoid additional onboarding rate limits.
  - Enable future optimizations in the network’s execution layer.
 
-**Proposal Details**: We introduce a per-sector fee, whose value is proportional to a fixed fraction of the circulating supply value at that moment and to the sector duration. To prevent this fee from becoming a significant upfront cost that could hinder onboarding, we propose daily payments instead of an upfront fee. Moreover, as a safety measure for the highly-optimistically network growth scenarios, we propose capping the daily payment at a fixed percentage of the 24h expected per-sector block reward.
-More in details: at provecommit time we compute the values 
+**Proposal Details**: We introduce a per-sector fee, whose value is proportional to a fixed fraction of the circulating supply and to the sector duration. To prevent this fee from becoming a significant upfront cost that could hinder onboarding, we propose daily payments instead of an upfront fee. Moreover, as a safety measure for the high-growth scenarios, we propose capping the daily payment at a fixed percentage of the daily expected per-sector block reward.
 
-				 dailyFee= k * CS(t)
-where `k = 7.4 E-15` is a system constant and `t` is the sector activation epoch. Then, the value 
+More in details: at provecommit time we compute the value 
 
-			dailyPayment = min (dailyFee,  m * 24hBR) 
-is paid daily for each new sector onboarded after this FIP is deployed (`m= 0.5` is another system constant). 
+				 dailyFee = k * CS(t)
+where `k = 7.4 E-15` is a system constant and `t` is the sector activation epoch. Then, we cap it using the  `expected_day_reward` value that is currently already computed as part of the onchain sector info [link](https://github.com/filecoin-project/builtin-actors/blob/5aad41bfa29d8eab78f91eb5c82a03466c6062d2/actors/miner/src/types.rs#L447). That is, we compute:  
 
-Note that the daily payment is due everyday until sector expiration. In particular:
+			dailyPayment = min (dailyFee,  m * expected_day_reward) 
+where `m= 0.5` is another system constant. Then the daily payment is due everyday until sector expirationfor each new sector onboarded after this FIP is deployed. In particular:
 - Even if a sector becomes faulty for the day, the payment is due. In other words, the dailyPayment is paid at windowPoSt time for all sectors in one the following state: active, faulty, recovered;
-- The total fee per sector over its full sector lifetime is: `sectorFee = dailyPayment sectorDurationInDays`. If a sector is terminated, the remaining of `sectorFee` gets computed and paid at termination (paid together with termination fee); 
-- If a sector is extended, the dailyPayment is not changed and the sector will keep paying the same value for the extended lifetime.
-- TODO: sector updates ? 
+- The total fee per sector over its full sector lifetime is: `sectorFee = dailyPayment * sectorDurationInDays`. If a sector is terminated, the remaining of `sectorFee` gets computed and paid at termination (paid together with termination fee); 
+- If a sector is extended or updated, the dailyFee is not changed but the cap is recompute considering the upated value of `expected_day_reward` (and therefore the dailyPayment is updated). The sector will keep paying dailyPayment for the extended lifetime.
 
 ### Gas-limited constraints
 
@@ -109,12 +107,12 @@ We reached this conclusion through simulation-based analysis, modeling the impac
 </em></p>
 </div>
 
-For each trajectory, we analyzed the expected fee and related metrics over time. Fig. 2 presents these results for the CS-based fee, incorporating a daily cap at 50% of the per-sector block reward as a safety measure in high-growth scenarios. Notably, Fig. 2 confirms that the CS-based fee proposed in this FIP offers the following key advantages:
+For each trajectory, we analyzed the expected fee and related metrics over time. Fig. 2 presents these results for the CS-based fee, incorporating a cap at 50% of `expected_day_reward` as a safety measure in high-growth scenarios. Notably, Fig. 2 confirms that the CS-based fee proposed in this FIP offers the following key advantages:
 - **Stable Economic Reference**: A fixed percentage of CS functions like a fixed USD fee if market cap remains stable, keeping costs predictable;
 - **Adapts to Market Conditions**: If Filecoin’s valuation rises, fees increase in FIL terms, scaling with the economy. If the market stagnates, fees stay economically consistent.
 <div align="center">
     <img src="https://github.com/user-attachments/assets/018fb429-de90-4a86-9c15-6c244a699487">
-    <p><em>Figure 2: CS-based fee evolution as a function of various network metrics. Here we considered a daily payment that is a fixed % of CS-based and capped at 50% of 24hBR as a safety measure.
+    <p><em>Figure 2: CS-based fee evolution as a function of various network metrics. Here we considered a daily payment that is a fixed % of CS-based and capped at 50% of `expected_day_reward` as a safety measure in high-growth scenarios.
 </em></p>
 </div>
 
