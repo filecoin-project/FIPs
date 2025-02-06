@@ -80,15 +80,118 @@ Various protocol constraints that were previously necessary when there was no ga
 In most cases, users will be limited by the gas limit rather than these constraints ([`message execution failed: exit SysErrOutOfGas`](https://github.com/filecoin-project/lotus/issues/10612)). Removing these constraints will simplify the protocol and remove any unintentional network growth constraints.
 
 ## Specification
-- Remove the burning `aggregate_fee` from `PreCommitSectorBatch2`.
-- Remove the burning `aggregate_fee` from `ProveCommitAggregate`, `ProveCommitSectorsNI`, `ProveCommitSectors3`
 
-- TODO : add actor spec for the per sector fee
+This FIP makes three main changes to the protocol:
+1. Removes the batch balancer fee mechanism from sector pre-commit and prove-commit operations
+2. Removes certain gas-limited protocol constraints that are no longer necessary
+3. Introduces a new per-sector daily fee mechanism based on circulating supply and block rewards
 
-- Remove the following gas-limited constraints:
-  - `PRE_COMMIT_SECTOR_BATCH_MAX_SIZE`
-  - `PROVE_REPLICA_UPDATES_MAX_SIZE`
-  - `DECLARATIONS_MAX`
+
+### Storage power actor
+
+The storage power actor will be used to record a daily average of the circulating supply. This is achieved by incrementing a running total of circulating supply per epoch through the existing cron call. Once every 2880 epochs this will be divided and recorded in an AMT as the average circulating supply for that day period. Records will be indexed starting from `0` and incrementing `1` per day (creating an optimal AMT structure).
+
+The power actor will also store a new field, set on activation of this FIP to the activation epoch, to record the collection start epoch. This value will be used to quantise down any requested epoch to the daily average value.
+
+```rust
+pub struct State {
+  // existing fields ...
+
+  /// The epoch when average daily supply started being recorded. This is the activation epoch of
+  /// FIP-XXXX and is used for quantising epochs to their daily average record in the daily_supply
+  /// array.
+  pub daily_supply_record_start: i64,
+
+  /// A running total for the current 24 hour period, incremented on each call from cron, and used
+  /// to record the average value for the previous 24 hour period once a day.
+  pub daily_supply_total: TokenAmount,
+
+  /// Average circulating supply for each 24 hour period since the start of recording as defined by
+  /// daily_supply_record_start, indexed by day, starting from 0 as the first 24 hour period
+  /// recorded after daily_supply_record_start and incrementing by 1 each day.
+  pub daily_supply: Cid, // Array (AMT[TokenAmount])
+}
+```
+
+In addition, a new method will be exposed to access the current root CID of the AMT so that another actor can load one or more arbitrary historical records. As the storage miner actor may need to look up many separate records when dealing with batches of sectors, it will be more efficient to pass the data structure rather than answer specific queries.
+
+```rust
+fn daily_supply_root(rt: &impl Runtime) -> Result<Cid, ActorError>
+```
+
+A helper wrapper for the AMT that can be shared amongst actors to easily convert arbitrary epochs to daily average values is suggested.
+
+### Storage miner actor
+
+#### Removal of gas-limited constraints
+
+The following constants and their use will be removed:
+  - `PRE_COMMIT_SECTOR_BATCH_MAX_SIZE` - used by `PreCommitSectorBatch2`
+  - `PROVE_REPLICA_UPDATES_MAX_SIZE` - used by both `ProveReplicaUpdates` and `ProveReplicaUpdates3`
+  - `DECLARATIONS_MAX` - used by `TerminateSectors`, `DeclareFaults` and `DeclareFaultsRecovered`
+
+#### Removal of aggregate fee
+
+- Remove the burning of `aggregate_fee` from `PreCommitSectorBatch2`.
+- Remove the burning of `aggregate_fee` from `ProveCommitAggregate`, `ProveCommitSectorsNI`, `ProveCommitSectors3`
+- Removal of `aggregate_fee` calculation methods and associated constants, including `ESTIMATED_SINGLE_PROVE_COMMIT_GAS_USAGE` and `ESTIMATED_SINGLE_PRE_COMMIT_GAS_USAGE`
+
+#### Fee implementation
+
+Fees are payable daily at WindowPoSt for the sectors being proven. As this operation aims to be gas-efficient, the introduction of a fee mechanism should not add unnecessary additional load `SubmitWindowedPoSt`. Since WindowPoSt addresses sectors grouped by partition, a total daily fee amount for an entire partition will be stored in the root of the partition's state. This value is summed across the partitions included in a successful `SubmitWindowedPoSt` message and deducted from the miner actor. No special handling is added for skipped sectors in a WindowPoSt.
+
+TODO (should we do it here?): It is within WindowPoSt that the cap on the daily fee is enforced. The cap is calculated as a fixed percentage of the expected daily block reward. This is calculated by using the total power from storage power actor, and current epoch block reward from the reward actor combined with the QaP recorded for the partition.
+
+```rust
+pub struct Partition {
+  // existing fields ...
+
+  /// The total fee payable per day for this partition, this represents a sum of the daily fee
+  /// amounts for all sectors in this partition.
+  pub daily_fee: TokenAmount,
+}
+```
+
+Fees are calculated for each sector at various points in their lifecycle and the `daily_fee` value in their assigned partition is updated accordingly. The fee is calculated as a fixed fraction of the circulating supply at the time of sector activation. The circulating supply value is taken from the record in the power actor for the day of sector activation; the last average circulating supply value recorded before the sector activation epoch is used. This same value can be looked up at any future point in time to calculate the fee for potential adjustments.
+
+For each of `ProveCommitSectors3`, `ProveCommitAggregate` and `ProveCommitSectorsNI` the fee is for each sector committed is calculated at the time of the message and added to the existing `daily_fee` total recorded in the partition the sector is assigned to.
+
+Faults have no impact on a partition's `daily_fee` value.
+
+Early terminations, both automatic and manual, will result in a reduction of the partition's `daily_fee` value for the sectors being terminated. `daily_fee` is reduced by the daily fee recalculated for the sector by using the activation epoch and average circulating supply value for that epoch as described above. In this way, addition and removal of sectors from a partition will adjust the daily fee by the correct amount, resulting in no over or undercharging.
+
+#### Alternative fee implementation
+
+_This section is provided temporarily for discussion purposes and will either be removed or used to rework the above section once the final fee implementation is decided. Acceptance of this design will result in the removal of proposed changes to the storage power actor above._
+
+_Description of `daily_fee` accumulation in the partition and its use on WindowPoSt remains the same._
+
+The `SectorOnChainInfo` struct will be extended to include a new field `daily_fee` which will be used to store the daily fee for the sector. This value will be updated at the time of sector activation and will be used to calculate the daily fee for the sector for the duration of its lifetime. Due to the number of sectors already on chain and the expense of migrating to a new format to add this field, the existing block layout will continue to be supported, which is represented as a 15 element array, with one element per field of the struct. The new field will be added as the 16th element of the array. Loading and decoding any `SectorOnChainInfo` block will be able to handle both the old and new formats. Any writes by the builtin actors will strictly use the new format.
+
+A future migration will be proposed to unify the format, however this is deferred until additional sector clean-up activities can take place to reduce the number of unused sectors on chain, thereby reducing the cost of migration.
+
+```rust
+pub struct SectorOnChainInfo {
+  // existing fields ...
+
+  /// The total fee payable per day for this sector. The value of this field is set at the time of
+  /// sector activation and is used to calculate the daily fee for the sector for the duration of
+  /// its lifetime.
+  /// This field is not included in the serialised form of the struct prior to the activation of
+  /// FIP-XXXX, and is added as the 16th element of the array after that point only for new sectors
+  /// or sectors that are updated after that point. For old sectors, the value of this field will
+  /// always be zero.
+  pub daily_fee: TokenAmount,
+}
+```
+
+Fees are calculated for each sector at various points in their lifecycle and the `daily_fee` value is stored in the sector's `SectorOnChainInfo` and the `daily_fee` value in their assigned partition is updated accordingly. The fee is calculated as a fixed fraction of the circulating supply at the time of sector activation. The circulating supply value is available at the time of sector onboarding as it is used for pledge calculation.
+
+For each of `ProveCommitSectors3`, `ProveCommitAggregate` and `ProveCommitSectorsNI` the fee is for each sector committed is calculated at the time of the message.
+
+Faults have no impact on a partition's `daily_fee` value.
+
+Early terminations, both automatic and manual, will result in a reduction of the partition's `daily_fee` value for the sectors being terminated. `daily_fee` is reduced by the daily fee recalculated for the sector by using the activation epoch and average circulating supply value for that epoch as described above. In this way, addition and removal of sectors from a partition will adjust the daily fee by the correct amount, resulting in no over or undercharging.
 
 ## Design Rationale
 We aimed for a design that is simple to understand and model, and relatively simple to implement. With this in mind, we explored the following fee structures:
