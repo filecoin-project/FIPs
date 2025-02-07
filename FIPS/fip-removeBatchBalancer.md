@@ -220,6 +220,63 @@ Early terminations, both automatic and manual, will result in a reduction of the
 
 There is no migration required for this implementation as the existing format will continue to be supported. The new field will be added to the sector state as sectors are updated or new sectors are created after the activation of this FIP.
 
+### Special handling for Calibration network
+
+In order to properly test the implementation of this FIP, a long-standing problem with circulating supply calculation on Calibnet will need to be addressed. Circulating supply is calculated using an estimation method each epoch and supplied to the FVM, it uses these inputs (from the time of writing):
+
+| Metric               | Mainnet (FIL) | Calibnet (FIL) |
+|----------------------|--------------:|---------------:|
+| `FilVested`          |   484,847,134 |    323,483,605 |
+| `FilMined`           |   365,928,138 |     68,672,646 |
+| `FilBurnt`           |    40,327,377 |     32,117,860 |
+| `FilLocked`          |   140,975,297 |      3,893,484 |
+| `InitialFilReserved` |   300,000,000 |    300,000,000 |
+| `FilReserveBalance`  |   282,933,381 |    869,278,271 |
+
+The amount of reserved funds disbursed from f090 (`FilReserveDisbursed`) is then calculated as:
+
+```math
+FilReserveDisbursed = InitialFilReserved - FilReserveBalance
+```
+
+For Mainnet:
+```math
+FilReserveDisbursed = 300,000,000 - 282,933,381 = 17,066,619
+```
+
+For Calibnet:
+```math
+FilReserveDisbursed = 300,000,000 - 869,278,271 = -569,278,271
+```
+
+Circulating supply (`CS`) is then calculated as:
+
+```math
+CS = \max(0, FilVested + FilMined + FilReserveDisbursed - FilBurnt - FilLocked)
+```
+
+For Mainnet:
+```math
+CS = \max(0, 484,847,134 + 365,928,138 + 17,066,619 - 40,327,377 - 140,975,297) = 686,539,216
+```
+
+For Calibnet:
+```math
+CS = \max(0, 323,483,605 + 68,672,646 + (-569,278,271) - 32,117,860 - 3,893,484) = 0
+```
+
+Calibnet currently executes with a circulating supply of `0` each epoch, regardless of token movements.
+
+Because this FIP uses a fixed portion of current circulating supply to calculate the fee, Calibnet fees will always be `0`, which makes proper testing of the new functionality in live network conditions impossible.
+
+To address this problem, this FIP will also adjust network parameters for Calibnet to ensure that the circulating supply is a reasonable and dynamic positive number. The core problem is the initial allocation of reserve funds which appears to have been set to 900M FIL. This was likely set to ensure a total supply of 2B FIL. Unfortunately, implementations use the same `InitialFilReserved` value as mainnet, 300M FIL. Filecoin node implementations compatible with Calibnet will be required to set their `InitialFilReserved` for Calibnet to `900,000,000` FIL from the activation epoch of this FIP. This will result in a more appropriate circulating supply calculation:
+
+| Metric                | Mainnet (FIL) | Calibnet (FIL) |
+|-----------------------|--------------:|---------------:|
+| `InitialFilReserved`  |   300,000,000 |   900,000,000  |
+| `FilReserveDisbursed` |    17,066,619 |    30,721,729  |
+| `FilCirculating`      |   686,539,216 |   386,866,636  |
+
 ## Design Rationale
 We aimed for a design that is simple to understand and model, and relatively simple to implement. With this in mind, we explored the following fee structures:
 
