@@ -11,7 +11,6 @@ Created: 2025-02-04
 
 # FIP-00XX: Removing Batch Balancer, Replacing It With a Per-sector Fee and Removing Gas-limited Constraints
 
-
 ## Simple Summary
 This FIP proposes to:
  - Remove the batch fee from all precommit and provecommit methods to incentivize sector batching during the precommit step and proof aggregation during the provecommit step;
@@ -169,13 +168,17 @@ pub struct Partition {
 
 Fees are calculated for each sector at multiple points in their lifecycle and the `daily_fee` value in their assigned partition is updated accordingly. The fee is calculated as a fixed fraction of the circulating supply at the time of sector activation. The circulating supply value is taken from the record in the power actor for the day of sector activation; the last average circulating supply value recorded before the sector activation epoch is used. This same value can be looked up at any future point in time to calculate the fee for potential adjustments.
 
-For each of `ProveCommitSectors3`, `ProveCommitAggregate` and `ProveCommitSectorsNI` the fee is for each sector committed is calculated at the time of the message and added to the existing `daily_fee` total recorded in the partition the sector is assigned to.
+**Sector commitments**, performed with each of `ProveCommitSectors3`, `ProveCommitAggregate` and `ProveCommitSectorsNI` the fee is for each sector committed is calculated at the time of the message and added to the existing `daily_fee` total recorded in the partition the sector is assigned to.
 
 Faults have no impact on a partition's `daily_fee` value.
 
-Early terminations, both automatic and manual, will result in a reduction of the partition's `daily_fee` value for the sectors being terminated. Early terminations are currently handled at the end of each proving deadline via cron, and for efficiency, sector state is not fetched, but sector numbers and power adjustments are memoised per partition and reconciled later. Fee adjustment for early termination will also be memoised and reconciled at the time the fee is payable. When a sector number is added to the partition's `terminated` bitfield, the sector number will also be added to the `fee_deductions` bitfield. The `fee_deductions` bitfield will be used to track the sectors that have been terminated but their fee has not yet been removed from the total `daily_fee` for this partition. `fee_deductions` does not need to be used for any functionality other than fee reconciliation (although it will be useful for external inspection where total partition fee amounts are required).
+**Early terminations**, both automatic and manual, will result in a reduction of the partition's `daily_fee` value for the sectors being terminated. Early terminations are currently handled at the end of each proving deadline via cron, and for efficiency, sector state is not fetched, but sector numbers and power adjustments are memoised per partition and reconciled later. Fee adjustment for early termination will also be memoised and reconciled at the time the fee is payable. When a sector number is added to the partition's `terminated` bitfield, the sector number will also be added to the `fee_deductions` bitfield. The `fee_deductions` bitfield will be used to track the sectors that have been terminated but their fee has not yet been removed from the total `daily_fee` for this partition. `fee_deductions` does not need to be used for any functionality other than fee reconciliation (although it will be useful for external inspection where total partition fee amounts are required).
 
 Reconciliation of the fee for these sectors will be performed at WindowPoSt via a `Deadline`'s `record_proven_sectors`. Each `Partition` will be asked for its fee amount via a new method and it is within this method that any sector's numbers recorded in `fee_deductions` will have their fee recalculated and deducted from the total `daily_fee` for the partition. The `fee_deductions` bitfield will be cleared after reconciliation. `daily_fee` is reduced by recalculating the sector's daily fee by using the activation epoch and average circulating supply value for that epoch as described above. In this way, addition and removal of sectors from a partition will adjust the daily fee by the correct amount, resulting in no over or undercharging.
+
+**Partition compaction** will necessarily involve recalculation of a partition-level `daily_fee` using each sector in the partition. Per-sector daily fees will be recalculated using the activation epoch and average circulating supply value for that epoch as described above. The partition's `daily_fee` will be updated to reflect the sum of the daily fees for all sectors in the partition. Any outstanding `fee_deductions` will be recalculated and deducted from the total `daily_fee` for the partition.
+
+***TODO***: **Balance withdrawal**: _is this allowed while there are `fee_deductions` in place? If not, do we need `fee_deductions` at the top-level to indicate which deadlines have deductions that need to be reconciled? Do we just let withdrawals proceed and if they don't have balance left to cover the fees they fail post?_
 
 #### Migration
 
@@ -308,8 +311,37 @@ For each trajectory, we analyzed the expected fee and related metrics over time.
 This FIP modifies actor behavior and will require a new Filecoin network version.
 
 ## Test Cases
-TODO
 
+### builtin-actors
+
+Many of the test scenarios outlined below already exist within the test suite for builtin-actors. Ensuring that all of the various cases, particularly edge-cases, are covered will be important to ensure that the new fee mechanism is correctly implemented and behaves as expected. In addition, any existing test scenarios that test sector lifecycles should be updated to include invariants that check the new fee mechanism: that it is correctly calculated, tallied in the partition, remains correct over time, is correctly deducted at WindowPoSt time, is correctly capped and is correctly adjusted for terminations.
+
+* Test that the batch balancer fee is removed from `PreCommitSectorBatch2` and `ProveCommitAggregate`, `ProveCommitSectorsNI`, `ProveCommitSectors3`
+* Test that the gas-limited constraints are removed from the protocol
+* Test that the power actor correctly records the daily average circulating supply - both in per-epoch increments and per-day averages recorded in the AMT
+  * Test that the power actor can provide the correct AMT root CID for the circulating supply average data
+* Test that the per-sector fee is correctly calculated and added to the respective partition's `daily_fee` value when using `ProveCommitAggregate`, `ProveCommitSectorsNI`, `ProveCommitSectors3`
+  * Tests should cover different batching variations
+* Test that `ProveReplicaUpdates` and `ProveReplicaUpdates3` do not have an impact on the fee mechanism
+* Test that the per-sector fee is correctly charged at WindowPoSt time for all sectors in the active, faulty, and recovered states
+  * Tests should cover different batching variations
+* Test that manual early terminations correctly adjust the partition's `daily_fee` value at the next WindowPoSt
+* Test that automatic early terminations correctly adjust the partition's `daily_fee` value at the next WindowPoSt
+* Test that sector expiration correctly adjusts the partition's `daily_fee` value at the next WindowPoSt
+* Test that the fee is correctly capped at the expected daily block reward at WindowPoSt time
+* Test that partition compaction correctly recalculates the `daily_fee` value for each partition
+
+### Calibration network
+
+Once Calibnet is upgraded, functional tests should be performed that cover:
+
+* Ensure that the circulating supply is a reasonable and dynamic positive number
+* Ensure that the power actor is correctly recording the daily average circulating supply
+* Onboarding new sectors with `PreCommitSectorBatch2` and `ProveCommitAggregate`, `ProveCommitSectors3` (and `ProveCommitSectorsNI` if possible) and:
+  * observing that the batch balancer fee is not applied
+  * observing partition state to ensure that the new fee mechanism is correctly implemented and behaves as expected
+* Observing that the per-sector fee is correctly charged at WindowPoSt time for all sectors in the active, faulty, and recovered states
+* Observing that manual early terminations correctly adjust the partition's `daily_fee` value at the next WindowPoSt
 
 ## Security Considerations
 This FIP does not affect underlying proofs or protocol security.
