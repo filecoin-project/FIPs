@@ -91,6 +91,8 @@ This FIP makes three main changes to the protocol:
 
 The storage power actor will be used to record a daily average of the circulating supply. This is achieved by incrementing a running total of circulating supply per epoch through the existing cron call. Once every 2880 epochs this will be divided and recorded in an AMT as the average circulating supply for that day period. Records will be indexed starting from `0` and incrementing `1` per day (creating an optimal AMT structure).
 
+_TODO: the bitwidth of the AMT will need to be decided, a value of 5 is proposed, for a branching factor of 32._
+
 The power actor will also store a new field, set on activation of this FIP to the activation epoch, to record the collection start epoch. This value will be used to quantise down any requested epoch to the daily average value.
 
 ```rust
@@ -121,6 +123,14 @@ fn daily_supply_root(rt: &impl Runtime) -> Result<Cid, ActorError>
 
 A helper wrapper for the AMT that can be shared amongst actors to easily convert arbitrary epochs to daily average values is suggested.
 
+#### Migration
+
+At activation of this FIP, a new layout for the storage power actor state will be introduced, adding 3 new fields. The existing state will be migrated to the new layout by copying the existing fields.
+
+* `daily_supply_record_start` will be set to the activation epoch of this FIP
+* `daily_supply_total` will be set to zero
+* `daily_supply` will be set to the empty AMT for the specified bitwidth
+
 ### Storage miner actor
 
 #### Removal of gas-limited constraints
@@ -146,19 +156,30 @@ TODO (should we do it here?): It is within WindowPoSt that the cap on the daily 
 pub struct Partition {
   // existing fields ...
 
+  /// Subset of sectors that have been terminated but their fee has not yet been removed from the
+  /// total daily fee for this partition. Reconciliation of the fee for these sectors will be
+  /// performed at the time the fee is payable.
+  pub fee_deductions: BitField,
+
   /// The total fee payable per day for this partition, this represents a sum of the daily fee
   /// amounts for all sectors in this partition.
   pub daily_fee: TokenAmount,
 }
 ```
 
-Fees are calculated for each sector at various points in their lifecycle and the `daily_fee` value in their assigned partition is updated accordingly. The fee is calculated as a fixed fraction of the circulating supply at the time of sector activation. The circulating supply value is taken from the record in the power actor for the day of sector activation; the last average circulating supply value recorded before the sector activation epoch is used. This same value can be looked up at any future point in time to calculate the fee for potential adjustments.
+Fees are calculated for each sector at multiple points in their lifecycle and the `daily_fee` value in their assigned partition is updated accordingly. The fee is calculated as a fixed fraction of the circulating supply at the time of sector activation. The circulating supply value is taken from the record in the power actor for the day of sector activation; the last average circulating supply value recorded before the sector activation epoch is used. This same value can be looked up at any future point in time to calculate the fee for potential adjustments.
 
 For each of `ProveCommitSectors3`, `ProveCommitAggregate` and `ProveCommitSectorsNI` the fee is for each sector committed is calculated at the time of the message and added to the existing `daily_fee` total recorded in the partition the sector is assigned to.
 
 Faults have no impact on a partition's `daily_fee` value.
 
-Early terminations, both automatic and manual, will result in a reduction of the partition's `daily_fee` value for the sectors being terminated. `daily_fee` is reduced by the daily fee recalculated for the sector by using the activation epoch and average circulating supply value for that epoch as described above. In this way, addition and removal of sectors from a partition will adjust the daily fee by the correct amount, resulting in no over or undercharging.
+Early terminations, both automatic and manual, will result in a reduction of the partition's `daily_fee` value for the sectors being terminated. Early terminations are currently handled at the end of each proving deadline via cron, and for efficiency, sector state is not fetched, but sector numbers and power adjustments are memoised per partition and reconciled later. Fee adjustment for early termination will also be memoised and reconciled at the time the fee is payable. When a sector number is added to the partition's `terminated` bitfield, the sector number will also be added to the `fee_deductions` bitfield. The `fee_deductions` bitfield will be used to track the sectors that have been terminated but their fee has not yet been removed from the total `daily_fee` for this partition. `fee_deductions` does not need to be used for any functionality other than fee reconciliation (although it will be useful for external inspection where total partition fee amounts are required).
+
+Reconciliation of the fee for these sectors will be performed at WindowPoSt via a `Deadline`'s `record_proven_sectors`. Each `Partition` will be asked for its fee amount via a new method and it is within this method that any sector's numbers recorded in `fee_deductions` will have their fee recalculated and deducted from the total `daily_fee` for the partition. The `fee_deductions` bitfield will be cleared after reconciliation. `daily_fee` is reduced by recalculating the sector's daily fee by using the activation epoch and average circulating supply value for that epoch as described above. In this way, addition and removal of sectors from a partition will adjust the daily fee by the correct amount, resulting in no over or undercharging.
+
+#### Migration
+
+At activation of this FIP, a new layout for the `Partition` block type will be introduced, adding a new field, `daily_fee: TokenAmount`. A migration will be performed on all partitions, within all deadlines, across all miner actors. At the time of writing there are 293,000 partitions on the chain, distributed across the 695,000 miner actors. Each of these will need to be migrated to the new format. The migration will be performed by loading the existing partition state, copying the existing fields to the new format, and setting the `daily_fee` field to zero. The new format will be used for all new partitions created after the activation of this FIP.
 
 #### Alternative fee implementation
 
@@ -166,7 +187,9 @@ _This section is provided temporarily for discussion purposes and will either be
 
 _Description of `daily_fee` accumulation in the partition and its use on WindowPoSt remains the same._
 
-The `SectorOnChainInfo` struct will be extended to include a new field `daily_fee` which will be used to store the daily fee for the sector. This value will be updated at the time of sector activation and will be used to calculate the daily fee for the sector for the duration of its lifetime. Due to the number of sectors already on chain and the expense of migrating to a new format to add this field, the existing block layout will continue to be supported, which is represented as a 15 element array, with one element per field of the struct. The new field will be added as the 16th element of the array. Loading and decoding any `SectorOnChainInfo` block will be able to handle both the old and new formats. Any writes by the builtin actors will strictly use the new format.
+The `SectorOnChainInfo` struct will be extended to include a new field `daily_fee` which will be used to store the daily fee for the sector. This value will be updated at the time of sector activation and will be used to calculate the daily fee for the sector for the duration of its lifetime.
+
+Due to the number of sectors already on chain (currently 645,600,000) and the expense of migrating to a new format to add this field, the existing block layout will continue to be supported, which is represented as a 15 element array, with one element per field of the struct. The new field will be added as the 16th element of the array. Loading and decoding any `SectorOnChainInfo` block will be able to handle both the old and new formats. Any writes by the builtin actors will strictly use the new format.
 
 A future migration will be proposed to unify the format, however this is deferred until additional sector clean-up activities can take place to reduce the number of unused sectors on chain, thereby reducing the cost of migration.
 
@@ -192,6 +215,10 @@ For each of `ProveCommitSectors3`, `ProveCommitAggregate` and `ProveCommitSector
 Faults have no impact on a partition's `daily_fee` value.
 
 Early terminations, both automatic and manual, will result in a reduction of the partition's `daily_fee` value for the sectors being terminated. `daily_fee` is reduced by the daily fee recalculated for the sector by using the activation epoch and average circulating supply value for that epoch as described above. In this way, addition and removal of sectors from a partition will adjust the daily fee by the correct amount, resulting in no over or undercharging.
+
+##### Migration
+
+There is no migration required for this implementation as the existing format will continue to be supported. The new field will be added to the sector state as sectors are updated or new sectors are created after the activation of this FIP.
 
 ## Design Rationale
 We aimed for a design that is simple to understand and model, and relatively simple to implement. With this in mind, we explored the following fee structures:
