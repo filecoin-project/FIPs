@@ -56,9 +56,9 @@ To ensure sufficient review time and prevent rushed decisions:
 
 ## Membership  
 
-Membership is open to all who wish to apply but is subject to consent by existing FIP Editors. This structure ensures scalable and controlled membership over time. As the process gains stability, existing FIP Editors may decide to make membership more open and less controlled.
+Membership is by invitation and unianimous agreement of the existing FIP Editors. This structure ensures scalable and controlled membership over time. As the process gains stability, existing FIP Editors may decide to make membership more open and less controlled.
 
-Candidates should meet the following criteria:
+To be invited to become a FIP Editor, you should meet the following criteria:
 
 - Commit **0–5 hours weekly** for reviewing FIPs.
 - Be proficient in English (both written and spoken).
