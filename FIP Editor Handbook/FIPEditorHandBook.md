@@ -8,7 +8,7 @@ For detailed information on the FIP process and the foundational principles, ref
 ---
 
 ## Introduction  
-Filecoin Improvement Proposal (FIP) Editors maintain the FIP repository and ensure the editorial completeness of proposals submitted on GitHub. They volunteer their time for the public good, supporting the FIP process by advancing proposals through various stages of their lifecycle. FIP Editors review new proposals, identify formatting and editorial issues, and keep the repository up to date. They leverage their technical expertise to benefit the community by reviewing improvement ideas and providing critical feedback.
+Filecoin Improvement Proposal (FIP) Editors maintain the FIP repository and ensure the editorial completeness of proposals submitted on GitHub. They volunteer their time for the public good, supporting the FIP process by advancing proposals through various stages of their lifecycle. FIP Editors review new proposals, identify formatting and editorial issues, and keep the repository up to date. They leverage the technical expertise of the community to facilitate the detailed technical, economic, and product review of improvement ideas. FIP Editors may also function as technical reviewers in addition to their facilitation role.
 
 ---
 
