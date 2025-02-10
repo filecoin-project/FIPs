@@ -42,7 +42,10 @@ On the other hand, aggregation is rational only when the base fee exceeds 0.065 
 To have a rough estimate of the saving, we can compare these `ProveCommitSector3` messages posted by the same miner actor with little difference in the number of sectors when the message landed[^*].
 - [Msg 1](https://www.filutils.com/en/message/bafy2bzacebshpv7afwnxph6l4jnbpwpqnss3cboyfvlualfrjbox76hojjnlo): ProveCommitSectors3 for 1 sector: 267.5 M 
 - [Msg 2](https://www.filutils.com/en/message/bafy2bzacebd7ftq5lk4ikuif4j3xfwiabmla5bek3kuhn3k6x3obufxyzrs6y): ProveCommitSectors3 for 4 sectors, batched (no aggregation): 580 M/4 = 145 M per sector (1.85x smaller)
-- [Msg 3](https://www.filutils.com/en/message/bafy2bzacedezi6lm4warrfq2n6dxvpokowzt5isacbq2kojkz462yfpfq7lxm): ProveCommitSectors3 for 4 sectors, aggregated: 517.4 M/4 = 129.3 M per sector (2x smaller)
+- [Msg 3](https://www.filutils.com/en/message/bafy2bzacedezi6lm4warrfq2n6dxvpokowzt5isacbq2kojkz462yfpfq7lxm): ProveCommitSectors3 for 4 sectors, aggregated: 517.4 M/4 = 129.3 M per sector (2x smaller).
+
+The same logic applies to `ProveCommitSectorsNI`, where we have the same two options as in  `ProveCommitSector3`. 
+TODO: add gas saving numbers for NI-PoRep.
 
 [^*]:  A bug is currently causing single proofs to be charged an incorrect amount of gas units. So we added the missing units (42M per proof) to msg1 and msg2 in order to provide the future correct estimates (the bug is planned to be fixed in nv25).  See [here](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md)
 
