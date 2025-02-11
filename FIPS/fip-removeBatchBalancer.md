@@ -1,5 +1,5 @@
 ---
-fip: "00XX"
+fip: "0100"
 title: Removing Batch Balancer, Replacing It With a Per-sector Fee and Removing Gas-limited Constraints
 author: irene (@irenegia),  AX (@AxCortesCubero), rvagg (@rvagg), molly (@momack2), kiran (@kkarrancsu)
 Discussions-to: https://github.com/filecoin-project/FIPs/discussions/1092 and  https://github.com/filecoin-project/FIPs/discussions/1105 
@@ -9,7 +9,7 @@ category: Core
 Created: 2025-02-04
 ---
 
-# FIP-00XX: Removing Batch Balancer, Replacing It With a Per-sector Fee and Removing Gas-limited Constraints
+# FIP-0100: Removing Batch Balancer, Replacing It With a Per-sector Fee and Removing Gas-limited Constraints
 
 ## Simple Summary
 This FIP proposes to:
@@ -102,7 +102,7 @@ pub struct State {
   // existing fields ...
 
   /// The epoch when average daily supply started being recorded. This is the activation epoch of
-  /// FIP-XXXX and is used for quantising epochs to their daily average record in the daily_supply
+  /// FIP-0100 and is used for quantising epochs to their daily average record in the daily_supply
   /// array.
   pub daily_supply_record_start: i64,
 
