@@ -66,7 +66,7 @@ More in details: at provecommit time we compute the value
 where `k = 7.4 E-15` is a system constant and `t` is the sector activation epoch. Then, we cap it using the  `expected_day_reward` value that is currently already computed as part of the onchain sector info [link](https://github.com/filecoin-project/builtin-actors/blob/5aad41bfa29d8eab78f91eb5c82a03466c6062d2/actors/miner/src/types.rs#L447). That is, we compute:  
 
 			dailyPayment = min (dailyFee,  m * expected_day_reward) 
-where `m= 0.5` is another system constant. Then the daily payment is due everyday until sector expirationfor each new sector onboarded after this FIP is deployed. In particular:
+where `m= 0.5` is another system constant. Then the daily payment is due everyday until sector expiration for each new sector onboarded after this FIP is deployed. In particular:
 - Even if a sector becomes faulty for the day, the payment is due. In other words, the dailyPayment is paid at windowPoSt time for all sectors in one the following state: active, faulty, recovered;
 - The total fee per sector over its full sector lifetime is: `sectorFee = dailyPayment * sectorDurationInDays`. If a sector is terminated, the remaining of `sectorFee` gets computed and paid at termination (paid together with termination fee); 
 - If a sector is extended or updated, the dailyFee is not changed but the cap is recompute considering the upated value of `expected_day_reward` (and therefore the dailyPayment is updated). The sector will keep paying dailyPayment for the extended lifetime.
