@@ -1,6 +1,6 @@
 ## Appendix 
 
-This document describes simulations related to FIPxxxx: "Removing Batch Balancer, Replacing It With a Per-sector Fee and Removing Gas-limited Constraints".
+This document describes simulations related to FIP-0100: "Removing Batch Balancer, Replacing It With a Per-sector Fee and Removing Gas-limited Constraints".
 
 ### Simulation Methodology
 
