@@ -191,7 +191,7 @@ The advertisements for IPNI must deterministically construct the `ContextID` fie
 - The piece information is serialised as an array with two items:
    1. The first item is the piece size represented as `uint64`
    2. The second item is the piece CID represented as a custom tag `42`
-- In places where the ContextID is represented as a string, convert the CBOR bytes to string using the hex encoding.
+- In places where the ContextID is represented as a string, convert the CBOR bytes to string using the base64 encoding.
    _Note: the Go module https://github.com/ipni/go-libipni handles this conversion automatically._
 
 A reference implementation of this serialization algorithm in Go is maintained in [https://github.com/filecoin-project/go-state-types/](https://github.com/filecoin-project/go-state-types/blob/32f613e4d4450b09da3c81982dd6d7dba9c6f6f2/abi/cbor_gen.go#L23-L48).
@@ -207,11 +207,10 @@ Input:
 }
 ```
 
-Output - ContextID (hex-encoded, split into two lines for readability):
+Output - ContextID (base64-encoded):
 
 ```
-821B0000000800000000D82A5828000181E203922020FC66377F35
-B3780A65368D0DA3FE1862EFF9FB36DB1D416CE7B94C2E1062E80E
+ghsAAAAIAAAAANgqWCgAAYHiA5IgIPxmN381s3gKZTaNDaP+GGLv+fs22x1BbOe5TC4QYugO
 ```
 
 Annotated version as produced by https://cbor.me:
