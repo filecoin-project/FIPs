@@ -84,7 +84,7 @@ Figure 2 shows these metrics for the CS-based fee (with the cap at 50% expected_
 
 
 <div align="center">
-    <img src="https://github.com/user-attachments/assets/3f34e8df-74ff-457c-986d-3c7e50e2a7df">
+    <img src="https://github.com/user-attachments/assets/bdaf4d57-1073-4e57-810a-8d877c06ec85">
     <p><em>Figure 2: CS-based fee evolution as a function of various network metrics. The scaling factor k1 = 5.56 E-15 in the first row and k1= 7.4 E-15 in the second row. The daily payment is also capped at 50% of expected_daily_reward  as a safety measure.
 </em></p>
 </div>
