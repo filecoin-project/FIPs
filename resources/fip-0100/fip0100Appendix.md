@@ -79,7 +79,7 @@ To account for the savings that will result from the removal of the batch balanc
 
 #### Results      
 
-For each trajectory, we can show the expected fee and derivative metrics as a function of time. 
+For each trajectory, we can show the expected fee and derivative metrics as a function of time[^**]. 
 Figure 2 shows these metrics for the CS-based fee (with the cap at 50% expected_daily_reward). Figure 3 here shows these metrics for the BR-based fee. 
 
 
@@ -96,7 +96,7 @@ Figure 2 shows these metrics for the CS-based fee (with the cap at 50% expected_
 </div>
 
 
-
+[^**]: The link to the code which generated the plots is here: https://github.com/CELtd/cel/blob/kiran/notebooks/proof_fees/fees10.ipynb
 
 ### Conclusions:
 The Block Reward (BR, Figure 3) was ruled out because the fee-to-reward ratio did not exhibit the desired behavior—specifically, when network growth slowed, the ratio did not show any slowdown in the increase, which was not optimal. In particular, the total amount of fees burnt over time is less sensitive to the levels of onboarding demand, and there is a risk of fees being high, even when onboarding demand is low. 
