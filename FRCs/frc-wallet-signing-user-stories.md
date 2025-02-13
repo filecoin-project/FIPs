@@ -1,15 +1,14 @@
 ---
 fip: "<to be assigned>"
-title: Wallet Signing User-Stories
+title: Wallet-Signing User-Stories
 author: "Hugo Dias (@hugomrdias), Bumblefudge (@bumblefudge)"
 discussions-to: https://github.com/filecoin-project/lotus/discussions/12761
 status: Draft
 type: "FRC"
 created: 2025-02-10
-requires: "FRC-0051"
 ---
 
-# FRC-0099: Wallet-Signing User-Stories
+# FRC-0XXX: Wallet-Signing User-Stories
 
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
@@ -51,6 +50,8 @@ By analogy to other blockchain ecosystems, we can think of transactions as heter
 Notes:
 
 1. In theory, this flow should work for any wallet, though mobile apps and browser extensions are the easiest to pipe through a browser to create a secure wallet<>dapp connection. Many mobile and browser wallets allow one to connect to dapps on behalf of an external wallet, e.g. a hardware wallet or even a CLI wallet, but ideally this pass-through would not need to be exposed to the dapp, which should be able to use the same message format and get back the same valid signature regardless.
+2. Adoption of `personal_sign` has been widespread for years in the Ethereum community, while protocol-wide multisignature signing standards of the type proposed in [ERC-191] have not gained ground, displaced largely by user-space/application-level multisignature conventions.
+3. The most common usecase for `personal_sign` messages was authentication, but bespoke implementations lacked basic security guarantees taken for granted in Web2, so [ERC-4361] extended the `personal_sign` envelope from [ERC-191] with a verbose ABNF-validated message template including information such as `chainId`, dapp domain-binding, and nonce requirements, as well as defining a uniform authentication receipt for better auditing of off-chain interactions.
 
 ### User Story 3: Structured Message Signing on a Website
 
@@ -62,14 +63,19 @@ Notes:
 6. Once Alice approves, the wallet returns a valid signature over a digest of that (modified) message back to bob.com.
 7. bob.com can check the signature against the digest of the message and can onchain or archive this record as a self-contained datum.
 
+Notes:
+
+1. EIP-712, which has significant support among EVM wallets and dapps, if less than the `personal_sign` convention used for user story #2, is fully supported by Ledger.
+2. The primary adoption driver for EIP-712
+
 ### Possible standards
 
-In the Ethereum community, user story #2 and user story #3 use specified formats ([EIP-191] and [EIP-712], respectively) to avoid messages from any of these user stories being mistaken for messages from another out of context.
+In the Ethereum community, user story #2 and user story #3 use specified formats ([ERC-191] and [EIP-712], respectively) to avoid messages from any of these user stories being mistaken for messages from another out of context.
 
-For FEVM contexts, i.e. contexts where EVM wallet and dapp standards are being used to communicate with a Solidity-compatible node over EVM chainId 314 or 314159, it is recommended that user story #2 simply use EIP-191 full-stop; a dapp that wants to authenticate a F4 address can simply send a Sign-In With Ethereum message (see [ERC-4361]) with the appropriate chainId, which extends the [EIP-191] standard with an ABNF profile of the message content.
+For FEVM contexts, i.e. contexts where EVM wallet and dapp standards are being used to communicate with a Solidity-compatible node over EVM chainId 314 or 314159, it is recommended that user story #2 simply use [ERC-191] full-stop; a dapp that wants to authenticate an `F4` address can simply send a Sign-In With Ethereum message (see [ERC-4361]) with the appropriate chainId, which extends the [ERC-191] standard with an ABNF profile of the message content.
 Similarly, a FEVM dapp can use [EIP-712] to send a structured message.
 
-For direct FVM connections, equivalent standards are recommended and will be defined in future FIPs.
+For FVM wallet-dapp connections, an FVM equivalent of `personal_sign` is defined in [FRC-XXXX].
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
@@ -98,15 +104,20 @@ Deprecating these may require some coordination if a safety envelope is proposed
 ## Future Work
 <!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a "Last Call" status once all these items have been resolved.-->
 
-Specific FIPs may be needed outlining new interfaces and deprecation timelines for old interfaces for:
+Specific FIPs/FRCs may be needed for outlining new interfaces and deprecation timelines for old interfaces for:
 
 * Lotus
 * IPC L2s
 * Ledger signing integration(s)
 
-Future FRCs may be needed to establish:
+Future FIPs/FRCs may be needed to establish:
 
 * FEVM and FVM dapp best-practice to interact with these interfaces, ideally with usable test vectors and instructions on how to test against the above signers
    
 ## Copyright
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
+
+[EIP-191]: https://eips.ethereum.org/EIPS/eip-191
+[ERC-712]: https://eips.ethereum.org/EIPS/eip-712
+[ERC-4361]: https://eips.ethereum.org/EIPS/eip-4361
+[FRC-XXXX]: https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-XXXX.md
