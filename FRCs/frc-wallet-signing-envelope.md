@@ -62,7 +62,7 @@ Note: this extends the earlier [EIP-191] registry defined in the Ethereum commun
 
 The version `0x00` has only `<intended validator address>` for the version specific data. In the case of a Multisig wallet that perform an execution based on a passed signature, the validator address is the address of the Multisig itself. The data to sign could be any arbitrary data.
 
-In ethereum contexts, there is no `chainId` affordance at the envelope layer, and little in the way of adoption.
+In Ethereum contexts, there is no `chainId` affordance at the envelope layer, and little in the way of adoption.
 A separate version byte may be needed for more robust support across FVM contexts, such as chain identifier for L2 contexts, key-type discriminants, etc.
 
 #### Version `0x01`
