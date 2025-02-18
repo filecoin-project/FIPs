@@ -24,7 +24,9 @@ For context on the use-cases targeted by these variations, see [FRC-wallet-signi
 ## Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
 
+Current practices can expose users to security risks such as malicious message formation and incorrect classification of non-transaction data as transactions. The proposed wallet-signing envelope aims to mitigate these issues by standardising the signing process.
 
+By aligning with standards from other ecosystems, like the Ethereum Virtual Machine, we enhance cross-platform compatibility and reduce the learning curve for developers and users. The introduction of a versioning system for signing envelopes also ensures adaptability to future requirements, supporting a wider range of decentralised applications while maintaining robust security and user trust.
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any current Filecoin implementations. -->
@@ -37,7 +39,7 @@ We propose the following format for `signed_data` interfaces:
 0x19 <1 byte version> <version specific data> <data to sign>.
 ```
 
-The initial `0x19` byte is intended to ensure that the `signed_data` will not be mistaken for a transaction and can be "sniffed" by its first byte like a [multiformats] object or a decontextualized object from other VMs.
+The initial `0x19` byte is intended to ensure that the `signed_data` will not be mistaken for a transaction and can be "sniffed" by its first byte like a [multiformats] object or a decontextualized signature. Note that `0x19` is not valid RLP encoding, which helps prevent ambiguity and misuse.
 
 Using `0x19` thus makes it possible to extend the scheme by defining a version `0x45` (`E`) to handle these kinds of signatures.
 
