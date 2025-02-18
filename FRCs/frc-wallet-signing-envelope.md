@@ -19,7 +19,7 @@ A simple envelope is proposed to minimize these risks and align usage patterns w
 <!--A short (~200 words) description of the technical issue being addressed.-->
 
 We propose reusing the Ethereum Virtual Machine's envelope for arbitrary signing as defined in [EIP-191], and adding "version bytes" to the registry defined there for new contexts specific to the FVM.
-For context on the use-cases targeted by these variations, see [FRC-XXX].
+For context on the use-cases targeted by these variations, see [FRC-wallet-signing-user-stories].
 
 ## Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
