@@ -1,5 +1,5 @@
 ---
-fip: "<to be assigned>"
+fip: "0102-bis"
 title: Wallet-Signing User-Stories
 author: "Hugo Dias (@hugomrdias), Bumblefudge (@bumblefudge)"
 discussions-to: https://github.com/filecoin-project/lotus/discussions/12761
@@ -8,7 +8,7 @@ type: "FRC"
 created: 2025-02-10
 ---
 
-# FRC-0XXX: Wallet-Signing User-Stories
+# FRC-0102bis: Wallet-Signing User-Stories
 
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
