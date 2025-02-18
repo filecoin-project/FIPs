@@ -12,7 +12,7 @@ type: "FRC"
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 
-Signing arbitrary, non-transaction messages with a Filecoin or FeVM wallet opens a number of attack vectors and error cases, such as malicious message formation or non-transactions being submitted as transactions.
+Signing arbitrary, non-transaction messages with a Filecoin or FEVM wallet opens a number of attack vectors and error cases, such as malicious message formation or non-transactions being submitted as transactions.
 A simple envelope is proposed to minimize these risks and align usage patterns with other ecosystems, which has the added benefit of making decontextualized messages easier to recontextualize.
 
 ## Abstract
