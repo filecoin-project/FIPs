@@ -39,7 +39,7 @@ We propose the following format for `signed_data` interfaces:
 0x19 <1 byte version> <version specific data> <data to sign>.
 ```
 
-The initial `0x19` byte is intended to ensure that the `signed_data` will not be mistaken for a transaction and can be "sniffed" by its first byte like a [multiformats] object or a decontextualized object from other VMs.
+The initial `0x19` byte is intended to ensure that the `signed_data` will not be mistaken for a transaction and can be "sniffed" by its first byte like a [multiformats] object or a decontextualized signature. Note that `0x19` is not valid RLP encoding, which helps prevent ambiguity and misuse.
 
 Using `0x19` thus makes it possible to extend the scheme by defining a version `0x45` (`E`) to handle these kinds of signatures.
 
