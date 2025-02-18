@@ -50,8 +50,8 @@ Note: this extends the earlier [EIP-191] registry defined in the Ethereum commun
 | Version byte | Specification  | Description
 | ------------ | -------------- | -----------
 |    `0x00`    | [EIP-191]      | Arbitary payload with intended-audience prefix
-|    `0x01`    | [eip-712]      | Structured data compatible with EVM execution
-|    `0x45`    | [eip-191]      | `personal_sign` messages from EVM connections
+|    `0x01`    | [EIP-712]      | Structured data compatible with EVM execution
+|    `0x45`    | [EIP-191]      | `personal_sign` messages from EVM connections
 |    `0x46`    | You are here   | `personal_sign` messages from FVM connections
 
 #### Version `0x00`
