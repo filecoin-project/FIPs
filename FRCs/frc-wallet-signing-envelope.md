@@ -24,7 +24,9 @@ For context on the use-cases targeted by these variations, see [FRC-XXX].
 ## Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
 
+Current practices can expose users to security risks such as malicious message formation and incorrect classification of non-transaction data as transactions. The proposed wallet-signing envelope aims to mitigate these issues by standardising the signing process.
 
+By aligning with standards from other ecosystems, like the Ethereum Virtual Machine, we enhance cross-platform compatibility and reduce the learning curve for developers and users. The introduction of a versioning system for signing envelopes also ensures adaptability to future requirements, supporting a wider range of decentralised applications while maintaining robust security and user trust.
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any current Filecoin implementations. -->
