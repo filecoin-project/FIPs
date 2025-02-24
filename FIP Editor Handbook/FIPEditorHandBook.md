@@ -68,7 +68,7 @@ To be invited to become a FIP Editor, you should meet the following criteria:
 - Be interested in participating in governance.
 - Be skilled in using GitHub.
 
-Continued inability to meet these requirements may lead to removal from the position. Interested candidates can apply by completing [this form]. Current FIP Editors will review membership requests.
+Continued inability to meet these requirements may lead to removal from the position. Interested candidates can apply by reaching out on Filecoin Slack. Current FIP Editors will review membership requests.
 
 ---
 
