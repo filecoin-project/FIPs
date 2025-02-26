@@ -25,14 +25,14 @@ Renewals and FIL+ are capped at their current maximum, since both values are clo
 #### Circulating Supply (CS) Based Fees
 We can describe this fee as follows, for a sector onboarded at time `t`:
 
-`sectorFee(t) = k1 * CS(t) * sectorDurationDay`
+`sectorFee(t) = k1 * CS(t) * sectorDurationDay * sectorQAP`
 
 In the simulation, the sector duration is fixed to 540 days.
 
 #### Block Reward (BR) Based Fees
 We can describe this fee as follows, for a sector onboarded at time `t`:
 
-`sectorFee(t) = k2 * (sum_{d=1, ...,540} sectorBlockReward(t,d) * FeeMultiplier(d)) `
+`sectorFee(t) = k2 * (sum_{d=1, ...,540} sectorBlockReward(t,d) * FeeMultiplier(t)) `
 
 In the above formulations: 
 - `k1` and  `k2`  represent two different scaling factors;
@@ -46,8 +46,8 @@ In the above formulations:
 ### Simulations
 
 #### Methodology 
-To understand the effect of BR-based vs CS-based fees, we consider the following 4 metrics:
-- Onboarding Fee / Sector;
+To understand the effect of BR-based vs CS-based fees, we consider the following 7 metrics:
+- Onboarding Fee / Sector (assuming 32 GiB of QAP);
 - Onboarding fee per sector / Pledge per sector;
 - Onboarding fee per sector / 1 day of BlockReward per sector;
 - Cumulative onboarding fees that would be collected;
@@ -57,7 +57,7 @@ To understand the effect of BR-based vs CS-based fees, we consider the following
 
 [^*]:Note: FoFR is defined as `(Returns - Fees)/Pledge`
 
-To account for the savings that will result from the removal of the batch balancer, we first must simulate the per-sector gas fee that SPs incur for onboarding sectors under the status-quo (i.e. no onboarding fee), and the expected savings from replacing the batch-balancer with the per sector fee. Predicting future network gas fees is extremely difficult, so projecting relative savings by switching to a more predictable fee structure is challenging. Our methodology is as follows, and we note that this is an approximation that can’t take into account the intricacies of how base_fee fluctuates, since our modeling is aggregated at the daily level rather than the epoch level. 
+To account for the savings that will result from the removal of the batch balancer, we first must simulate the per-sector gas fee that SPs incur for onboarding sectors under the status-quo (i.e. no onboarding fee), and the expected savings from replacing the batch-balancer with the per sector fee. Predicting future network gas fees is not possible, so projecting relative savings by switching to a more predictable fee structure is challenging. Our methodology is as follows, and we note that this is an approximation that can’t take into account the intricacies of how base_fee fluctuates, since our modeling is aggregated at the daily level rather than the epoch level. 
 
 1. First, we estimate the per-sector gas fees under the status quo to be as follows: 
    - PreFip: `PreFIPPerSectorGasFee[d] = (x % CurrentDailyBurn)* feeRegimeScalar / (NumSectorsOnboarded[d]+NumSectorsRenewed[d])`
@@ -85,7 +85,7 @@ Figure 2 shows these metrics for the CS-based fee (with the cap at 50% expected_
 
 <div align="center">
     <img src="https://github.com/user-attachments/assets/bdaf4d57-1073-4e57-810a-8d877c06ec85">
-    <p><em>Figure 2: CS-based fee evolution as a function of various network metrics. The scaling factor k1 = 5.56 E-15 in the first row and k1= 7.4 E-15 in the second row. The daily payment is also capped at 50% of expected_daily_reward  as a safety measure.
+    <p><em>Figure 2: CS-based fee evolution as a function of various network metrics. The scaling factor k1 = 5.56 E-15 for 32GiB of QAP in the first row and k1= 7.4 E-15 for 32GiB of QAP in the second row (this is the one proposed in FIP0100). The daily payment is also capped at 50% of expected_daily_reward  as a safety measure.
 </em></p>
 </div>
 
