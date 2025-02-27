@@ -46,14 +46,13 @@ In the above formulations:
 ### Simulations
 
 #### Methodology
-To understand the effect of BR-based vs CS-based fees, we consider the following 7 metrics:
-- Onboarding Fee / Sector (assuming 32 GiB of QAP);
-- Onboarding fee per sector / Pledge per sector;
-- Onboarding fee per sector / 1 day of BlockReward per sector;
+To understand the effect of BR-based vs CS-based fees, we consider the following 6 metrics:
+- Onboarding fee per sector / Pledge per unit of Quality Adjusted Power (QAP);
+- Onboarding fee per sector / 1 day of BlockReward per unit of QAP;
 - Cumulative onboarding fees that would be collected;
-- Fil-on-FIL Returns (FoFR[^*]) estimate before the per sector fee;
-- FoFR after the per sector fee (including a savings estimate for removing batch balancer);
-- The percentage change in FoFR from before per sector fee to after per sector fee.
+- Fil-on-FIL Returns (FoFR[^*]) estimate before the per sector fee, per unit of QAP;
+- FoFR after the per sector fee (including a savings estimate for removing batch balancer),  per unit of QAP;
+- The percentage change in FoFR from before per sector fee to after per sector fee, , per unit of QAP.
 
 [^*]:Note: FoFR is defined as `(Returns - Fees)/Pledge`
 
@@ -84,13 +83,13 @@ Figure 2 shows these metrics for the CS-based fee (with the cap at 50% expected_
 
 
 <div align="center">
-    <img src="./cs-based-fee-evolution_expanded.jpg">
-    <p><em>Figure 2: CS-based fee evolution as a function of various network metrics. The scaling factor k1 = 5.56 E-15 for 32GiB of QAP in the first row and k1= 7.4 E-15 for 32GiB of QAP in the second row (this is the one proposed in FIP0100). The daily payment is also capped at 50% of expected_daily_reward  as a safety measure.
+    <img src="./CS_basedFees_with_cap.png">
+    <p><em>Figure 2: CS-based fee evolution as a function of various network metrics. The scaling factor k1 = 5.56 E-15 for 32GiB of QAP in the first row and k1= 7.4 E-15 for 32GiB of QAP in the second row (this is the one proposed in FIP0100). The daily payment is also capped at 50% of expected_daily_reward as a safety measure.
 </em></p>
 </div>
 
 <div align="center">
-    <img src="./br-based-fee-evolution.jpg">
+    <img src="./br-based-fee-evolution_expanded.png">
     <p><em>Figure 3:  BR-based fee evolution as a function of various network metrics. The scaling factor k2 =1% in the first row and = 2% in the second row.
 </em></p>
 </div>
