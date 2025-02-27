@@ -40,7 +40,7 @@ In the above formulations:
 - `sectorBlockReward(t,d)` is the per sector reward for a sector onboarded at time `t` during day `d`;
 - `FeeMultiplier` represents the following multiplier function.
 <div align="center">
-    <img src="https://github.com/user-attachments/assets/3fa1e42d-152b-4654-a20b-caaf7e73840f">
+    <img src="./br-based-fee-multiplier-function.jpg">
 </div>
 
 ### Simulations
