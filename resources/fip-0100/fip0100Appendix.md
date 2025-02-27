@@ -47,8 +47,8 @@ In the above formulations:
 
 #### Methodology
 To understand the effect of BR-based vs CS-based fees, we consider the following 6 metrics:
-- Onboarding fee per sector / Pledge per unit of Quality Adjusted Power (QAP);
-- Onboarding fee per sector / 1 day of BlockReward per unit of QAP;
+- Fee / Pledge, per unit of Quality Adjusted Power (QAP);
+- Fee per sector / 540-day of BlockReward, per unit of QAP;
 - Cumulative onboarding fees that would be collected;
 - Fil-on-FIL Returns (FoFR[^*]) estimate before the per sector fee, per unit of QAP;
 - FoFR after the per sector fee (including a savings estimate for removing batch balancer),  per unit of QAP;
