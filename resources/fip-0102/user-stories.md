@@ -13,12 +13,16 @@ created: 2025-02-10
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
 
-
+An enumeration of distinct user stories about end-users signing transactions and arbitrary messages with various forms of "wallet"/key-management software (browser extensions, hardware wallets, distinct agents, etc.).
 
 ## Abstract
 <!--A short (~200 words) description of the technical issue being addressed.-->
 
+This non-normative user-stories documentation is provided simply for clarity to readers and authors of future FRCs. The user stories provided and annotated (for now) are:
 
+1. Simple Transaction Signing by a Wallet on a Website
+2. Arbitrary Message Signing on a Website
+3. Structured Message Signing on a Website
 
 ## Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
@@ -31,12 +35,12 @@ For both reasons, having more consistent and explicit signing standards across t
 
 By analogy to other blockchain ecosystems, we can think of transactions as heterogenous, and we can think of additional contexts where arbitrary messages need to be signed (for authentication, for attestations, etc.)
 
-### User Story 1: Simple Transaction Signing from a Wallet
+### User Story 1: Simple Transaction Signing by a Wallet on a Website
 
 1. Alice decides to send Bob 1Fil.
-2. Alice's hot wallet creates the transaction internally.
-3. Alice authorizes the wallet to sign it.
-4. Alice's hot wallet sends to a node, where it sits in the mempool, is executes, and reaches finality.
+2. Alice's "hot" wallet creates the transaction internally.
+3. Alice authorizes the wallet to sign it interactively.
+4. Alice's hot wallet sends the transaction to a node, where it sits in the mempool, is executes, and reaches finality.
 
 ### User Story 2: Arbitrary Message Signing on a Website
 
@@ -89,17 +93,23 @@ Deprecating these may require some coordination if a safety envelope is proposed
 <!--Test cases for an implementation are mandatory for FIPs affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
 
 ## Security Considerations
-<!--All FIPs must contain a section that discusses the security implications/considerations relevant to the proposed change. Include information that might be important for security discussions, surfaces risks and can be used throughout the life cycle of the proposal. E.g. include security-relevant design decisions, concerns, important discussions, implementation-specific guidance and pitfalls, an outline of threats and risks and how they are being addressed. FIP submissions missing the "Security Considerations" section will be rejected. A FIP cannot proceed to status "Final" without a Security Considerations discussion deemed sufficient by the reviewers.-->
+
+Security considerations should be provided separately for each FRC that addresses one or more of these user stories.
 
 ## Incentive Considerations
 <!--All FIPs must contain a section that discusses the incentive implications/considerations relative to the proposed change. Include information that might be important for incentive discussion. A discussion on how the proposed change will incentivize reliable and useful storage is required. FIP submissions missing the "Incentive Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Incentive Considerations discussion deemed sufficient by the reviewers.-->
 
+Incentive considerations should be provided separately for each FRC that addresses one or more of these user stories.
+
 ## Product Considerations
 <!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
 
+Product considerations should be provided separately for each FRC that addresses one or more of these user stories.
 
 ## Implementation
 <!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
+
+N/a.
 
 ## Future Work
 <!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a "Last Call" status once all these items have been resolved.-->
@@ -113,8 +123,9 @@ Specific FIPs/FRCs may be needed for outlining new interfaces and deprecation ti
 Future FIPs/FRCs may be needed to establish:
 
 * FEVM and FVM dapp best-practice to interact with these interfaces, ideally with usable test vectors and instructions on how to test against the above signers
-   
+
 ## Copyright
+
 Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
 
 [EIP-191]: https://eips.ethereum.org/EIPS/eip-191
