@@ -84,13 +84,13 @@ Figure 2 shows these metrics for the CS-based fee (with the cap at 50% expected_
 
 <div align="center">
     <img src="./CS_basedFees_with_cap.png">
-    <p><em>Figure 2: CS-based fee evolution as a function of various network metrics. The scaling factor k1 = 5.56 E-15 for 32GiB of QAP in the first row and k1= 7.4 E-15 for 32GiB of QAP in the second row (this is the one proposed in FIP0100). The daily payment is also capped at 50% of expected_daily_reward as a safety measure.
+    <p><em>Figure 2: CS-based fee evolution as a function of various network metrics. The scaling factor k1 = 5.56 E-15 for 32GiB of QAP in the first row and k1= 7.4 E-15 for 32GiB of QAP in the second row. The daily payment is also capped at 50% of expected_daily_reward as a safety measure.
 </em></p>
 </div>
 
 <div align="center">
     <img src="./br-based-fee-evolution_expanded.png">
-    <p><em>Figure 3:  BR-based fee evolution as a function of various network metrics. The scaling factor k2 =1% in the first row and = 2% in the second row.
+    <p><em>Figure 3:  BR-based fee evolution as a function of various network metrics. The scaling factor k2 = 1% in the first row and = 2% in the second row.
 </em></p>
 </div>
 
