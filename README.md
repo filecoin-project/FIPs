@@ -137,3 +137,5 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0099](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0099.md) | Delegation of Authority for F3 Parameter Setting | FRC | @Kubuxu @BigLep | Accepted |
 | [0100](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0100.md) | Removing Batch Balancer, Replacing It With a Per-sector Fee and Removing Gas-limited Constraints | FIP | irene (@irenegia), AX (@AxCortesCubero), rvagg (@rvagg), molly (@momack2), kiran (@kkarrancsu)| Accepted |
 | [0101](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0101.md) | Removal of the ProveCommitAggregate method from the miner actor | FIP | Rod Vagg (@rvagg) | Accepted |
+(@rvagg) | Draft |
+| [0103](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0103.md) | Removal of the ExtendSectorExpiration method from the miner actor | FIP | Rod Vagg (@rvagg) | Draft |
