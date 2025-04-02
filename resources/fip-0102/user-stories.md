@@ -131,4 +131,4 @@ Copyright and related rights waived via [CC0](https://creativecommons.org/public
 [EIP-191]: https://eips.ethereum.org/EIPS/eip-191
 [ERC-712]: https://eips.ethereum.org/EIPS/eip-712
 [ERC-4361]: https://eips.ethereum.org/EIPS/eip-4361
-[FRC-XXXX]: https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-XXXX.md
+[FRC-0102]: https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0102.md
