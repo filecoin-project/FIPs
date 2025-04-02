@@ -79,7 +79,7 @@ In the Ethereum community, user story #2 and user story #3 use specified formats
 For FEVM contexts, i.e. contexts where EVM wallet and dapp standards are being used to communicate with a Solidity-compatible node over EVM chainId 314 or 314159, it is recommended that user story #2 simply use [ERC-191] full-stop; a dapp that wants to authenticate an `F4` address can simply send a Sign-In With Ethereum message (see [ERC-4361]) with the appropriate chainId, which extends the [ERC-191] standard with an ABNF profile of the message content.
 Similarly, a FEVM dapp can use [EIP-712] to send a structured message.
 
-For FVM wallet-dapp connections, an FVM equivalent of `personal_sign` is defined in [FRC-XXXX].
+For FVM wallet-dapp connections, an FVM equivalent of `personal_sign` is defined in [FRC-0102].
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
