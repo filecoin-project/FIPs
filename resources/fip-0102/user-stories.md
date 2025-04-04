@@ -1,13 +1,3 @@
----
-fip: "0102-bis"
-title: Wallet-Signing User-Stories
-author: "Hugo Dias (@hugomrdias), Bumblefudge (@bumblefudge)"
-discussions-to: https://github.com/filecoin-project/lotus/discussions/12761
-status: Draft
-type: "FRC"
-created: 2025-02-10
----
-
 # FRC-0102bis: Wallet-Signing User-Stories
 
 ## Simple Summary
