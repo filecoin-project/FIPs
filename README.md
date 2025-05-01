@@ -140,3 +140,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 (@rvagg) | Draft |
 | [0102](./FRCs/frc-0102.md) | Wallet-Signing Envelope for Arbitrary Messages | FRC | "Hugo Dias (@hugomrdias), Bumblefudge (@bumblefudge)" | Draft |
 | [0103](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0103.md) | Removal of the ExtendSectorExpiration method from the miner actor | FIP | Rod Vagg (@rvagg) | Draft |
+| [XXXX](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-XXXX.md) | Add Support for EIP-2537 (BLS12-381 Precompiles) in the FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Draft |
