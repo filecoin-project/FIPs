@@ -80,6 +80,8 @@ rwMsg := &types.Message{
 }
 ```
 
+The exceptionally high gas limit (1073741824) ensures that reward operations never fail due to gas limitations, as these are critical system operations that must complete successfully.
+
 #### Cron Messages
 
 ```go
@@ -90,11 +92,13 @@ cronMsg := &types.Message{
     Value:      types.NewInt(0),
     GasFeeCap:  types.NewInt(0),
     GasPremium: types.NewInt(0),
-    GasLimit:   10_000_000_000 * 10000,
+    GasLimit:   10_000_000_000 * 10000,  // 100 trillion
     Method:     cron.Methods.EpochTick,
     Params:     nil,
 }
 ```
+
+The extremely high gas limit (100 trillion) ensures that cron operations, which include critical network maintenance functions like sector expiration and deal completion, are never constrained by gas limitations.
 
 ### Message Execution Order
 
@@ -116,9 +120,13 @@ Messages will be ordered as they currently are for tipset execution, and this or
 
 This design was chosen to minimise disruption to existing systems while providing complete visibility into system operations.
 
-1. **Receipt linking**: Allows events to be properly associated with their originating messages rather than indirectly via the de-duplicated across-block list generated from parent blocks and allows us to insert implicit messages without needing to list them in a new block filed.
+1. **Receipt linking**: Allows events to be properly associated with their originating messages rather than indirectly via the de-duplicated across-block list generated from parent blocks and allows us to insert implicit messages without needing to list them in a new block field.
 2. **Execution ordering**: Maintains consistency with current execution semantics.
 3. **Message specification**: Uses the existing Lotus implicit message format as a stable basis for all node implementations.
+4. **Storage efficiency**: The size impact is relatively modest compared to the value gained:
+   - Reward messages: approximately 40 bytes each (variable due to token amount byte sizes)
+   - Cron messages: exactly 27 bytes each
+   - MessageReceipt expansion: 42 bytes per receipt (from additional CID)
 
 Alternative approaches considered included:
 - Creating a separate structure for system events: Rejected due to complexity and inconsistency with existing event systems and difficulty associating events with messages
@@ -131,7 +139,41 @@ This change introduces several backwards incompatibilities:
 1. **Receipt Structure Change**: The `MessageReceipt` structure modification requires updates to all code that directly accesses receipt fields; this change will take effect at the next epoch after the activation epoch of this FIP
 2. **Message/Receipt Count Mismatch**: Code assuming `len(parent messages) == len(receipts)` will break and must be updated to use receipts as the canonical list of messages executed and filter out implicit messages as required
 
-**Snapshot** format and contents will not change with this FIP. Existing chain snapshots do not contain receipts or events, any existing system that requires receipts from snapshot data already needs to re-execute messages, this will remain the case.
+**Storage Impact**
+
+Based on message sizes and typical network patterns:
+- Cron messages: One or more per tipset (exactly 27 bytes each)
+  - One cron message per tipset is guaranteed
+  - Additional cron messages occur for null rounds
+- Reward messages: One per block (approximately 40 bytes each)
+  - The protocol targets 5 blocks per tipset, though actual average is lower
+- Receipts: One per executed message (42 bytes additional per receipt)
+  - Assuming roughly 100 unique executed messages per tipset
+- Blockstore index overhead:
+  - Each new message and receipt requires CID storage in the blockstore index
+  - This creates additional overhead beyond just the raw message sizes
+
+For a typical day with 2880 epochs and assuming 5 blocks per tipset and 100 messages:
+- Additional raw data per tipset:
+  - Cron: 27 bytes (minimum)
+  - Rewards: 5 × 40 = 200 bytes
+  - Receipt expansion: 100 × 42 = 4200 bytes
+  - Plus blockstore indexing overhead (unquantified but significant)
+- Adding approximately 12 MiB per day in block data; plus additional data for blockstore accounting
+
+**Event Storage (Optional)**
+
+For nodes that opt to save events:
+- Additional event data from cron and reward messages (in the range of 20-100 bytes per event)
+- Additional AMT blocks to store the events
+- Additional blockstore entries for event CIDs
+- Notable sector lifecycle events (e.g., sector-terminated) become properly trackable
+
+This represents an optional storage increase for nodes that choose to track events, with the benefit of full sector lifecycle visibility.
+
+**Snapshot Impact**
+
+None of these additions (implicit messages, expanded receipts, or events) are included in snapshots. Existing chain snapshots do not contain receipts or events, and any existing system that requires receipts from snapshot data already needs to re-execute messages. This will remain the case.
 
 **Migration strategy**
 
@@ -144,26 +186,44 @@ This change introduces several backwards incompatibilities:
 No state migration is necessary; migration exists entirely within a node implementation external to message execution and relates to the handling of tipsets executed before and after the activation epoch and the consistent generation of block headers and their immediate child components.
 
 - For all epochs before this change is activated, `MessageReceipt` will not contain a link to the executed message, `len(parent messages) == len(receipts)` will be true, and implicit messages and their events will not be accessible
-- For all epochs after this change is activated, `MessageReceipt` will contain a link to the executed message, `len(parent messages) == len(receipts)` will not be true, and implicit messages along with their events will be accessible (a node may choose to not persist any events after execution, as is the case today)
+- For all epochs after this change is activated, `MessageReceipt` will contain a link to the executed message, `len(parent messages) != len(receipts)` will be true, and implicit messages along with their events will be accessible (a node may choose to not persist any events after execution, as is the case today)
 
 ## Test Cases
 
-The following test cases are required:
+The following test scenarios should be implemented:
 
-1. Verify stable CID generation for implicit messages across implementations
-2. Test correct ordering of messages in blocks with null rounds
-3. Validate event capture for cron and reward operations
-4. Ensure backward compatibility for pre-upgrade epochs
-5. Test receipt iteration with implicit messages present
-6. Verify garbage collection behavior for implicit messages
-7. Verify snapshots do not contain unwanted elements (receipts, events)
+1. **Stable CID verification**:
+   - Generate implicit messages using reference code
+   - Verify CIDs match expected values across implementations
+   - Test with various reward parameters and epoch values
+
+2. **Null round handling**:
+   - Create test chains with 1, 2, and 5 null rounds
+   - Verify correct number and ordering of cron messages
+   - Validate message execution matches expected order
+
+3. **Event capture testing**:
+   - Create test chain including sector termination events
+   - Verify events are properly captured in receipts
+   - Compare event data with expected state changes
+
+4. **Backward compatibility**:
+   - Test receipt parsing across pre/post upgrade boundary
+   - Ensure proper handling of receipts without message links
+   - Verify chain walk across version boundary
+
+5. **Receipt iteration**:
+   - Test message retrieval APIs with implicit messages present
+   - Verify filtering capabilities for explicit vs implicit messages
+   - Test receipt counts vs message counts across tipsets
 
 ## Security Considerations
 
 This change has minimal security implications as it primarily affects event tracking and visibility. Key considerations:
 
 1. **Consensus Safety**: The change must be activated simultaneously across all nodes to maintain consensus
-2. **Resource Usage**: Slight increase in processing and storage requirements due to additional messages
+2. **Resource Usage**: While the direct message size impact is modest, the cumulative effect including blockstore indexing overhead requires careful consideration
+3. **Performance Impact**: The additional processing to handle implicit messages is negligible
 
 The change does not introduce new attack vectors or modify existing security properties of the protocol.
 
@@ -171,14 +231,14 @@ The change does not introduce new attack vectors or modify existing security pro
 
 This FIP has positive incentive implications:
 
-1. **Storage Provider Benefits**: Improved sector lifecycle insights unlocks additional opportunities to sell and market PoRep
+1. **Storage Provider Benefits**: Improved sector lifecycle insights unlock additional opportunities to sell and market PoRep
 2. **Tool Developer Incentives**: Simplified access to system events encourages development of better monitoring and analysis tools
 3. **Network Transparency**: Increased visibility into system operations improves trust and participation
 
 Negative impacts from this change include:
 
 1. **Network-version Based Tipset Decoding**: Given the `MessageReceipt` changes and `len(parent messages) != len(receipts)` difference, complexity is introduced in node implementations that attempt to retain compatibility across the upgrade boundary
-2. **Block Storage Increase**: Including at least one reward message per block and one cron message per tipset in message receipts slightly increases the size of an active node's blockstore
+2. **Block Storage Increase**: The additional storage requirements, while modest in direct size, accumulate over time and include blockstore indexing overhead
 
 ## Product Considerations
 
@@ -189,17 +249,28 @@ This change significantly improves the developer and user experience:
 3. **Better APIs**: External services can provide more comprehensive blockchain data
 4. **Improved Debugging**: System operations become traceable through standard event mechanisms
 
-This enables development of more sophisticated storage management tools and improved monitoring solutions.
+This enables development of more sophisticated storage management tools and improved monitoring solutions. Specific product improvements include:
+
+- Storage providers can build better dashboards for sector lifecycle management
+- Chain explorers can show complete system operations including automatic processes
+- Analytics platforms can provide comprehensive sector health metrics
 
 ## Implementation
 
 Implementation requires changes to:
 
-1. Core protocol code for `MessageReceipt` structure
-2. Block validation logic to handle implicit messages
-3. Chain storage modules to persist implicit messages
-4. API methods that interact with messages and receipts
-5. Testing infrastructure to validate the changes
+1. **Core protocol**:
+   - Modify `MessageReceipt` structure to include message CID
+   - Update message execution to store implicit messages
+   - Update receipt generation to link to messages
+
+2. **Tipset processing**:
+   - Modify receipt iteration to handle implicit messages
+   - Update validation logic for parent receipts
+
+3. **API layer**:
+   - Update message retrieval methods to handle implicit messages
+   - Add filtering options for explicit vs implicit messages
 
 * Lotus PR (TODO)
 * Forest PR (TODO)
@@ -208,8 +279,9 @@ Implementation requires changes to:
 
 Non-consensus-critical questions that are not yet answered by this FIP but may be considered during or after implementation:
 
-* Impact on existing Filecoin (Common Node API and additional Lotus or Forest) APIs: are implicit messages always excluded from message-fetching APIs such as `ChainGetMessagesInTipset`?
-* Impact on Ethereum-compatible APIs such as: `EthGetBlockTransactionCountBy*`, `EthGetTransaction*`, `EthGetBlockReceipts`, etc. are they either exposed explicitly or available implicitly via any of these APIs?
+* **API Behaviour**: Should implicit messages be exposed by default or require specific flags in message-fetching APIs like `ChainGetMessagesInTipset`?
+* **Ethereum API Compatibility**: How should Filecoin Ethereum-compatible APIs (`EthGetBlockTransactionCountBy*`, `EthGetTransaction*`, `EthGetBlockReceipts`) handle implicit messages? Should they be excluded to maintain compatibility or included with special identifiers?
+* **Filtering Mechanisms**: What standard filtering mechanisms should be provided to distinguish between user messages and system implicit messages?
 
 ## Copyright
 
