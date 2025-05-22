@@ -133,4 +133,10 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0095](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0095.md) | Add FEVM precompile to fetch beacon digest from chain history | FIP | @ZenGround0, Alex North (@anorth) | Final |
 | [0096](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0096.md) | Convert fundraising remainder address(es) to keyless account actor(s) | FIP | @Fatman13 | Draft |
 | [0097](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0097.md) | Add Support for EIP-1153 (Transient Storage) in the FEVM | FIP | Michael Seiler (@snissn), Steven Allen (@stebalien) | Accepted |
-| [0098](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0098.md) | Simplify termination fee calculation to a fixed percentage of initial pledge | FIP | Jonathan Schwartz (@Schwartz10), Alex North (@anorth), Jim Pick (@jimpick) | Last Call |
+| [0098](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0098.md) | Simplify termination fee calculation to a fixed percentage of initial pledge | FIP | Jonathan Schwartz (@Schwartz10), Alex North (@anorth), Jim Pick (@jimpick) | Accepted |
+| [0099](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0099.md) | Delegation of Authority for F3 Parameter Setting | FRC | @Kubuxu @BigLep | Accepted |
+| [0100](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0100.md) | Removing Batch Balancer, Replacing It With a Per-sector Fee and Removing Gas-limited Constraints | FIP | irene (@irenegia), AX (@AxCortesCubero), rvagg (@rvagg), molly (@momack2), kiran (@kkarrancsu)| Accepted |
+| [0101](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0101.md) | Removal of the ProveCommitAggregate method from the miner actor | FIP | Rod Vagg (@rvagg) | Accepted |
+(@rvagg) | Draft |
+| [0103](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0103.md) | Removal of the ExtendSectorExpiration method from the miner actor | FIP | Rod Vagg (@rvagg) | Draft |
+| [XXXX](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-XXXX.md) | Add Support for EIP-2537 (BLS12-381 Precompiles) in the FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Draft |
