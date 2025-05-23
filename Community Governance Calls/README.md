@@ -66,3 +66,5 @@ Details about the call including all resources, notes, agenda etc are openly rec
 |   10  | February 26, 2024     | [Recording](https://fil-org.zoom.us/rec/share/CMs0lD_Nk4xw31cb3aC63rl50SMIMJxA1HxdUvE2GkBauseDYBIegxaYECDllwuO.L-t0cC-Kh22Hz7d8) | W*!kAy8=  |
 |   11  | March 25, 2024     | [Recording](https://fil-org.zoom.us/rec/share/CKKSDTu9ZL67HFwmbLjF3sL8Z46qWhcNVJ0hApOnreaCw9NeU3MWABLNa83U7nI.kl-iOw5kz5ZdZtc2) | K&E#2VYt |
 |   12  | April 29, 2024     | [Recording](https://fil-org.zoom.us/rec/share/KxkexHCQZfpUmaMf3tVK18r1Us_9IUhD4FttflHGQyv6OVM61zCs8r6wHBSgMpKQ.o9ZkP_x0SIoymBm6) | Kn^=R1cv |
+|   13  | June 24, 2024     | [Recording](https://fil-org.zoom.us/rec/share/_0npn_ZbYYiMGjiouvaQME59HGEGwkpODbCFSUNATBlJs35gP5hAbwQk3zZroHWG.R8JhWhFzZswjWUx1) | e#Wv3gz3 |
+|   14  | August 5, 2024     | [Recording](https://fil-org.zoom.us/rec/share/q9TsJGZZQKLXbnJk_xLvqDvaXitYH_uAD1sRjQCjvlxZfKI_zfjBnVCvAVOxYvHY.ng1kg5lnKSWdjblH?startTime=1722888309000) | N%6#FhL% |
