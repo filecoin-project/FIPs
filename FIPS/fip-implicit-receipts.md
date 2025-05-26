@@ -85,13 +85,11 @@ rewardMessage := &types.Message{
    Value:      0,
    GasFeeCap:  0,
    GasPremium: 0,
-   GasLimit:   1 << 30,                         // 1073741824
+   GasLimit:   1 << 30,                         // 1_073_741_824
    Method:     reward.Methods.AwardBlockReward, // 2
    Params:     params,                          // reward params for this miner/block
 }
 ```
-
-The exceptionally high gas limit (`1073741824`) ensures that reward operations never fail due to gas limitations, as these are critical system operations that must complete successfully.
 
 #### Cron Messages
 
@@ -109,7 +107,17 @@ cronMessage := &types.Message{
 }
 ```
 
-The extremely high gas limit (100 trillion) ensures that cron operations, which include critical network maintenance functions like sector expiration and deal completion, are never constrained by gas limitations.
+#### Gas Limit Rationale
+
+These gas limits serve as execution bounds for the individual messages and are not subject to block-level gas constraints. Unlike user messages, implicit messages do not contribute to or get limited by the block gas limit (`buildconstants.BlockGasLimit`). The gas limits specified in the message structure serve as the maximum gas that can be consumed during execution of that specific message. If gas accounting during message execution exceeds the message's gas limit, the message execution fails.
+
+**Reward Message Gas Allocation**: The gas limit of approximately 1.07 billion provides substantial headroom for reward operations, which have predictable and bounded computational costs. Reward message execution involves adjusting the miner's vesting schedule with new rewards, unlocking any vested amounts in the process, and attempting to repay any existing fee debt. These operations have relatively consistent resource requirements with minimal variation across different execution contexts.
+
+**Cron Message Gas Allocation**: The exceptionally high gas limit of 100 trillion addresses the inherently variable and potentially extensive computational requirements of cron operations. Cron execution encompasses critical network maintenance functions including deadline processing, early sector terminations, proof fee accounting, fault fee processing, vesting schedule management, and pledge adjustments. The computational cost of these operations varies significantly based on network state, particularly the number of sectors requiring processing and the complexity of state transitions occurring at epoch boundaries.
+
+To manage these variable costs, protocol development has consistently prioritised efficiency improvements and cost reduction strategies. Where feasible, operations have been relocated from cron execution to userspace, as demonstrated in [FIP-0084](./fip-0084.md), which removed computationally expensive sector activations from the cron actor. Despite these optimisation efforts, the unpredictable nature of network state changes necessitates substantial gas headroom to ensure system-critical operations complete successfully under all network conditions.
+
+In practice, actual gas consumption during cron execution typically remains well below this generous limit, reflecting both the effectiveness of ongoing optimisation efforts and the conservative approach taken to guarantee system reliability.
 
 ### Message Execution Order
 
@@ -141,10 +149,14 @@ This design was chosen to minimise disruption to existing systems while providin
 1. **Receipt linking**: Allows events to be properly associated with their originating messages rather than indirectly via the de-duplicated across-block list generated from parent blocks and allows us to insert implicit messages without needing to list them in a new block field.
 2. **Execution ordering**: Maintains consistency with current execution semantics.
 3. **Message specification**: Uses the existing Lotus implicit message format as a stable basis for all node implementations.
-4. **Storage efficiency**: The size impact is relatively modest compared to the value gained:
-   - Reward messages: approximately 40 bytes each (variable due to token amount byte sizes)
-   - Cron messages: exactly 27 bytes each
-   - MessageReceipt expansion: 45 bytes per receipt (from additional CID and codec fields)
+4. **Gas limit approach**: Maintains existing execution patterns while clarifying that implicit messages operate outside block gas limit constraints. This ensures system operations can complete successfully regardless of user message activity or network congestion.
+
+### Storage Efficiency Assessment
+
+The size impact is relatively modest compared to the value gained:
+- Reward messages: approximately 40 bytes each (variable due to token amount byte sizes)
+- Cron messages: exactly 27 bytes each
+- MessageReceipt expansion: 45 bytes per receipt (from additional CID and codec fields)
 
 ### Return Data Codec Information
 
