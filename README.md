@@ -114,7 +114,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0074](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0074.md) | Remove cron-based automatic deal settlement | FIP | @anorth, @alexytsu| Final |
 | [0075](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0075.md) | Improvements to the FVM randomness syscalls | FIP | @arajasek, @Stebalien | Final |
 | [0076](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0076.md) | Direct data onboarding | FIP | @anorth, @zenground0 | Final |
-| [0077](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0077.md) | Add Cost Opportunity For New Miner Creation | FIP | Zac (@remakeZK), Mike Li (@hunjixin)| Draft |
+| [0077](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0077.md) | Add Cost Opportunity For New Miner Creation | FIP | Zac (@remakeZK), Mike Li (@hunjixin)| Last Call |
 | [0078](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0078.md) | Remove Restrictions on the Minting of Datacap | FIP | Fatman13 (@Fatman13), flyworker (@flyworker), stuberman (@stuberman), Eliovp (@Eliovp), dcasem (@dcasem), and The-Wayvy (@The-Wayvy)| Draft |
 | [0079](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0079.md) | Add BLS Aggregate Signatures to FVM | FIP | Jake (@drpetervannostrand) | Final |
 | [0080](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0080.md) | Phasing Out Fil+ and Restoring Deal Quality Multiplier to 1x | FIP | @Fatman13, @ArthurWang1255, @stuberman, @Eliovp, @dcasem, @The-Wayvy | Draft |
@@ -123,7 +123,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0083](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0083.md) | Add built-in Actor events in the Verified Registry, Miner and Market Actors | FIP | Aarsh (@aarshkshah1992)| Final |
 | [0084](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0084.md) | Remove Storage Miner Actor Method `ProveCommitSectors` | FIP | Jennifer Wang (@jennijuju)| Final |
 | [0085](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0085.md) | Convert f090 Mining Reserve actor to a keyless account actor | FIP | Jennifer Wang (@jennijuju), Jon Victor (@jnthnvctr)| Final |
-| [0086](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0086.md) | Fast Finality in Filecoin (F3) | FIP | @stebalien, @masih, @mb1896, @hmoniz, @anorth, @matejpavlovic, @arajasek, @ranchalp, @jsoares, @Kubuxu, @vukolic, @jennijuju | Accepted |
+| [0086](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0086.md) | Fast Finality in Filecoin (F3) | FIP | @stebalien, @masih, @mb1896, @hmoniz, @anorth, @matejpavlovic, @arajasek, @ranchalp, @jsoares, @Kubuxu, @vukolic, @jennijuju | Final |
 | [0087](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0087.md) | FVM-Enabled Deal Aggregation | FRC | @aashidham, @honghao, @raulk, @nonsense | Draft |
 | [0089](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0089.md) | A Finality Calculator for Filecoin | FRC | @guy-goren, @jsoares | Draft |
 | [0090](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0090.md) | Non-Interactive PoRep | FIP | luca (@lucaniz), kuba (@Kubuxu), nicola (@nicola), nemo (@cryptonemo), volker (@vmx), irene (@irenegia) | Superseded by [FIP0092](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0092.md) |
@@ -132,11 +132,12 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0094](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0094.md) | Add Support for EIP-5656 (MCOPY Opcode) in the FEVM | FIP | Michael Seiler (@snissn), Raúl Kripalani (@raulk), Steven Allen (@stebalien) | Final |
 | [0095](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0095.md) | Add FEVM precompile to fetch beacon digest from chain history | FIP | @ZenGround0, Alex North (@anorth) | Final |
 | [0096](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0096.md) | Convert fundraising remainder address(es) to keyless account actor(s) | FIP | @Fatman13 | Draft |
-| [0097](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0097.md) | Add Support for EIP-1153 (Transient Storage) in the FEVM | FIP | Michael Seiler (@snissn), Steven Allen (@stebalien) | Accepted |
-| [0098](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0098.md) | Simplify termination fee calculation to a fixed percentage of initial pledge | FIP | Jonathan Schwartz (@Schwartz10), Alex North (@anorth), Jim Pick (@jimpick) | Accepted |
+| [0097](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0097.md) | Add Support for EIP-1153 (Transient Storage) in the FEVM | FIP | Michael Seiler (@snissn), Steven Allen (@stebalien) | Final |
+| [0098](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0098.md) | Simplify termination fee calculation to a fixed percentage of initial pledge | FIP | Jonathan Schwartz (@Schwartz10), Alex North (@anorth), Jim Pick (@jimpick) | Final |
 | [0099](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0099.md) | Delegation of Authority for F3 Parameter Setting | FRC | @Kubuxu @BigLep | Accepted |
-| [0100](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0100.md) | Removing Batch Balancer, Replacing It With a Per-sector Fee and Removing Gas-limited Constraints | FIP | irene (@irenegia), AX (@AxCortesCubero), rvagg (@rvagg), molly (@momack2), kiran (@kkarrancsu)| Accepted |
+| [0100](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0100.md) | Removing Batch Balancer, Replacing It With a Per-sector Fee and Removing Gas-limited Constraints | FIP | irene (@irenegia), AX (@AxCortesCubero), rvagg (@rvagg), molly (@momack2), kiran (@kkarrancsu)| Final |
 | [0101](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0101.md) | Removal of the ProveCommitAggregate method from the miner actor | FIP | Rod Vagg (@rvagg) | Accepted |
 | [0102](./FRCs/frc-0102.md) | Wallet-Signing Envelope for Arbitrary Messages | FRC | "Hugo Dias (@hugomrdias), Bumblefudge (@bumblefudge)" | Draft |
 | [0103](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0103.md) | Removal of the ExtendSectorExpiration method from the miner actor | FIP | Rod Vagg (@rvagg) | Draft |
 | [0105](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0105.md) | Add Support for EIP-2537 (BLS12-381 Precompiles) in the FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Draft |
+| [0106](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0106.md) | Removal of the ProveReplicaUpdates method from the miner actor | FIP | Rod Vagg (@rvagg) | Draft |
