@@ -138,6 +138,6 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0100](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0100.md) | Removing Batch Balancer, Replacing It With a Per-sector Fee and Removing Gas-limited Constraints | FIP | irene (@irenegia), AX (@AxCortesCubero), rvagg (@rvagg), molly (@momack2), kiran (@kkarrancsu)| Final |
 | [0101](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0101.md) | Removal of the ProveCommitAggregate method from the miner actor | FIP | Rod Vagg (@rvagg) | Accepted |
 | [0102](./FRCs/frc-0102.md) | Wallet-Signing Envelope for Arbitrary Messages | FRC | "Hugo Dias (@hugomrdias), Bumblefudge (@bumblefudge)" | Draft |
-| [0103](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0103.md) | Removal of the ExtendSectorExpiration method from the miner actor | FIP | Rod Vagg (@rvagg) | Draft |
-| [0106](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0106.md) | Removal of the ProveReplicaUpdates method from the miner actor | FIP | Rod Vagg (@rvagg) | Draft |
-| [0107](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0107.md) | Implicit Messages in Block Receipts | FIP | Rod Vagg (@rvagg) | Draft |
+| [0103](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0103.md) | Removal of the ExtendSectorExpiration method from the miner actor | FIP | Rod Vagg (@rvagg) | Last Call |
+| [0106](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0106.md) | Removal of the ProveReplicaUpdates method from the miner actor | FIP | Rod Vagg (@rvagg) | Last Call |
+| [0107](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0107.md) | Implicit Messages in Block Receipts | FIP | Rod Vagg (@rvagg) | Last Call |
