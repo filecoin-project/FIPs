@@ -139,5 +139,6 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0101](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0101.md) | Removal of the ProveCommitAggregate method from the miner actor | FIP | Rod Vagg (@rvagg) | Accepted |
 | [0102](./FRCs/frc-0102.md) | Wallet-Signing Envelope for Arbitrary Messages | FRC | "Hugo Dias (@hugomrdias), Bumblefudge (@bumblefudge)" | Draft |
 | [0103](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0103.md) | Removal of the ExtendSectorExpiration method from the miner actor | FIP | Rod Vagg (@rvagg) | Draft |
+| [0104](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0104.md) | Common Node API | FRC | David Ansermino (@ansermino), Aatif Syed (@aatifsyed), Alexey Krasnoperov (@AlexeyKrasnoperov) | Draft |
 | [0106](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0106.md) | Removal of the ProveReplicaUpdates method from the miner actor | FIP | Rod Vagg (@rvagg) | Draft |
 | [0107](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0107.md) | Implicit Messages in Block Receipts | FIP | Rod Vagg (@rvagg) | Draft |
