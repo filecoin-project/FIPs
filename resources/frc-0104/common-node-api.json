@@ -487,6 +487,54 @@
       "paramStructure": "by-position"
     },
     {
+      "name": "Filecoin.GasEstimateMessageGas",
+      "description": "Returns the estimated gas for the given parameters.",
+      "params": [
+        {
+          "name": "message",
+          "required": true,
+          "schema": {
+            "$ref": "#/components/schemas/Message"
+          }
+        },
+        {
+          "name": "messageSendSpec",
+          "required": true,
+          "schema": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MessageSendSpec"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        {
+          "name": "tipsetKey",
+          "required": true,
+          "schema": {
+            "type": [
+              "array",
+              "null"
+            ],
+            "items": {
+              "$ref": "#/components/schemas/Cid"
+            }
+          }
+        }
+      ],
+      "result": {
+        "name": "Filecoin.GasEstimateMessageGas.Result",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/Message"
+        }
+      },
+      "paramStructure": "by-position"
+    },
+    {
       "name": "Filecoin.GetActorEventsRaw",
       "description": "Returns all user-programmed and built-in actor events that match the given filter. Results may be limited by MaxFilterResults, MaxFilterHeightRange, and the node's available historical data.",
       "params": [
