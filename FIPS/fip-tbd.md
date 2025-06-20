@@ -3,7 +3,7 @@ fip: "tbd"
 title: Export sector termination method from miner actor
 author:  @jennijuju, @stebalien, @anorth, @Schwartz10, 
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/1034
-status: Draft
+status: Stagnant
 type: Technical
 category (*only required for Standard Track): <Core>
 created: 2024-07-12
