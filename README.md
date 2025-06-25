@@ -142,3 +142,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0104](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0104.md) | Common Node API | FRC | David Ansermino (@ansermino), Aatif Syed (@aatifsyed), Alexey Krasnoperov (@AlexeyKrasnoperov) | Draft |
 | [0106](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0106.md) | Removal of the ProveReplicaUpdates method from the miner actor | FIP | Rod Vagg (@rvagg) | Draft |
 | [0107](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0107.md) | Implicit Messages in Block Receipts | FIP | Rod Vagg (@rvagg) | Draft |
+| [XXXX](https://github.com/filecoin-project/FIPs/blob/master/FRPCs/frc-f3-augmented-snapshot.md) | Implicit Messages in Block Receipts | FRC | Hailong Mu (@hanabi1224) | Draft |
