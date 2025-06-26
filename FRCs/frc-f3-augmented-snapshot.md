@@ -33,41 +33,44 @@ The time cost and the network bandwidth usage for a new Filecoin node to catch u
 We propose the blow changes to the Filecoin CAR snapshot format.
 
 - Change CAR roots to be a CID that points to a CBOR-encoded [`SnapshotMetadata`](#snapshotmetadata) struct that is stored as the first data block in the CAR.
-- Store the raw [`F3Snapshot`](#f3snapshot) bytes as the second data block in the CAR when `F3Data != nil` in the metadata.
+- Store the [`F3Data`](#f3data) structure as the second data block in the CAR when `F3Data != nil` in the metadata.
 
 ### SnapshotMetadata
 
 ```go
 type SnapshotMetadata {
-    HeadTipsetKey []Cid // required
-    F3Data        *Cid  // optional
+    Version       uint64 // required, format version for SnapshotMetadata
+	                     // Only "2" is supported since "v1" was implied in the original format that predates `SnapshotMetadata`.
+    HeadTipsetKey []Cid  // required
+    F3Data        *Cid   // optional, points to F3Data structure.  
+	                     // The only supported codec is "CBOR" (0x51).
 }
 ```
 
-### F3Snapshot
+### F3Data
 
-An F3 snapshot contains one header block and N(N>0) data blocks in the below format:
+F3Data is a CBOR-encoded structure that contains the complete F3 snapshot data:
 
-`[Header block] [Data block] [Data block] [Data block] ...`
+```go
+type F3Data struct {
+    Header        F3SnapshotHeader
+    Certificates  []FinalityCertificate
+}
+```
 
-A header block is a CBOR-encoded [`F3SnapshotHeader`](#f3snapshotheader) with a length prefix in the below format:
-
-`[varint-encoded length] [CBOR-encoded F3SnapshotHeader]`
+Notes:
+- `FinalityCertificate`s should be ordered by `GPBFTInstance` in ascending order for sequential validation
+- The first and last `FinalityCertificate` instances should match those in the header, respectively
 
 ### F3SnapshotHeader
 
 ```go
-type SnapshotHeader struct {
-	Version           uint64
+type F3SnapshotHeader struct {
 	FirstInstance     uint64
 	LatestInstance    uint64
 	InitialPowerTable gpbft.PowerEntries
 }
 ```
-
-A data block is a CBOR-encoded [`FinalityCertificate`](#finalitycertificate) with a length prefix in the below format:
-
-`[varint-encoded length] [CBOR-encoded FinalityCertificate]`
 
 ### FinalityCertificate
 
@@ -92,9 +95,11 @@ type FinalityCertificate struct {
 }
 ```
 
-Notes:
-- `FinalityCertificate`s should be ordered by `GPBFTInstance` in ascending order, thus they can be validated and intermediate power tables can be generated while data blocks are being read in a stream.
-- The first and last `FinalityCertificate` instances should match those in the header, respectively.
+### Ability to upgrade
+
+1. **SnapshotMetadata.Version**: Controls the overall snapshot format and structure.  Any changes/additions to the underlying structures (e.g., F3Data) (including encoding changes) should include an accompanying version bump.
+2. **CID codec**: This will also change in encoding changes.
+
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
@@ -112,7 +117,7 @@ Notes:
 This change has minimal security implications as the additional F3 data are also stored in the node database, unencrypted. Key considerations:
 
 - **Integrity**: The F3 snapshot can be validated.
-- **Performance** The F3 snapshot data blocks can be read, validated and imported in a stream.
+- **Performance**: The F3Data structure can be validated efficiently as a single CBOR block.
 
 The change does not introduce new attack vectors or modify existing security properties of the protocol.
 
