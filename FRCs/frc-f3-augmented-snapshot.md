@@ -8,7 +8,7 @@ type: "FRC"
 created: 2025-06-25
 ---
 
-# FRC-####: Augment Filecoin Snapshot with F3 data
+# FRC-####: Filecoin Snapshot Format
 
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
@@ -20,7 +20,11 @@ a Filecoin node with a Filecoin snapshot.
 ## Abstract
 <!--A short (~200 words) description of the technical issue being addressed.-->
 
-We propose extending the Filecoin CAR snapshot with an F3 snapshot as a raw data block, and changing CAR roots to be a CID that points to a CBOR-encoded Filecoin snapshot header struct.
+The Filecoin ecosystem existed for years without specifying the snapshot format.  That was fine until the advent of F3 and the resulting need to update the format in a coordinated way.
+
+This document outlines:
+- "v1": the original accepted format found implementations through 2025 and 
+- "v2": the extension to v1 with an F3 snapshot as a raw data block, and changing CAR roots to be a CID that points to a CBOR-encoded Filecoin snapshot header struct.
 
 ## Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
@@ -30,9 +34,9 @@ The time cost and the network bandwidth usage for a new Filecoin node to catch u
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any current Filecoin implementations. -->
 
-We propose the blow changes to the Filecoin CAR snapshot format.
+We propose the below changes to the Filecoin CAR snapshot format.
 
-- Change CAR roots to be a CID that points to a CBOR-encoded [`SnapshotMetadata`](#snapshotmetadata) struct that is stored as the first data block in the CAR.
+- Change CAR root to be a CID that points to a CBOR-encoded [`SnapshotMetadata`](#snapshotmetadata) struct that is stored as the first data block in the CAR.
 - Store the raw [`F3Snapshot`](#f3snapshot) bytes as the second data block in the CAR when `F3Data != nil` in the metadata.
 
 ### SnapshotMetadata
@@ -46,21 +50,21 @@ type SnapshotMetadata {
 
 ### F3Snapshot
 
-An F3 snapshot contains one header block and N(N>0) data blocks in the below format:
+An F3 snapshot contains one header block and N data blocks (where N>0) in the below format:
 
 `[Header block] [Data block] [Data block] [Data block] ...`
 
 A header block is a CBOR-encoded [`F3SnapshotHeader`](#f3snapshotheader) with a length prefix in the below format:
 
-`[varint-encoded length] [CBOR-encoded F3SnapshotHeader]`
+`[varint-encoded byte length of "CBOR-encoded F3SnapshotHeader"] [CBOR-encoded F3SnapshotHeader]`
 
 ### F3SnapshotHeader
 
 ```go
-type SnapshotHeader struct {
+type F3SnapshotHeader struct {
 	Version           uint64
-	FirstInstance     uint64
-	LatestInstance    uint64
+	FirstInstance     uint64 // The first FinalityCertificate.GPBFTInstance in the "data blocks" that follow the header.
+	LatestInstance    uint64 // The last FinalityCertificate.GPBFTInstance in the "data blocks" that follow the header.
 	InitialPowerTable gpbft.PowerEntries
 }
 ```
@@ -99,8 +103,8 @@ Notes:
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
 
-- A filecoin node should try to read a snapshot CAR in the proposed format, and fallback to the old format to maintain backward compatibility.
-- CLI options should remain unchanged to make it transparent to the node users.
+- A Filecoin node should try to read a snapshot CAR in the proposed format. A failure to successfully decode the blocked referenced as as the CAR's single root using the schema presented above, a snapshot reader may fallback to the old format and maintain backward compatibility. Additional failures to decode original snapshot format would indicate a fatal error.
+- CLI options for implementations like Forest and Lotus should remain unchanged to make it transparent to the node users.
 - The code change in all Filecoin nodes should be shipped with a network upgrade, and the Filecoin snapshot providers should only start publishing with the new format after the mainnet upgrade finishes to avoid potential errors during snapshot import for node users.
 
 ## Test Cases
@@ -131,6 +135,8 @@ Nodes starting from a snapshot should not rely on the certificate exchange proto
 ## Implementation
 <!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
 
+Lotus: https://github.com/filecoin-project/lotus/issues/13129
+Forest: 
 ## Future Work
 <!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a "Last Call" status once all these items have been resolved.-->
    
