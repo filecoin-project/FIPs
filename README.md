@@ -145,4 +145,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0106](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0106.md) | Removal of the ProveReplicaUpdates method from the miner actor | FIP | Rod Vagg (@rvagg) | Last Call |
 | [0107](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0107.md) | Implicit Messages in Block Receipts | FIP | Rod Vagg (@rvagg) | Last Call |
 | [0108](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0108.md) | Filecoin Snapshot Format | FRC | Hailong Mu (@hanabi1224) | Draft |
-| [0109](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0109.md) | Enable smart contract notifications for Direct Data Onboarding (DDO) | FIP | Rod Vagg (@rvagg) | Draft |
+| [0109](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0109.md) | Enable smart contract notifications for Direct Data Onboarding (DDO) | FIP | Rod Vagg (@rvagg) | Last Call |
