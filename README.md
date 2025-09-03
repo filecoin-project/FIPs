@@ -135,14 +135,14 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0096](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0096.md) | Convert fundraising remainder address(es) to keyless account actor(s) | FIP | @Fatman13 | Draft |
 | [0097](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0097.md) | Add Support for EIP-1153 (Transient Storage) in the FEVM | FIP | Michael Seiler (@snissn), Steven Allen (@stebalien) | Final |
 | [0098](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0098.md) | Simplify termination fee calculation to a fixed percentage of initial pledge | FIP | Jonathan Schwartz (@Schwartz10), Alex North (@anorth), Jim Pick (@jimpick) | Final |
-| [0099](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0099.md) | Delegation of Authority for F3 Parameter Setting | FRC | @Kubuxu @BigLep | Accepted |
+| [0099](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0099.md) | Delegation of Authority for F3 Parameter Setting | FRC | @Kubuxu @BigLep | Final |
 | [0100](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0100.md) | Removing Batch Balancer, Replacing It With a Per-sector Fee and Removing Gas-limited Constraints | FIP | irene (@irenegia), AX (@AxCortesCubero), rvagg (@rvagg), molly (@momack2), kiran (@kkarrancsu)| Final |
 | [0101](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0101.md) | Removal of the ProveCommitAggregate method from the miner actor | FIP | Rod Vagg (@rvagg) | Accepted |
 | [0102](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0102.md) | Wallet-Signing Envelope for Arbitrary Messages | FRC | "Hugo Dias (@hugomrdias), Bumblefudge (@bumblefudge)" | Draft |
-| [0103](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0103.md) | Removal of the ExtendSectorExpiration method from the miner actor | FIP | Rod Vagg (@rvagg) | Last Call |
-| [0104](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0104.md) | Common Node API | FRC | David Ansermino (@ansermino), Aatif Syed (@aatifsyed), Alexey Krasnoperov (@AlexeyKrasnoperov) | Draft |
-| [0105](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0105.md) | Add Support for EIP-2537 (BLS12-381 Precompiles) in the FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Draft |
-| [0106](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0106.md) | Removal of the ProveReplicaUpdates method from the miner actor | FIP | Rod Vagg (@rvagg) | Last Call |
-| [0107](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0107.md) | Implicit Messages in Block Receipts | FIP | Rod Vagg (@rvagg) | Last Call |
-| [0108](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0108.md) | Filecoin Snapshot Format | FRC | Hailong Mu (@hanabi1224) | Draft |
-| [0109](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0109.md) | Enable smart contract notifications for Direct Data Onboarding (DDO) | FIP | Rod Vagg (@rvagg) | Last Call |
+| [0103](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0103.md) | Removal of the ExtendSectorExpiration method from the miner actor | FIP | Rod Vagg (@rvagg) | Accepted |
+| [0104](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0104.md) | Common Node API | FRC | David Ansermino (@ansermino), Aatif Syed (@aatifsyed), Alexey Krasnoperov (@AlexeyKrasnoperov) | Accepted |
+| [0105](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0105.md) | Add Support for EIP-2537 (BLS12-381 Precompiles) in the FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Accepted |
+| [0106](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0106.md) | Removal of the ProveReplicaUpdates method from the miner actor | FIP | Rod Vagg (@rvagg) | Accepted |
+| [0107](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0107.md) | Implicit Messages in Block Receipts | FIP | Rod Vagg (@rvagg) | Accepted |
+| [0108](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0108.md) | Filecoin Snapshot Format | FRC | Hailong Mu (@hanabi1224) | Accepted |
+| [0109](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0109.md) | Enable smart contract notifications for Direct Data Onboarding (DDO) | FIP | Rod Vagg (@rvagg) | Accepted |
