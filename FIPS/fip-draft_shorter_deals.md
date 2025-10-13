@@ -14,25 +14,25 @@ created: 2025-10-09
 
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
-Currently, parameters are set such that the shortest deal that is supported in filecoin is 6 months. We have a number of use cases where clients want to pay on a monthly basis. While this is non-ideal for a storage provider because of the sealing overhead versus amoutn of time earned, if the expectation is that most deals with still extend to periods of years, storage providers may be willing to take deals with initial 1-month durations. The protocol does not need to enforce a 6 month minimum.
+Currently, parameters are set such that the shortest deal that is supported in Filecoin is 6 months. We have a number of use cases where clients want to pay on a monthly basis. While this is non-ideal for a storage provider because of the sealing overhead versus amount of time earned, if the expectation is that most deals will extend to periods of years, storage providers may be willing to take deals with initial 1-month durations. The protocol does not need to enforce a 6 month minimum.
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
 * Change the minimum market [`deal_duration_bounds`](https://github.com/filecoin-project/builtin-actors/blob/master/actors/market/src/policy.rs#L29) from 180 to 30
-* Change the miner [`MIN_SECTOR_EXPIRATION`](https://github.com/filecoin-project/builtin-actors/blob/master/actors/miner/src/policy.rs#L114) from 180 to 30
 * Change the runtime policy [`MIN_SECTOR_EXPIRATION`](https://github.com/filecoin-project/builtin-actors/blob/master/runtime/src/runtime/policy.rs#L352) from 180 to 30
+* Remove the redundant miner [`MIN_SECTOR_EXPIRATION`](https://github.com/filecoin-project/builtin-actors/blob/master/actors/miner/src/policy.rs#L114)
 
 ## Change Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
-The goal of this FIP is to allow deals / sectors to be initially stored on filecoin for a one month time period. The functionality now exists for such data to be extended month-to-month as clients continue to pay for the data, but the initial 6 month term creates a barrier that is at odds with use cases we see as desired.
+The goal of this FIP is to allow deals / sectors to be initially stored on Filecoin for a one month time period. The functionality now exists for such data to be extended month-to-month as clients continue to pay for the data, but the initial 6 month term creates a barrier that is at odds with use cases we see as desired.
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
-The change here is to adjust the constants that define a minimum deal term. We do not change the other semantics, and also do not adjust the vesting spec - if there is direct locked funds for a miner deal they will vest over 6 months, not a 1 month period. With FVM other vesting schedules can be implemented already, so changes to the builtin actor in this regard is not seen as critical.
+The change here is to adjust the constants that define a minimum deal term. We do not change the other semantics, and also do not adjust the vesting spec - if there are direct locked funds for a miner deal they will vest over 6 months, not a 1 month period. With FVM other vesting schedules can be implemented already, so changes to the builtin actor in this regard is not seen as critical.
 
 ## Design Rationale
 <!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
-The design here aims to make the smallest possible change to enable the desired functionality. It is a change of contants, and will lead to some modification of parameters in integration tests, but should otherwise neither affect any existing / historic chain activity, or require other logic changes through builtin actors code.
+The design here aims to make the smallest possible change to enable the desired functionality. It is a change of constants, and will lead to some modification of parameters in integration tests, but should otherwise neither affect any existing / historic chain activity, or require other logic changes through builtin actors code.
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
