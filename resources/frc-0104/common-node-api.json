@@ -71,6 +71,19 @@
       "paramStructure": "by-position"
     },
     {
+      "name": "Filecoin.ChainGetFinalizedTipSet",
+      "description": "Returns the latest F3 finalized tipset, or falls back to EC finality if F3 is not operational on the node or if the F3 finalized tipset is further back than EC finalized tipset.",
+      "params": [],
+      "result": {
+        "name": "Filecoin.ChainGetFinalizedTipSet.Result",
+        "required": true,
+        "schema": {
+          "$ref": "#/components/schemas/Tipset"
+        }
+      },
+      "paramStructure": "by-position"
+    },
+    {
       "name": "Filecoin.ChainGetMessage",
       "description": "Returns the message with the specified CID.",
       "params": [
@@ -173,7 +186,7 @@
             "null"
           ],
           "items": {
-            "$ref": "#/components/schemas/PathChange_for_Tipset"
+            "$ref": "#/components/schemas/PathChange"
           }
         }
       },
@@ -445,7 +458,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -722,7 +735,7 @@
         "schema": {
           "type": "integer",
           "format": "uint64",
-          "minimum": 0.0
+          "minimum": 0
         }
       },
       "paramStructure": "by-position"
@@ -1133,7 +1146,7 @@
         "name": "Filecoin.StateCirculatingSupply.Result",
         "required": true,
         "schema": {
-          "$ref": "#/components/schemas/BigInt"
+          "$ref": "#/components/schemas/TokenAmount"
         }
       },
       "paramStructure": "by-position"
@@ -1148,7 +1161,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -1245,8 +1258,11 @@
         "required": true,
         "schema": {
           "type": "object",
-          "additionalProperties": {
-            "$ref": "#/components/schemas/Allocation"
+          "additionalProperties": false,
+          "patternProperties": {
+            "^\\d+$": {
+              "$ref": "#/components/schemas/Allocation"
+            }
           }
         }
       },
@@ -1275,8 +1291,11 @@
         "required": true,
         "schema": {
           "type": "object",
-          "additionalProperties": {
-            "$ref": "#/components/schemas/ClaimLotusJson"
+          "additionalProperties": false,
+          "patternProperties": {
+            "^\\d+$": {
+              "$ref": "#/components/schemas/ClaimLotusJson"
+            }
           }
         }
       },
@@ -1299,7 +1318,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -1342,7 +1361,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -1385,7 +1404,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -1408,7 +1427,7 @@
         "schema": {
           "type": "integer",
           "format": "uint64",
-          "minimum": 0.0
+          "minimum": 0
         }
       },
       "paramStructure": "by-position"
@@ -1443,8 +1462,11 @@
         "required": true,
         "schema": {
           "type": "object",
-          "additionalProperties": {
-            "$ref": "#/components/schemas/Allocation"
+          "additionalProperties": false,
+          "patternProperties": {
+            "^\\d+$": {
+              "$ref": "#/components/schemas/Allocation"
+            }
           }
         }
       },
@@ -1489,7 +1511,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -1552,8 +1574,11 @@
         "required": true,
         "schema": {
           "type": "object",
-          "additionalProperties": {
-            "$ref": "#/components/schemas/ClaimLotusJson"
+          "additionalProperties": false,
+          "patternProperties": {
+            "^\\d+$": {
+              "$ref": "#/components/schemas/ClaimLotusJson"
+            }
           }
         }
       },
@@ -2028,7 +2053,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -2157,7 +2182,7 @@
         "name": "Filecoin.StateMinerAvailableBalance.Result",
         "required": true,
         "schema": {
-          "$ref": "#/components/schemas/BigInt"
+          "$ref": "#/components/schemas/TokenAmount"
         }
       },
       "paramStructure": "by-position"
@@ -2306,7 +2331,7 @@
         "name": "Filecoin.StateMinerInitialPledgeCollateral.Result",
         "required": true,
         "schema": {
-          "$ref": "#/components/schemas/BigInt"
+          "$ref": "#/components/schemas/TokenAmount"
         }
       },
       "paramStructure": "by-position"
@@ -2328,7 +2353,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -2430,7 +2455,7 @@
         "name": "Filecoin.StateMinerPreCommitDepositForPower.Result",
         "required": true,
         "schema": {
-          "$ref": "#/components/schemas/BigInt"
+          "$ref": "#/components/schemas/TokenAmount"
         }
       },
       "paramStructure": "by-position"
@@ -2520,7 +2545,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -2656,9 +2681,7 @@
         "name": "Filecoin.StateNetworkVersion.Result",
         "required": true,
         "schema": {
-          "type": "integer",
-          "format": "uint32",
-          "minimum": 0.0
+          "$ref": "#/components/schemas/NetworkVersion"
         }
       },
       "paramStructure": "by-position"
@@ -2797,7 +2820,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -2840,7 +2863,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -2890,7 +2913,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -2933,7 +2956,7 @@
           "schema": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
         },
         {
@@ -3183,7 +3206,7 @@
         "name": "Filecoin.WalletBalance.Result",
         "required": true,
         "schema": {
-          "$ref": "#/components/schemas/BigInt"
+          "$ref": "#/components/schemas/TokenAmount"
         }
       },
       "paramStructure": "by-position"
@@ -3289,14 +3312,6 @@
     "schemas": {
       "ActorEvent": {
         "type": "object",
-        "required": [
-          "emitter",
-          "entries",
-          "height",
-          "msgCid",
-          "reverted",
-          "tipsetKey"
-        ],
         "properties": {
           "emitter": {
             "$ref": "#/components/schemas/Address"
@@ -3320,24 +3335,32 @@
           "tipsetKey": {
             "$ref": "#/components/schemas/NonEmpty_Array_of_Cid"
           }
-        }
+        },
+        "required": [
+          "entries",
+          "emitter",
+          "reverted",
+          "height",
+          "tipsetKey",
+          "msgCid"
+        ]
       },
       "ActorEventBlock": {
         "type": "object",
-        "required": [
-          "codec",
-          "value"
-        ],
         "properties": {
           "codec": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "value": {
             "$ref": "#/components/schemas/Base64String"
           }
-        }
+        },
+        "required": [
+          "codec",
+          "value"
+        ]
       },
       "ActorEventFilter": {
         "type": "object",
@@ -3385,15 +3408,9 @@
       },
       "ActorState": {
         "type": "object",
-        "required": [
-          "Balance",
-          "Code",
-          "Head",
-          "Nonce"
-        ],
         "properties": {
           "Balance": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "Code": {
             "$ref": "#/components/schemas/Cid"
@@ -3407,33 +3424,35 @@
           "Nonce": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
-        }
+        },
+        "required": [
+          "Code",
+          "Head",
+          "Nonce",
+          "Balance"
+        ]
       },
       "ActorTrace": {
         "type": "object",
-        "required": [
-          "Id",
-          "State"
-        ],
         "properties": {
           "Id": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "State": {
             "$ref": "#/components/schemas/ActorState"
           }
-        }
+        },
+        "required": [
+          "Id",
+          "State"
+        ]
       },
       "AddrInfo": {
         "type": "object",
-        "required": [
-          "Addrs",
-          "ID"
-        ],
         "properties": {
           "Addrs": {
             "type": "array",
@@ -3445,27 +3464,22 @@
           "ID": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "ID",
+          "Addrs"
+        ]
       },
       "Address": {
         "type": "string"
       },
       "Allocation": {
         "type": "object",
-        "required": [
-          "Client",
-          "Data",
-          "Expiration",
-          "Provider",
-          "Size",
-          "TermMax",
-          "TermMin"
-        ],
         "properties": {
           "Client": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Data": {
             "$ref": "#/components/schemas/Cid"
@@ -3477,12 +3491,12 @@
           "Provider": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Size": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "TermMax": {
             "type": "integer",
@@ -3492,72 +3506,66 @@
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "required": [
+          "Client",
+          "Provider",
+          "Data",
+          "Size",
+          "TermMin",
+          "TermMax",
+          "Expiration"
+        ]
       },
       "ApiActorState": {
         "type": "object",
-        "required": [
-          "Balance",
-          "Code",
-          "State"
-        ],
         "properties": {
           "Balance": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "Code": {
             "$ref": "#/components/schemas/Cid"
           },
-          "State": {
-            "$ref": "#/components/schemas/ApiState"
-          }
-        }
+          "State": true
+        },
+        "required": [
+          "Balance",
+          "Code",
+          "State"
+        ]
       },
       "ApiDeadline": {
         "type": "object",
-        "required": [
-          "DailyFee",
-          "DisputableProofCount",
-          "PostSubmissions"
-        ],
         "properties": {
           "DailyFee": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "DisputableProofCount": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "PostSubmissions": {
             "$ref": "#/components/schemas/BitField"
           }
-        }
+        },
+        "required": [
+          "PostSubmissions",
+          "DisputableProofCount",
+          "DailyFee"
+        ]
       },
       "ApiDeadlineInfo": {
         "type": "string"
       },
       "ApiDealProposal": {
         "type": "object",
-        "required": [
-          "Client",
-          "ClientCollateral",
-          "EndEpoch",
-          "Label",
-          "PieceCID",
-          "PieceSize",
-          "Provider",
-          "ProviderCollateral",
-          "StartEpoch",
-          "StoragePricePerEpoch",
-          "VerifiedDeal"
-        ],
         "properties": {
           "Client": {
             "$ref": "#/components/schemas/Address"
           },
           "ClientCollateral": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "EndEpoch": {
             "type": "integer",
@@ -3572,34 +3580,41 @@
           "PieceSize": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Provider": {
             "$ref": "#/components/schemas/Address"
           },
           "ProviderCollateral": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "StartEpoch": {
             "type": "integer",
             "format": "int64"
           },
           "StoragePricePerEpoch": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "VerifiedDeal": {
             "type": "boolean"
           }
-        }
+        },
+        "required": [
+          "PieceCID",
+          "PieceSize",
+          "VerifiedDeal",
+          "Client",
+          "Provider",
+          "Label",
+          "StartEpoch",
+          "EndEpoch",
+          "StoragePricePerEpoch",
+          "ProviderCollateral",
+          "ClientCollateral"
+        ]
       },
       "ApiDealState": {
         "type": "object",
-        "required": [
-          "LastUpdatedEpoch",
-          "SectorNumber",
-          "SectorStartEpoch",
-          "SlashEpoch"
-        ],
         "properties": {
           "LastUpdatedEpoch": {
             "type": "integer",
@@ -3608,7 +3623,7 @@
           "SectorNumber": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "SectorStartEpoch": {
             "type": "integer",
@@ -3618,23 +3633,21 @@
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "required": [
+          "SectorStartEpoch",
+          "LastUpdatedEpoch",
+          "SlashEpoch",
+          "SectorNumber"
+        ]
       },
       "ApiInvocResult": {
         "type": "object",
-        "required": [
-          "Duration",
-          "Error",
-          "GasCost",
-          "Msg",
-          "MsgCid",
-          "MsgRct"
-        ],
         "properties": {
           "Duration": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Error": {
             "type": "string"
@@ -3661,14 +3674,18 @@
           "MsgRct": {
             "$ref": "#/components/schemas/Nullable_Receipt"
           }
-        }
+        },
+        "required": [
+          "MsgCid",
+          "Msg",
+          "MsgRct",
+          "Error",
+          "Duration",
+          "GasCost"
+        ]
       },
       "ApiMarketDeal": {
         "type": "object",
-        "required": [
-          "Proposal",
-          "State"
-        ],
         "properties": {
           "Proposal": {
             "$ref": "#/components/schemas/ApiDealProposal"
@@ -3676,14 +3693,14 @@
           "State": {
             "$ref": "#/components/schemas/ApiDealState"
           }
-        }
+        },
+        "required": [
+          "Proposal",
+          "State"
+        ]
       },
       "ApiMessage": {
         "type": "object",
-        "required": [
-          "Cid",
-          "Message"
-        ],
         "properties": {
           "Cid": {
             "$ref": "#/components/schemas/Cid"
@@ -3691,16 +3708,14 @@
           "Message": {
             "$ref": "#/components/schemas/Message"
           }
-        }
+        },
+        "required": [
+          "Cid",
+          "Message"
+        ]
       },
       "ApiReceipt": {
         "type": "object",
-        "required": [
-          "EventsRoot",
-          "ExitCode",
-          "GasUsed",
-          "Return"
-        ],
         "properties": {
           "EventsRoot": {
             "$ref": "#/components/schemas/Nullable_Cid"
@@ -3711,21 +3726,18 @@
           "GasUsed": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Return": {
             "$ref": "#/components/schemas/Base64String"
           }
-        }
-      },
-      "ApiState": {
-        "type": "object",
+        },
         "required": [
-          "BuiltinActors"
-        ],
-        "properties": {
-          "BuiltinActors": true
-        }
+          "ExitCode",
+          "Return",
+          "GasUsed",
+          "EventsRoot"
+        ]
       },
       "Base64String": {
         "type": [
@@ -3735,10 +3747,6 @@
       },
       "BeaconEntry": {
         "type": "object",
-        "required": [
-          "Data",
-          "Round"
-        ],
         "properties": {
           "Data": {
             "$ref": "#/components/schemas/Base64String"
@@ -3746,17 +3754,16 @@
           "Round": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
-        }
+        },
+        "required": [
+          "Round",
+          "Data"
+        ]
       },
       "BeneficiaryTerm": {
         "type": "object",
-        "required": [
-          "Expiration",
-          "Quota",
-          "UsedQuota"
-        ],
         "properties": {
           "Expiration": {
             "description": "The epoch at which the beneficiary's rights expire and revert to the owner",
@@ -3765,13 +3772,18 @@
           },
           "Quota": {
             "description": "The total amount the current beneficiary can withdraw. Monotonic, but reset when beneficiary changes.",
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "UsedQuota": {
             "description": "The amount of quota the current beneficiary has already withdrawn",
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           }
-        }
+        },
+        "required": [
+          "Quota",
+          "UsedQuota",
+          "Expiration"
+        ]
       },
       "BigInt": {
         "type": "string"
@@ -3784,25 +3796,12 @@
         "items": {
           "type": "integer",
           "format": "uint8",
-          "minimum": 0.0
+          "maximum": 255,
+          "minimum": 0
         }
       },
       "BlockHeader": {
         "type": "object",
-        "required": [
-          "BeaconEntries",
-          "ForkSignaling",
-          "Height",
-          "Messages",
-          "Miner",
-          "ParentBaseFee",
-          "ParentMessageReceipts",
-          "ParentStateRoot",
-          "ParentWeight",
-          "Parents",
-          "Timestamp",
-          "WinPoStProof"
-        ],
         "properties": {
           "BLSAggregate": {
             "$ref": "#/components/schemas/Nullable_Signature"
@@ -3819,7 +3818,7 @@
           "ForkSignaling": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Height": {
             "type": "integer",
@@ -3832,7 +3831,7 @@
             "$ref": "#/components/schemas/Address"
           },
           "ParentBaseFee": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "ParentMessageReceipts": {
             "$ref": "#/components/schemas/Cid"
@@ -3852,20 +3851,29 @@
           "Timestamp": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "WinPoStProof": {
             "$ref": "#/components/schemas/Nullable_Array_of_PoStProof"
           }
-        }
+        },
+        "required": [
+          "Miner",
+          "BeaconEntries",
+          "WinPoStProof",
+          "Parents",
+          "ParentWeight",
+          "Height",
+          "ParentStateRoot",
+          "ParentMessageReceipts",
+          "Messages",
+          "Timestamp",
+          "ForkSignaling",
+          "ParentBaseFee"
+        ]
       },
       "BlockMessage": {
         "type": "object",
-        "required": [
-          "BlsMessages",
-          "Header",
-          "SecpkMessages"
-        ],
         "properties": {
           "BlsMessages": {
             "$ref": "#/components/schemas/Nullable_Array_of_Cid"
@@ -3876,15 +3884,15 @@
           "SecpkMessages": {
             "$ref": "#/components/schemas/Nullable_Array_of_Cid"
           }
-        }
+        },
+        "required": [
+          "Header",
+          "BlsMessages",
+          "SecpkMessages"
+        ]
       },
       "BlockMessages": {
         "type": "object",
-        "required": [
-          "BlsMessages",
-          "Cids",
-          "SecpkMessages"
-        ],
         "properties": {
           "BlsMessages": {
             "$ref": "#/components/schemas/Nullable_Array_of_Message"
@@ -3895,21 +3903,15 @@
           "SecpkMessages": {
             "$ref": "#/components/schemas/Nullable_Array_of_SignedMessage"
           }
-        }
+        },
+        "required": [
+          "BlsMessages",
+          "SecpkMessages",
+          "Cids"
+        ]
       },
       "BlockTemplate": {
         "type": "object",
-        "required": [
-          "BeaconValues",
-          "Epoch",
-          "Eproof",
-          "Messages",
-          "Miner",
-          "Parents",
-          "Ticket",
-          "Timestamp",
-          "WinningPoStProof"
-        ],
         "properties": {
           "BeaconValues": {
             "$ref": "#/components/schemas/Nullable_Array_of_BeaconEntry"
@@ -3935,61 +3937,68 @@
           "Timestamp": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "WinningPoStProof": {
             "$ref": "#/components/schemas/Nullable_Array_of_PoStProof"
           }
-        }
+        },
+        "required": [
+          "Miner",
+          "Parents",
+          "Ticket",
+          "Eproof",
+          "BeaconValues",
+          "Messages",
+          "Epoch",
+          "Timestamp",
+          "WinningPoStProof"
+        ]
       },
       "Cid": {
         "type": "object",
-        "required": [
-          "/"
-        ],
         "properties": {
           "/": {
             "type": "string"
           }
-        }
+        },
+        "required": [
+          "/"
+        ]
       },
       "CirculatingSupply": {
         "type": "object",
-        "required": [
-          "FilBurnt",
-          "FilCirculating",
-          "FilLocked",
-          "FilMined",
-          "FilReserveDisbursed",
-          "FilVested"
-        ],
         "properties": {
           "FilBurnt": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "FilCirculating": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "FilLocked": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "FilMined": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "FilReserveDisbursed": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "FilVested": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           }
-        }
+        },
+        "required": [
+          "FilVested",
+          "FilMined",
+          "FilBurnt",
+          "FilLocked",
+          "FilCirculating",
+          "FilReserveDisbursed"
+        ]
       },
       "Claim": {
         "type": "object",
-        "required": [
-          "QualityAdjPower",
-          "RawBytePower"
-        ],
         "properties": {
           "QualityAdjPower": {
             "description": "Sum of quality adjusted power for a miner's sectors.",
@@ -3999,25 +4008,19 @@
             "description": "Sum of raw byte power for a miner's sectors.",
             "$ref": "#/components/schemas/BigInt"
           }
-        }
+        },
+        "required": [
+          "RawBytePower",
+          "QualityAdjPower"
+        ]
       },
       "ClaimLotusJson": {
         "type": "object",
-        "required": [
-          "Client",
-          "Data",
-          "Provider",
-          "Sector",
-          "Size",
-          "TermMax",
-          "TermMin",
-          "TermStart"
-        ],
         "properties": {
           "Client": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Data": {
             "$ref": "#/components/schemas/Cid"
@@ -4025,17 +4028,17 @@
           "Provider": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Sector": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Size": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "TermMax": {
             "type": "integer",
@@ -4049,29 +4052,35 @@
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "required": [
+          "Provider",
+          "Client",
+          "Data",
+          "Size",
+          "TermMin",
+          "TermMax",
+          "TermStart",
+          "Sector"
+        ]
       },
       "DealCollateralBounds": {
         "type": "object",
-        "required": [
-          "Max",
-          "Min"
-        ],
         "properties": {
           "Max": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "Min": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           }
-        }
+        },
+        "required": [
+          "Min",
+          "Max"
+        ]
       },
       "ElectionProof": {
         "type": "object",
-        "required": [
-          "VRFProof",
-          "WinCount"
-        ],
         "properties": {
           "VRFProof": {
             "$ref": "#/components/schemas/Base64String"
@@ -4080,20 +4089,20 @@
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "required": [
+          "VRFProof",
+          "WinCount"
+        ]
       },
       "Event": {
         "type": "object",
-        "required": [
-          "Emitter",
-          "Entries"
-        ],
         "properties": {
           "Emitter": {
             "description": "Actor ID",
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Entries": {
             "type": "array",
@@ -4101,26 +4110,24 @@
               "$ref": "#/components/schemas/EventEntry"
             }
           }
-        }
+        },
+        "required": [
+          "Emitter",
+          "Entries"
+        ]
       },
       "EventEntry": {
         "type": "object",
-        "required": [
-          "Codec",
-          "Flags",
-          "Key",
-          "Value"
-        ],
         "properties": {
           "Codec": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Flags": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Key": {
             "type": "string"
@@ -4128,16 +4135,16 @@
           "Value": {
             "$ref": "#/components/schemas/Base64String"
           }
-        }
+        },
+        "required": [
+          "Flags",
+          "Key",
+          "Codec",
+          "Value"
+        ]
       },
       "ExecutionTrace": {
         "type": "object",
-        "required": [
-          "GasCharges",
-          "Msg",
-          "MsgRct",
-          "Subcalls"
-        ],
         "properties": {
           "GasCharges": {
             "type": "array",
@@ -4164,22 +4171,22 @@
           "Subcalls": {
             "$ref": "#/components/schemas/Nullable_Array_of_ExecutionTrace"
           }
-        }
+        },
+        "required": [
+          "Msg",
+          "MsgRct",
+          "GasCharges",
+          "Subcalls"
+        ]
       },
       "ExitCode": {
-        "description": "`Newtype` wrapper for the FVM `ExitCode`.\n\n# Examples ``` # use forest::doctest_private::ExitCode; let fvm2_success = fvm_shared2::error::ExitCode::new(0); let fvm3_success = fvm_shared3::error::ExitCode::new(0);\n\nlet shim_from_v2 = ExitCode::from(fvm2_success); let shim_from_v3 = ExitCode::from(fvm3_success);\n\nassert_eq!(shim_from_v2, shim_from_v3); assert_eq!(shim_from_v2, fvm2_success.into()); assert_eq!(shim_from_v3, fvm3_success.into()); ```",
+        "description": "`Newtype` wrapper for the FVM `ExitCode`.\n\n# Examples\n```\n# use forest::doctest_private::ExitCode;\nlet fvm2_success = fvm_shared2::error::ExitCode::new(0);\nlet fvm3_success = fvm_shared3::error::ExitCode::new(0);\n\nlet shim_from_v2 = ExitCode::from(fvm2_success);\nlet shim_from_v3 = ExitCode::from(fvm3_success);\n\nassert_eq!(shim_from_v2, shim_from_v3);\nassert_eq!(shim_from_v2, fvm2_success.into());\nassert_eq!(shim_from_v3, fvm3_success.into());\n```",
         "type": "integer",
         "format": "uint32",
-        "minimum": 0.0
+        "minimum": 0
       },
       "ExtendedSectorInfo": {
         "type": "object",
-        "required": [
-          "SealProof",
-          "SealedCID",
-          "SectorKey",
-          "SectorNumber"
-        ],
         "properties": {
           "SealProof": {
             "$ref": "#/components/schemas/int64"
@@ -4193,43 +4200,18 @@
           "SectorNumber": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
-        }
+        },
+        "required": [
+          "SealProof",
+          "SectorNumber",
+          "SectorKey",
+          "SealedCID"
+        ]
       },
       "ForkUpgradeParams": {
         "type": "object",
-        "required": [
-          "BreezeGasTampingDuration",
-          "UpgradeAssemblyHeight",
-          "UpgradeBreezeHeight",
-          "UpgradeCalicoHeight",
-          "UpgradeChocolateHeight",
-          "UpgradeClausHeight",
-          "UpgradeDragonHeight",
-          "UpgradeHyggeHeight",
-          "UpgradeHyperdriveHeight",
-          "UpgradeIgnitionHeight",
-          "UpgradeKumquatHeight",
-          "UpgradeLiftoffHeight",
-          "UpgradeLightningHeight",
-          "UpgradeNorwegianHeight",
-          "UpgradeOhSnapHeight",
-          "UpgradeOrangeHeight",
-          "UpgradePersianHeight",
-          "UpgradePhoenixHeight",
-          "UpgradeRefuelHeight",
-          "UpgradeSharkHeight",
-          "UpgradeSkyrHeight",
-          "UpgradeSmokeHeight",
-          "UpgradeTapeHeight",
-          "UpgradeThunderHeight",
-          "UpgradeTrustHeight",
-          "UpgradeTuktukHeight",
-          "UpgradeTurboHeight",
-          "UpgradeWaffleHeight",
-          "UpgradeWatermelonHeight"
-        ],
         "properties": {
           "BreezeGasTampingDuration": {
             "type": "integer",
@@ -4323,7 +4305,15 @@
             "type": "integer",
             "format": "int64"
           },
+          "UpgradeTeepHeight": {
+            "type": "integer",
+            "format": "int64"
+          },
           "UpgradeThunderHeight": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "UpgradeTockHeight": {
             "type": "integer",
             "format": "int64"
           },
@@ -4347,17 +4337,43 @@
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "required": [
+          "UpgradeSmokeHeight",
+          "UpgradeBreezeHeight",
+          "UpgradeIgnitionHeight",
+          "UpgradeLiftoffHeight",
+          "UpgradeAssemblyHeight",
+          "UpgradeRefuelHeight",
+          "UpgradeTapeHeight",
+          "UpgradeKumquatHeight",
+          "BreezeGasTampingDuration",
+          "UpgradeCalicoHeight",
+          "UpgradePersianHeight",
+          "UpgradeOrangeHeight",
+          "UpgradeClausHeight",
+          "UpgradeTrustHeight",
+          "UpgradeNorwegianHeight",
+          "UpgradeTurboHeight",
+          "UpgradeHyperdriveHeight",
+          "UpgradeChocolateHeight",
+          "UpgradeOhSnapHeight",
+          "UpgradeSkyrHeight",
+          "UpgradeSharkHeight",
+          "UpgradeHyggeHeight",
+          "UpgradeLightningHeight",
+          "UpgradeThunderHeight",
+          "UpgradeWatermelonHeight",
+          "UpgradeDragonHeight",
+          "UpgradePhoenixHeight",
+          "UpgradeWaffleHeight",
+          "UpgradeTuktukHeight",
+          "UpgradeTeepHeight",
+          "UpgradeTockHeight"
+        ]
       },
       "GasTrace": {
         "type": "object",
-        "required": [
-          "Name",
-          "cg",
-          "sg",
-          "tg",
-          "tt"
-        ],
         "properties": {
           "Name": {
             "type": "string"
@@ -4365,32 +4381,34 @@
           "cg": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "sg": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "tg": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "tt": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
-        }
+        },
+        "required": [
+          "Name",
+          "tg",
+          "cg",
+          "sg",
+          "tt"
+        ]
       },
       "GossipBlock": {
         "type": "object",
-        "required": [
-          "BlsMessages",
-          "Header",
-          "SecpkMessages"
-        ],
         "properties": {
           "BlsMessages": {
             "$ref": "#/components/schemas/Cid"
@@ -4401,59 +4419,60 @@
           "SecpkMessages": {
             "$ref": "#/components/schemas/Cid"
           }
-        }
+        },
+        "required": [
+          "Header",
+          "BlsMessages",
+          "SecpkMessages"
+        ]
       },
       "MarketBalance": {
         "description": "External format for returning market balance from state.",
         "type": "object",
+        "properties": {
+          "Escrow": {
+            "$ref": "#/components/schemas/TokenAmount"
+          },
+          "Locked": {
+            "$ref": "#/components/schemas/TokenAmount"
+          }
+        },
         "required": [
           "Escrow",
           "Locked"
-        ],
-        "properties": {
-          "Escrow": {
-            "$ref": "#/components/schemas/BigInt"
-          },
-          "Locked": {
-            "$ref": "#/components/schemas/BigInt"
-          }
-        }
+        ]
       },
       "Message": {
         "type": "object",
-        "required": [
-          "From",
-          "To"
-        ],
         "properties": {
           "From": {
             "$ref": "#/components/schemas/Address"
           },
           "GasFeeCap": {
-            "default": "0",
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount",
+            "default": "0"
           },
           "GasLimit": {
-            "default": 0,
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "default": 0,
+            "minimum": 0
           },
           "GasPremium": {
-            "default": "0",
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount",
+            "default": "0"
           },
           "Method": {
-            "default": 0,
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "default": 0,
+            "minimum": 0
           },
           "Nonce": {
-            "default": 0,
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "default": 0,
+            "minimum": 0
           },
           "Params": {
             "$ref": "#/components/schemas/Nullable_Base64String"
@@ -4462,23 +4481,23 @@
             "$ref": "#/components/schemas/Address"
           },
           "Value": {
-            "default": "0",
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount",
+            "default": "0"
           },
           "Version": {
-            "default": 0,
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "default": 0,
+            "minimum": 0
           }
-        }
+        },
+        "required": [
+          "To",
+          "From"
+        ]
       },
       "MessageFilter": {
         "type": "object",
-        "required": [
-          "From",
-          "To"
-        ],
         "properties": {
           "From": {
             "$ref": "#/components/schemas/Nullable_Address"
@@ -4486,56 +4505,53 @@
           "To": {
             "$ref": "#/components/schemas/Nullable_Address"
           }
-        }
+        },
+        "required": [
+          "From",
+          "To"
+        ]
       },
       "MessageGasCost": {
         "type": "object",
-        "required": [
-          "BaseFeeBurn",
-          "GasUsed",
-          "Message",
-          "MinerPenalty",
-          "MinerTip",
-          "OverEstimationBurn",
-          "Refund",
-          "TotalCost"
-        ],
         "properties": {
           "BaseFeeBurn": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "GasUsed": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "Message": {
             "$ref": "#/components/schemas/Nullable_Cid"
           },
           "MinerPenalty": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "MinerTip": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "OverEstimationBurn": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "Refund": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "TotalCost": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           }
-        }
+        },
+        "required": [
+          "Message",
+          "GasUsed",
+          "BaseFeeBurn",
+          "OverEstimationBurn",
+          "MinerPenalty",
+          "MinerTip",
+          "Refund",
+          "TotalCost"
+        ]
       },
       "MessageLookup": {
         "type": "object",
-        "required": [
-          "Height",
-          "Message",
-          "Receipt",
-          "ReturnDec",
-          "TipSet"
-        ],
         "properties": {
           "Height": {
             "type": "integer",
@@ -4551,29 +4567,28 @@
           "TipSet": {
             "$ref": "#/components/schemas/NonEmpty_Array_of_Cid"
           }
-        }
+        },
+        "required": [
+          "Receipt",
+          "TipSet",
+          "Height",
+          "Message",
+          "ReturnDec"
+        ]
       },
       "MessageSendSpec": {
         "type": "object",
-        "required": [
-          "MaxFee"
-        ],
         "properties": {
           "MaxFee": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           }
-        }
+        },
+        "required": [
+          "MaxFee"
+        ]
       },
       "MessageTrace": {
         "type": "object",
-        "required": [
-          "From",
-          "Method",
-          "Params",
-          "ParamsCodec",
-          "To",
-          "Value"
-        ],
         "properties": {
           "From": {
             "$ref": "#/components/schemas/Address"
@@ -4584,12 +4599,12 @@
               "null"
             ],
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Method": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Params": {
             "$ref": "#/components/schemas/Base64String"
@@ -4597,7 +4612,7 @@
           "ParamsCodec": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "ReadOnly": {
             "type": [
@@ -4609,29 +4624,20 @@
             "$ref": "#/components/schemas/Address"
           },
           "Value": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           }
-        }
+        },
+        "required": [
+          "From",
+          "To",
+          "Value",
+          "Method",
+          "Params",
+          "ParamsCodec"
+        ]
       },
       "MinerInfo": {
         "type": "object",
-        "required": [
-          "Beneficiary",
-          "BeneficiaryTerm",
-          "ConsensusFaultElapsed",
-          "ControlAddresses",
-          "Multiaddrs",
-          "NewWorker",
-          "Owner",
-          "PeerId",
-          "PendingBeneficiaryTerm",
-          "PendingOwnerAddress",
-          "SectorSize",
-          "WindowPoStPartitionSectors",
-          "WindowPoStProofType",
-          "Worker",
-          "WorkerChangeEpoch"
-        ],
         "properties": {
           "Beneficiary": {
             "$ref": "#/components/schemas/Address"
@@ -4656,7 +4662,7 @@
             "$ref": "#/components/schemas/Address"
           },
           "PeerId": {
-            "$ref": "#/components/schemas/Nullable_String"
+            "$ref": "#/components/schemas/Nullable_string"
           },
           "PendingBeneficiaryTerm": {
             "$ref": "#/components/schemas/Nullable_PendingBeneficiaryChange"
@@ -4670,7 +4676,7 @@
           "WindowPoStPartitionSectors": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "WindowPoStProofType": {
             "type": "string"
@@ -4682,17 +4688,27 @@
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "required": [
+          "Owner",
+          "Worker",
+          "NewWorker",
+          "ControlAddresses",
+          "WorkerChangeEpoch",
+          "PeerId",
+          "Multiaddrs",
+          "WindowPoStProofType",
+          "SectorSize",
+          "WindowPoStPartitionSectors",
+          "ConsensusFaultElapsed",
+          "PendingOwnerAddress",
+          "Beneficiary",
+          "BeneficiaryTerm",
+          "PendingBeneficiaryTerm"
+        ]
       },
       "MinerPartitions": {
         "type": "object",
-        "required": [
-          "ActiveSectors",
-          "AllSectors",
-          "FaultySectors",
-          "LiveSectors",
-          "RecoveringSectors"
-        ],
         "properties": {
           "ActiveSectors": {
             "$ref": "#/components/schemas/BitField"
@@ -4709,15 +4725,17 @@
           "RecoveringSectors": {
             "$ref": "#/components/schemas/BitField"
           }
-        }
+        },
+        "required": [
+          "AllSectors",
+          "FaultySectors",
+          "RecoveringSectors",
+          "LiveSectors",
+          "ActiveSectors"
+        ]
       },
       "MinerPower": {
         "type": "object",
-        "required": [
-          "HasMinPower",
-          "MinerPower",
-          "TotalPower"
-        ],
         "properties": {
           "HasMinPower": {
             "type": "boolean"
@@ -4728,45 +4746,40 @@
           "TotalPower": {
             "$ref": "#/components/schemas/Claim"
           }
-        }
+        },
+        "required": [
+          "MinerPower",
+          "TotalPower",
+          "HasMinPower"
+        ]
       },
       "MinerSectors": {
         "type": "object",
-        "required": [
-          "Active",
-          "Faulty",
-          "Live"
-        ],
         "properties": {
           "Active": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Faulty": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Live": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
-        }
+        },
+        "required": [
+          "Live",
+          "Active",
+          "Faulty"
+        ]
       },
       "MiningBaseInfo": {
         "type": "object",
-        "required": [
-          "BeaconEntries",
-          "EligibleForMining",
-          "MinerPower",
-          "NetworkPower",
-          "PrevBeaconEntry",
-          "SectorSize",
-          "Sectors",
-          "WorkerKey"
-        ],
         "properties": {
           "BeaconEntries": {
             "$ref": "#/components/schemas/Nullable_Array_of_BeaconEntry"
@@ -4786,7 +4799,7 @@
           "SectorSize": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Sectors": {
             "$ref": "#/components/schemas/Nullable_Array_of_ExtendedSectorInfo"
@@ -4794,23 +4807,25 @@
           "WorkerKey": {
             "$ref": "#/components/schemas/Address"
           }
-        }
+        },
+        "required": [
+          "MinerPower",
+          "NetworkPower",
+          "Sectors",
+          "WorkerKey",
+          "SectorSize",
+          "PrevBeaconEntry",
+          "BeaconEntries",
+          "EligibleForMining"
+        ]
       },
       "NetworkParams": {
         "type": "object",
-        "required": [
-          "BlockDelaySecs",
-          "ConsensusMinerMinPower",
-          "Eip155ChainID",
-          "ForkUpgradeParams",
-          "NetworkName",
-          "PreCommitChallengeDelay"
-        ],
         "properties": {
           "BlockDelaySecs": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "ConsensusMinerMinPower": {
             "$ref": "#/components/schemas/BigInt"
@@ -4818,7 +4833,7 @@
           "Eip155ChainID": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "ForkUpgradeParams": {
             "$ref": "#/components/schemas/ForkUpgradeParams"
@@ -4830,7 +4845,21 @@
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "required": [
+          "NetworkName",
+          "BlockDelaySecs",
+          "ConsensusMinerMinPower",
+          "PreCommitChallengeDelay",
+          "ForkUpgradeParams",
+          "Eip155ChainID"
+        ]
+      },
+      "NetworkVersion": {
+        "description": "Specifies the network version\n\n# Examples\n```\n# use forest::doctest_private::NetworkVersion;\nlet v0 = NetworkVersion::V0;\n\n// dereference to convert to FVM4\nassert_eq!(fvm_shared4::version::NetworkVersion::V0, *v0);\n\n// use `.into()` when FVM3 has to be specified.\nassert_eq!(fvm_shared3::version::NetworkVersion::V0, v0.into());\n\n// use `.into()` when FVM2 has to be specified.\nassert_eq!(fvm_shared2::version::NetworkVersion::V0, v0.into());\n```",
+        "type": "integer",
+        "format": "uint32",
+        "minimum": 0
       },
       "NonEmpty_Array_of_BlockHeader": {
         "type": "array",
@@ -4945,23 +4974,13 @@
         "items": {
           "type": "integer",
           "format": "uint64",
-          "minimum": 0.0
+          "minimum": 0
         }
       },
       "Nullable_Base64String": {
         "anyOf": [
           {
             "$ref": "#/components/schemas/Base64String"
-          },
-          {
-            "type": "null"
-          }
-        ]
-      },
-      "Nullable_BigInt": {
-        "anyOf": [
-          {
-            "$ref": "#/components/schemas/BigInt"
           },
           {
             "type": "null"
@@ -5018,12 +5037,6 @@
           }
         ]
       },
-      "Nullable_String": {
-        "type": [
-          "string",
-          "null"
-        ]
-      },
       "Nullable_Ticket": {
         "anyOf": [
           {
@@ -5034,55 +5047,60 @@
           }
         ]
       },
-      "PathChange_for_Tipset": {
+      "Nullable_TokenAmount": {
+        "anyOf": [
+          {
+            "$ref": "#/components/schemas/TokenAmount"
+          },
+          {
+            "type": "null"
+          }
+        ]
+      },
+      "Nullable_string": {
+        "type": [
+          "string",
+          "null"
+        ]
+      },
+      "PathChange": {
         "oneOf": [
           {
             "type": "object",
-            "required": [
-              "Type",
-              "Val"
-            ],
             "properties": {
               "Type": {
                 "type": "string",
-                "enum": [
-                  "revert"
-                ]
+                "const": "revert"
               },
               "Val": {
                 "$ref": "#/components/schemas/Tipset"
               }
-            }
+            },
+            "required": [
+              "Type",
+              "Val"
+            ]
           },
           {
             "type": "object",
-            "required": [
-              "Type",
-              "Val"
-            ],
             "properties": {
               "Type": {
                 "type": "string",
-                "enum": [
-                  "apply"
-                ]
+                "const": "apply"
               },
               "Val": {
                 "$ref": "#/components/schemas/Tipset"
               }
-            }
+            },
+            "required": [
+              "Type",
+              "Val"
+            ]
           }
         ]
       },
       "PendingBeneficiaryChange": {
         "type": "object",
-        "required": [
-          "ApprovedByBeneficiary",
-          "ApprovedByNominee",
-          "NewBeneficiary",
-          "NewExpiration",
-          "NewQuota"
-        ],
         "properties": {
           "ApprovedByBeneficiary": {
             "type": "boolean"
@@ -5098,16 +5116,19 @@
             "format": "int64"
           },
           "NewQuota": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           }
-        }
+        },
+        "required": [
+          "NewBeneficiary",
+          "NewQuota",
+          "NewExpiration",
+          "ApprovedByBeneficiary",
+          "ApprovedByNominee"
+        ]
       },
       "PoStProof": {
         "type": "object",
-        "required": [
-          "PoStProof",
-          "ProofBytes"
-        ],
         "properties": {
           "PoStProof": {
             "$ref": "#/components/schemas/int64"
@@ -5115,42 +5136,41 @@
           "ProofBytes": {
             "$ref": "#/components/schemas/Base64String"
           }
-        }
+        },
+        "required": [
+          "PoStProof",
+          "ProofBytes"
+        ]
       },
       "Receipt": {
         "type": "object",
-        "required": [
-          "ExitCode",
-          "GasUsed",
-          "Return"
-        ],
         "properties": {
           "EventsRoot": {
-            "default": null,
-            "$ref": "#/components/schemas/Nullable_Cid"
+            "$ref": "#/components/schemas/Nullable_Cid",
+            "default": null
           },
           "ExitCode": {
             "type": "integer",
             "format": "uint32",
-            "minimum": 0.0
+            "minimum": 0
           },
           "GasUsed": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Return": {
             "$ref": "#/components/schemas/Base64String"
           }
-        }
-      },
-      "ReturnTrace": {
-        "type": "object",
+        },
         "required": [
           "ExitCode",
           "Return",
-          "ReturnCodec"
-        ],
+          "GasUsed"
+        ]
+      },
+      "ReturnTrace": {
+        "type": "object",
         "properties": {
           "ExitCode": {
             "$ref": "#/components/schemas/ExitCode"
@@ -5161,16 +5181,17 @@
           "ReturnCodec": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
-        }
+        },
+        "required": [
+          "ExitCode",
+          "Return",
+          "ReturnCodec"
+        ]
       },
       "SectorExpiration": {
         "type": "object",
-        "required": [
-          "Early",
-          "OnTime"
-        ],
         "properties": {
           "Early": {
             "type": "integer",
@@ -5180,46 +5201,33 @@
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "required": [
+          "OnTime",
+          "Early"
+        ]
       },
       "SectorLocation": {
         "type": "object",
-        "required": [
-          "Deadline",
-          "Partition"
-        ],
         "properties": {
           "Deadline": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "Partition": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           }
-        }
+        },
+        "required": [
+          "Deadline",
+          "Partition"
+        ]
       },
       "SectorOnChainInfo": {
         "type": "object",
-        "required": [
-          "Activation",
-          "DailyFee",
-          "DealWeight",
-          "ExpectedDayReward",
-          "ExpectedStoragePledge",
-          "Expiration",
-          "Flags",
-          "InitialPledge",
-          "PowerBaseEpoch",
-          "ReplacedDayReward",
-          "SealProof",
-          "SealedCID",
-          "SectorKeyCID",
-          "SectorNumber",
-          "VerifiedDealWeight"
-        ],
         "properties": {
           "Activation": {
             "description": "Epoch during which the sector proof was accepted",
@@ -5227,20 +5235,20 @@
             "format": "int64"
           },
           "DailyFee": {
-            "description": "The total fee payable per day for this sector. The value of this field is set at the time of sector activation, extension and whenever a sector's `QAP` is changed. This fee is payable for the lifetime of the sector and is aggregated in the deadline's `daily_fee` field.\n\nThis field is not included in the serialized form of the struct prior to the activation of FIP-0100, and is added as the 16th element of the array after that point only for new sectors or sectors that are updated after that point. For old sectors, the value of this field will always be zero.",
-            "$ref": "#/components/schemas/BigInt"
+            "description": "The total fee payable per day for this sector. The value of this field is set at the time of\nsector activation, extension and whenever a sector's `QAP` is changed. This fee is payable for\nthe lifetime of the sector and is aggregated in the deadline's `daily_fee` field.\n\nThis field is not included in the serialized form of the struct prior to the activation of\nFIP-0100, and is added as the 16th element of the array after that point only for new sectors\nor sectors that are updated after that point. For old sectors, the value of this field will\nalways be zero.",
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "DealWeight": {
             "description": "Integral of active deals over sector lifetime",
             "$ref": "#/components/schemas/BigInt"
           },
           "ExpectedDayReward": {
-            "description": "Expected one day projection of reward for sector computed at activation time",
-            "$ref": "#/components/schemas/Nullable_BigInt"
+            "description": "Expected one day projection of reward for sector computed at activation\ntime",
+            "$ref": "#/components/schemas/Nullable_TokenAmount"
           },
           "ExpectedStoragePledge": {
-            "description": "Expected twenty day projection of reward for sector computed at activation time",
-            "$ref": "#/components/schemas/Nullable_BigInt"
+            "description": "Expected twenty day projection of reward for sector computed at\nactivation time",
+            "$ref": "#/components/schemas/Nullable_TokenAmount"
           },
           "Expiration": {
             "description": "Epoch during which the sector expires",
@@ -5251,11 +5259,11 @@
             "description": "Additional flags, see [`fil_actor_miner_state::v12::SectorOnChainInfoFlags`]",
             "type": "integer",
             "format": "uint32",
-            "minimum": 0.0
+            "minimum": 0
           },
           "InitialPledge": {
             "description": "Pledge collected to commit this sector",
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "PowerBaseEpoch": {
             "description": "Epoch at which this sector's power was most recently updated",
@@ -5263,7 +5271,7 @@
             "format": "int64"
           },
           "ReplacedDayReward": {
-            "$ref": "#/components/schemas/Nullable_BigInt"
+            "$ref": "#/components/schemas/Nullable_TokenAmount"
           },
           "SealProof": {
             "description": "The seal proof type implies the PoSt proofs",
@@ -5280,25 +5288,33 @@
           "SectorNumber": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "VerifiedDealWeight": {
             "description": "Integral of active verified deals over sector lifetime",
             "$ref": "#/components/schemas/BigInt"
           }
-        }
+        },
+        "required": [
+          "SectorNumber",
+          "SealProof",
+          "SealedCID",
+          "Activation",
+          "Expiration",
+          "Flags",
+          "DealWeight",
+          "VerifiedDealWeight",
+          "InitialPledge",
+          "ExpectedDayReward",
+          "PowerBaseEpoch",
+          "ExpectedStoragePledge",
+          "ReplacedDayReward",
+          "SectorKeyCID",
+          "DailyFee"
+        ]
       },
       "SectorPreCommitInfo": {
         "type": "object",
-        "required": [
-          "DealIDs",
-          "Expiration",
-          "SealProof",
-          "SealRandEpoch",
-          "SealedCID",
-          "SectorNumber",
-          "UnsealedCid"
-        ],
         "properties": {
           "DealIDs": {
             "$ref": "#/components/schemas/Nullable_Array_of_uint64"
@@ -5320,44 +5336,49 @@
           "SectorNumber": {
             "type": "integer",
             "format": "uint64",
-            "minimum": 0.0
+            "minimum": 0
           },
           "UnsealedCid": {
             "$ref": "#/components/schemas/Nullable_Cid"
           }
-        }
+        },
+        "required": [
+          "SealProof",
+          "SectorNumber",
+          "SealedCID",
+          "SealRandEpoch",
+          "DealIDs",
+          "Expiration",
+          "UnsealedCid"
+        ]
       },
       "SectorPreCommitOnChainInfo": {
         "type": "object",
-        "required": [
-          "Info",
-          "PreCommitDeposit",
-          "PreCommitEpoch"
-        ],
         "properties": {
           "Info": {
             "$ref": "#/components/schemas/SectorPreCommitInfo"
           },
           "PreCommitDeposit": {
-            "$ref": "#/components/schemas/BigInt"
+            "$ref": "#/components/schemas/TokenAmount"
           },
           "PreCommitEpoch": {
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "required": [
+          "Info",
+          "PreCommitDeposit",
+          "PreCommitEpoch"
+        ]
       },
       "SectorSize": {
         "type": "integer",
         "format": "uint64",
-        "minimum": 0.0
+        "minimum": 0
       },
       "Signature": {
         "type": "object",
-        "required": [
-          "Data",
-          "Type"
-        ],
         "properties": {
           "Data": {
             "$ref": "#/components/schemas/Base64String"
@@ -5365,7 +5386,11 @@
           "Type": {
             "$ref": "#/components/schemas/SignatureTypeLotusJson"
           }
-        }
+        },
+        "required": [
+          "Type",
+          "Data"
+        ]
       },
       "SignatureType": {
         "description": "Signature variants for Filecoin signatures.",
@@ -5381,7 +5406,8 @@
           {
             "type": "integer",
             "format": "uint8",
-            "minimum": 0.0
+            "maximum": 255,
+            "minimum": 0
           },
           {
             "$ref": "#/components/schemas/SignatureType"
@@ -5390,10 +5416,6 @@
       },
       "SignedMessage": {
         "type": "object",
-        "required": [
-          "Message",
-          "Signature"
-        ],
         "properties": {
           "CID": {
             "$ref": "#/components/schemas/Nullable_Cid"
@@ -5404,29 +5426,28 @@
           "Signature": {
             "$ref": "#/components/schemas/Signature"
           }
-        }
+        },
+        "required": [
+          "Message",
+          "Signature"
+        ]
       },
       "Ticket": {
         "type": "object",
-        "required": [
-          "VRFProof"
-        ],
         "properties": {
           "VRFProof": {
             "$ref": "#/components/schemas/Base64String"
           }
-        }
+        },
+        "required": [
+          "VRFProof"
+        ]
       },
       "Tipset": {
         "$ref": "#/components/schemas/TipsetInner"
       },
       "TipsetInner": {
         "type": "object",
-        "required": [
-          "Blocks",
-          "Cids",
-          "Height"
-        ],
         "properties": {
           "Blocks": {
             "$ref": "#/components/schemas/NonEmpty_Array_of_BlockHeader"
@@ -5438,7 +5459,15 @@
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "required": [
+          "Cids",
+          "Blocks",
+          "Height"
+        ]
+      },
+      "TokenAmount": {
+        "$ref": "#/components/schemas/BigInt"
       },
       "int64": {
         "type": "integer",
