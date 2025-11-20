@@ -146,4 +146,6 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0107](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0107.md) | Implicit Messages in Block Receipts | FIP | Rod Vagg (@rvagg) | Last Call |
 | [0108](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0108.md) | Filecoin Snapshot Format | FRC | Hailong Mu (@hanabi1224) | Accepted |
 | [0109](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0109.md) | Enable smart contract notifications for Direct Data Onboarding (DDO) | FIP | Rod Vagg (@rvagg) | Final |
+| [0110](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0110.md) | Allow Shorter Deal Durations | FIP | Will Scott (@willscott) | Draft |
 | [XXXX](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-draft_eip7702_eoa_set_code.md) | Add Support for EIP-7702 (Set Code for EOAs) in the FEVM | FIP | Michael Seiler (@snissn), Aarav Mehta (@aaravm) | Draft |
+
