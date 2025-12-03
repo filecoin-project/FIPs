@@ -158,7 +158,7 @@ The FEVM interpreter is modified to handle delegated execution contexts.
 
 #### Delegation Indicator
 
-When a delegation is active, the EOA is virtually associated with a 23-byte delegation indicator bytecode:
+When a delegation is active, the EOA is associated with a 23-byte delegation indicator bytecode:
 
 `0xEF 0x01 0x00 || <20-byte delegate address>`
 
