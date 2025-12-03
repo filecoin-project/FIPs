@@ -36,7 +36,21 @@ This FIP addresses the problem at the protocol level by reserving gas across the
 
 ### Tipset-wide reservation plan
 
-For each tipset `T` at height `h`, let `M(T)` denote the canonical set of explicit messages used by the Filecoin state transition at that height. `M(T)` is formed from user-signed messages contained in the blocks of `T`, deduplicated by CID across all blocks, and ordered as defined by the existing message processing rules. System / implicit messages (for example block rewards and cron) are not members of `M(T)`.
+For each tipset `T` at height `h`, let `M(T)` denote the canonical set of explicit messages used by the Filecoin state transition at that height. `M(T)` is derived from the blocks in `T` by applying **Strict Sender Partitioning** to prevent conflicting reservations.
+
+Let `B_1, B_2, ..., B_n` be the blocks in `T`, ordered by ticket precedence (where `B_1` has the highest precedence/lowest ticket).
+Let `S_seen` be the set of senders whose messages have been accepted in previous blocks, initially empty.
+Let `M_seen` be the set of message CIDs accepted so far, initially empty.
+
+`M(T)` is constructed by iterating through `B_1` to `B_n`:
+- For each block `B_i`:
+  - Identify the set of candidate messages `C_i` in `B_i` (excluding messages with CIDs already in `M_seen`, per legacy deduplication rules).
+  - For each message `m` in `C_i`:
+    - If `from(m)` is in `S_seen`, the message `m` is **excluded** (it is ignored for execution and reservation purposes).
+    - Otherwise, `m` is included in `M(T)`.
+  - After processing `B_i`, add all senders from the accepted messages in this block to `S_seen`, and add their CIDs to `M_seen`.
+
+System / implicit messages (for example block rewards and cron) are not members of `M(T)`.
 
 For each message `m ∈ M(T)` with sender address `from(m)`, gas limit `GasLimit(m)`, and gas fee cap `GasFeeCap(m)`, define its maximum gas cost
 
@@ -50,7 +64,7 @@ given by
 
 `plan_T[s] = Σ_{m ∈ M(T), from(m) = s} gas_cost(m).`
 
-Each message contributes to `plan_T` exactly once, even if it appears in multiple blocks in the tipset. All conforming implementations MUST derive an equivalent plan from the same canonical message set and gas cost definition.
+Each message contributes to `plan_T` exactly once. All conforming implementations MUST derive an equivalent plan from the same canonical message set `M(T)` and gas cost definition.
 
 Implementations MUST bound the size of `plan_T` to mitigate denial-of-service risk. In particular:
 
@@ -254,6 +268,14 @@ Implementations remain free to expose different operational modes (for example, 
 
 ## Design Rationale
 
+### Strict Sender Partitioning
+
+The definition of `M(T)` is updated to strictly partition senders by block precedence: if a sender has messages executed in a higher-precedence block, their messages in any lower-precedence block are ignored. This is necessary to preserve tipset validity properties.
+
+Without this rule, a sender could broadcast two sets of messages: set A (affordable) included in Block A, and set B (affordable) included in Block B. If both blocks are included in a tipset, the aggregate reservation `plan_T` would sum the costs of A and B. If this sum exceeds the sender's balance, the tipset would fail the reservation check and be invalid. This creates an asymmetric advantage for an attacker: they can invalidate a tipset (and deny rewards to all miners in it) by broadcasting valid individual blocks that conflict only when aggregated.
+
+By enforcing strict partitioning, the protocol ensures that `plan_T` is composed of non-overlapping sets of messages that have already passed individual block-level validity checks (at least for the highest-precedence block). The reservation for a sender in the tipset becomes identical to their reservation in the single block where they are accepted, preventing the aggregate-overflow exploit.
+
 ### Reserving `gas_limit * gas_fee_cap`
 
 The reservation amount for each message is defined as `gas_limit * gas_fee_cap`, matching the existing definition of the maximum possible gas charge for that message. This choice ensures that:
@@ -366,6 +388,7 @@ The exact filenames and test harnesses will differ across implementations (e.g.,
 
 This FIP is motivated by a security problem: under current semantics, miners can be exposed to gas penalties from underfunded messages created by intra-tipset “self-drain” patterns. Tipset-wide reservations eliminate this exposure when correctly implemented, but they also introduce new invariants and error classes that must be handled carefully.
 
+- **Partial Orphan Spam.** Strict Sender Partitioning introduces a specific spam vector: a malicious sender can broadcast different sets of valid messages to different miners. If Block A and Block B are both mined and included in a tipset, and the sender appears in both, the messages in the lower-precedence block (say Block B) are ignored. The miner of Block B incurs the cost of propagating and storing these bytes but receives no gas reward for them. This "partial orphan" risk is an accepted trade-off to prevent the critical "tipset invalidation" attack described above. It is similar in nature to existing risks where duplicate messages (same CID) are included in multiple blocks, but extends to excluding distinct messages from the same sender.
 - **Miner exposure to underfunded gas.** By reserving `Σ(gas_limit * gas_fee_cap)` per sender before any message executes, and enforcing all value transfers against free balance `balance − reserved_remaining`, the protocol ensures that senders cannot move away funds required to pay for gas. A message either executes with its gas fully funded from the reserved amount or the tipset fails reservation checks and is considered invalid (post-activation), removing a class of exploits where miners are forced to subsidize underfunded gas.
 - **Complete coverage of value-moving paths.** Security depends on the guarantee that every value-moving operation is checked against free balance. Implementations MUST ensure that all paths that move FIL (including message value transfers, actor creation sends, FEVM/ EVM CALL and DELEGATECALL, SELFDESTRUCT, and built-in implicit sends) route through the reservation-aware transfer primitive. Any missing path would allow reserved funds to be spent, potentially re-introducing miner exposure or breaking reservation invariants. Tests should explicitly cover SELFDESTRUCT and implicit sends to guard against regressions.
 - **Reservation invariants and node errors.** The safety of this design relies on strict invariants:
