@@ -1,6 +1,6 @@
 ---
 fip: "<to be assigned>" 
-title: Export Sector Liveness Check to FEVM 
+title: Export Sector Status to FEVM 
 author: "@Kubuxu @lordshashank @ZenGround0"
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/1108
 status: Draft
@@ -12,28 +12,32 @@ spec-sections:
 ---
 
 <!--You can leave these HTML comments in your merged FIP and delete the visible duplicate text guides, they will not appear and may be helpful to refer to if you edit it again. This is the suggested template for new FIPs. Note that a FIP number will be assigned by an editor. When opening a pull request to submit your FIP, please use an abbreviated title in the filename, `fip-draft_title_abbrev.md`. The title should be 44 characters or less.-->
-This is the suggested template for new FIPs.
 
-Note that a FIP number will be assigned by an editor. When opening a pull request to submit your FIP, please use an abbreviated title in the filename, `fip-draft_title_abbrev.md`.
-
-The title should be 44 characters or less.
-
-# FIP-Number: Export Sector Liveness Check to FEVM
+# FIP-Number: Export Sector Status  to FEVM
 
 ## Simple Summary
 <!--"If you can't explain it simply, you don't understand it well enough." Provide a simplified and layman-accessible explanation of the FIP.-->
-We propose exporting a new method `validate_sector_is_live` from the builtin miner actor for creating user space FEVM smart contracts that can check the liveness of filecoin sectors on chain.  An additional exported method `generate_sector_status_info` can be used in an offchain call to generate inputs to `validate_sector_is_live`.
+We propose exporting a new method `validate_sector_status` from the builtin miner actor for creating user space FEVM smart contracts that can check the status of filecoin sectors, either live or dead, on chain.  An additional exported method `generate_sector_status_info` can be used in an offchain call to generate inputs to `validate_sector_status`.
 
 Combined with the recent changes to ProveCommitSectors3 in FIP 109 allowing smart contract notifications upon sector commitent, this FIP establishes a minimally useful interface for a rich set of programmable storage applications.
+
+Additionally this FIP proposes exposing a helper method `get_sector_expiration` which takes as input the output of `generate_sector_status_info`. It returns the expiration epoch for live sectors and fails for dead sectors.
 
 ## Abstract
 <!--A short (~200 word) description of the technical issue being addressed.-->
-We propose exporting a new method `validate_sector_is_live` from the builtin miner actor for creating user space FEVM smart contracts that can check the liveness of filecoin sectors on chain.  An additional exported method `generate_sector_status_info` can be used in an offchain call to generate inputs to `validate_sector_is_live`.
+We propose exporting a new method `validate_sector_status` from the builtin miner actor for creating user space FEVM smart contracts that can check the status of filecoin sectors, either live or dead, on chain.  An additional exported method `generate_sector_status_info` can be used in an offchain call to generate inputs to `validate_sector_status`.
 
 Combined with the recent changes to ProveCommitSectors3 in FIP 109 allowing smart contract notifications upon sector commitent, this FIP establishes a minimally useful interface for a rich set of programmable storage applications.
 
+Additionally this FIP proposes exposing a helper method `get_sector_expiration` which takes as input the output of `generate_sector_status_info`. It returns the expiration epoch for live sectors and fails for dead sectors.
+
+
 ## Change Motivation
 <!--The motivation is critical for FIPs that want to change the Filecoin protocol. It should clearly explain why the existing protocol specification is inadequate to address the problem that the FIP solves. FIP submissions without sufficient motivation may be rejected outright.-->
+
+This FIP is motivated by efforts to experiment with programmable storage systems built with smart contracts.  It is essential to have the basic information of sector liveness to do anything interesting with sector storage.  Examples include custom storage payments, badbit insurance systems and markets for sector repair.
+
+Sector expiration epoch information has also been identified by previous attempts to build smart contract secured storage systems.
 
 
 ## Specification
@@ -50,7 +54,8 @@ This FIP only adds methods to the builtin miner actor.  No backwards compatiblit
 
 ## Test Cases
 <!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
-*
+
+* Test that when `generate_sector_status_info` is input sector number of a terminated sector that is compacted via `compact_partitions` is computed to have deadline, partition index (NO_DEADLINE, NO_PARTITION) without error
 *
 *
 *
@@ -78,6 +83,10 @@ This FIP is not concerned with existing incentives.  This work can be used to cr
 ## Product Considerations
 <!--All FIPs must contain a section that discusses the product implications/considerations relative to the proposed change. Include information that might be important for product discussion. A discussion on how the proposed change will enable better storage-related goods and services to be developed on Filecoin. FIP submissions missing the "Product Considerations" section will be rejected. An FIP cannot proceed to status "Final" without a Product Considerations discussion deemed sufficient by the reviewers.-->
 The interface with the filecoin sector storage system was chosen to support the authors' concept of a minimally viable FEVM sector storage service.  Periodically checking liveness of a sector onchain is a simple way to create a storage system verified in user space.  And it is not too onerous on participating storage providers.
+
+There has been some discussion of exposing finer grained sector status details, i.e. the unproven and faulty states. This would add complexity to the interface for limited benefit.  While exposing Filecoin internal states might be useful for power users wishing to essentially extend the core filecoin protocol in specific ways, i.e. add additional fault fees for certain sectors, this FIP is focused on user applications that can be served by a simpler model of filecoin storage.  By way of internal incentives and proofs filecoin sectors are considered live until they are terminated or expired.  Removing internal hints such as faults from the user's view creates a model that is easier to reason about and design against.
+
+There has also been discussion on not inlcuding sector expiration information.  Expiration information has limitations in usefullness given that early termination can happen at any time and invalidate expiration.  However the cost is low and the interface is simple especially with a decoupled method specifically for retrieving expirations.
 
 ## Implementation
 <!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
