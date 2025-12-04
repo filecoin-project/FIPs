@@ -43,10 +43,91 @@ Sector expiration epoch information has also been identified by previous attempt
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
 
+Three methods will be added to the builtin miner actor.
+
+### generate_sector_status_info
+
+This method is designed to be called offline.  It takes as input a sector number.  It performs an expensive linear search through deadline state of the miner actor to return the deadline index and partition index termed the `SectorLocation`.  If no deadline or partition of this sector records any information about this sector number then this method returns the special values NO_DEADLINE, NO_PARTITION which are defined to be -1. 
+
+This method should be implemented using the existing miner actor state method `find_sector` which performs the linear search.
+
+To preempt the expensive sector search when the sector is completely removed from state or does not exist the implementation should first check the sectors AMT for the sector number.  It is an invariant that all sectors tracked in a partition must be present in the sectors AMT.
+
+Note that offline indexes of miner state mapping from sector number to location indexes can be queried to replace calls to this method if greater efficiency is required.
+
+Input type: 
+```rust
+pub struct GenerateSectorStatusInfoParams {
+    pub sector_number: SectorNumber,
+}
+```
+
+Return type: 
+
+```rust
+pub struct SectorLocation {
+    pub deadline: i64,
+    pub partition: i64,
+}
+```
+
+### validate_sector_status
+
+This method takes in a sector number, generic serialized bytes encoding a sector location and the status of the sector, either `Live` or `Dead`.  It returns true if the correct sector status is passed.
+
+This method uses the sector location to look up the sector's partition and determine if the `Sectors` bitfield includes the specified sector number.  If it is validating a declared `Live` sector it checks that the `Terminated` bitfield does not include the sector number.  If the sector is not found at the provided index the method errors.
+
+When validating a `Dead` sector with a partition and deadline index > 0 this method performs the same lookup and verifies that the sector number is present in the `Terminated` bitfield.  If the sector is not found at the provided index the method errors.  If the the partition and deadline index are NO_PARTITION and NO_DEADLINE then the method verifies that the sector number is not assigned to any member of the miner actor's sectors AMT.
+
+
+Input type:
+```rust
+pub struct ValidateSectorStatusParams {
+    pub sector_number: SectorNumber,
+    pub status: SectorStatusCode,
+    pub aux_data: Vec<u8>,
+}
+```
+
+```rust 
+pub enum SectorStatusCode {
+    /// Sector is live (not terminated, includes faulty sectors)
+    Live,
+    /// Sector is not live (terminated or never committed)
+    Dead,
+}
+```
+
+Return type: `bool`
+
+
+### get_sector_expiration
+
+This method takes a sector number and returns the stable expiration time for this sector.  It looks up the stable expiration time from the `SectorOnChainInfo` in the sectors AMT.  
+
+
+Input type:
+```rust
+SectorNumber
+```
+
+Return type:
+```rust
+ChainEpoch
+```
 
 ## Design Rationale
 <!--The rationale fleshes out the specification by describing what motivated the design and why particular design decisions were made. It should describe alternate designs that were considered and related work, e.g. how the feature is supported in other languages. The rationale may also provide evidence of consensus within the community, and should discuss important objections or concerns raised during discussion.-->
 
+We explicitly have chosen to make the main status interface a validating interface versus a data retrieval interface.  This design puts the burden of index search/storage and making data available on off chain callers since the caller to the validate method must already have looked up the answer to the query they are validating.  This forces designs which are ignorant of miner actor bookkeeping decisions allowing freedom to evolve miner actor design without breaking external interfaces.  Today there are calls, notably `compact_partitions`, which can change a sector's partition index.  So this design helpfully steers smart contract developers away from relying on unstable system internals.
+
+The `aux_data` field in the input to `ValidateSectorStatusInfoParams` further allows us to evolve the method with changes to the builtin miner actor.
+
+We've included the convenient `generate_sector_status_info` method to provide an easy canonical way to generate sector location indexes, though we expect pre-existing offchain indexes to be considered as alternative sources of sector location when adding support for this change into fullnodes.
+
+We forwent a similar validating interface pattern with `get_sector_expiration`.  This would look like a method that takes in the correct expiration and returns True or False depending on whether the input expiration is correct.  This is done for expediency and convenience.  The thinking is that this method only ever provides a useful hint anyway as it cannot provide any useful information when handling early terminations.
+
+We considered including the most current guess of a sectors expiration from `get_sector_expiration` this could be accomplished by providing the sector location and traversing the partition's expiration queue. This would effectively expose a signal of a sector's faultiness which runs counter to our design of `validate_sector_status`. If we want to expose this information we should be consistent and create a new `Fault` sector status value from the enum.
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
@@ -55,10 +136,18 @@ This FIP only adds methods to the builtin miner actor.  No backwards compatiblit
 ## Test Cases
 <!--Test cases for an implementation are mandatory for FIPs that are affecting consensus changes. Other FIPs can choose to include links to test cases if applicable.-->
 
-* Test that when `generate_sector_status_info` is input sector number of a terminated sector that is compacted via `compact_partitions` is computed to have deadline, partition index (NO_DEADLINE, NO_PARTITION) without error
-*
-*
-*
+* When `generate_sector_status_info` is input sector number of a terminated sector that has been compacted via `compact_partitions` it returns (NO_DEADLINE, NO_PARTITION) without error
+* `generate_sector_status_info` correctly finds an existing live sector
+* `generate_sector_status_info` correctly finds an existing terminated but not compacted sector
+* `generate_sector_status_info` returns (NO_DEADLINE, NO_PARTITION) on a sector number that has not yet been prove committed
+* `validate_sector_status` returns true when declaring a Dead sector with (NO_DEADLINE, NO_PARTITION) location as Dead 
+* `validate_sector_status` returns true when declaring a Dead sector with a location as true
+* `validate_sector_status` returns true when declaring a Live sector as Live
+* `validate_sector_status` returns false when declaring a Live sector Dead
+* `validate_sector_status` returns false when declaring a Dead sector Live
+* `validate_sector_status` fails with bad location
+* `get_sector_expiration` returns the correct sector expiration
+* `get_sector_expiration` fails when sector is not present in sectors AMT
 
 
 ## Security Considerations
