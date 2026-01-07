@@ -179,7 +179,7 @@ There has also been discussion on not inlcuding sector expiration information.  
 
 ## Implementation
 <!--The implementations must be completed before any core FIP is given status "Final", but it need not be completed before the FIP is accepted. While there is merit to the approach of reaching consensus on the specification and rationale before writing code, the principle of "rough consensus and running code" is still useful when it comes to resolving many discussions of API details.-->
-WIP builtin actors PR here: https://github.com/filecoin-project/builtin-actors/pull/1707/files
+WIP builtin actors PR here: https://github.com/filecoin-project/builtin-actors/pull/1707
 
 ## TODO
 <!--A section that lists any unresolved issues or tasks that are part of the FIP proposal. Examples of these include performing benchmarking to know gas fees, validate claims made in the FIP once the final implementation is ready, etc. A FIP can only move to a “Last Call” status once all these items have been resolved.-->
