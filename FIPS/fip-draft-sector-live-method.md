@@ -127,7 +127,7 @@ We've included the convenient `generate_sector_status_info` method to provide an
 
 We forwent a similar validating interface pattern with `get_sector_expiration`.  This would look like a method that takes in the correct expiration and returns True or False depending on whether the input expiration is correct.  This is done for expediency and convenience.  The thinking is that this method only ever provides a useful hint anyway as it cannot provide any useful information when handling early terminations.
 
-We considered including the most current guess of a sectors expiration from `get_sector_expiration` this could be accomplished by providing the sector location and traversing the partition's expiration queue. This would effectively expose a signal of a sector's faultiness which runs counter to our design of `validate_sector_status`. If we want to expose this information we should be consistent and create a new `Fault` sector status value from the enum.
+We considered including the most current guess of a sectors expiration from `get_sector_expiration`, which could be accomplished by providing the sector location and traversing the partition's expiration queue. This would effectively expose a signal of a sector's faultiness which runs counter to our design of `validate_sector_status`. If we want to expose this information we should be consistent and create a new `Fault` sector status value from the enum.
 
 ## Backwards Compatibility
 <!--All FIPs that introduce backwards incompatibilities must include a section describing these incompatibilities and their severity. The FIP must explain how the author proposes to deal with these incompatibilities. FIP submissions without a sufficient backwards compatibility treatise may be rejected outright.-->
