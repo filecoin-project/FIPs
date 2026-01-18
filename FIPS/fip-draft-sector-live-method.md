@@ -39,6 +39,9 @@ This FIP is motivated by efforts to experiment with programmable storage systems
 
 Sector expiration epoch information has also been identified by previous attempts to build smart contract secured storage systems.
 
+In particular this is concretely motivated by recent efforts to create the "filecoin onchain cloud" system which aims to integrate both PDP and PoRep proving schemes in pursuit of a unique storage product.
+
+To outline the design context in a bit more detail: The "Direct Data Onboarding" FIPs have created push style notifications from the sector system to user programmable smart contracts.  There are reasons why push notifications are superior to the more standard blockchain pull notification design.  Essentially as an application developer it is nice to have a network operator party do notification work for you rather than building and running a monitoring and notification system.  Unfortunately getting push style notifications for sector expiration and termination interacts with the cron subsystem of builtin actors in an unsafe way.  Having pull notifications for the full information on sector lifecycle is our only path forward barring a large and uncertain system redesign.  Please have a look at [this discussion](https://github.com/filecoin-project/FIPs/discussions/493) if that sounds interesting to you.
 
 ## Specification
 <!--The technical specification should describe the syntax and semantics of any new feature. The specification should be detailed enough to allow competing, interoperable implementations for any of the current Filecoin implementations. -->
@@ -162,7 +165,7 @@ These conditions are satisfied by the invariants governing the `sectors` and `te
 a) sector number recorded in the `sectors` bitfield of some `Partition`
 b) sector number NOT recorded in the `terminated` bitfield of the same `Partition`
 
-Furthermore the separation of the search for the partition and deadline index into the offchain call `generate_sector_status_info` ensures that gas costs and miner state size have no impact on a user's ability to make this call.  Hence there is no provide practical denial of service to make the call and condition (1) is satisfied both in principle and in practice.
+Furthermore the separation of the search for the partition and deadline index into the offchain call `generate_sector_status_info` ensures that gas costs and miner state size have no impact on a user's ability to make the call checking sector status.  Hence there is no practical denial of service to make the sector status call and condition (1) is satisfied both in principle and in practice.
 
 
 ## Incentive Considerations
