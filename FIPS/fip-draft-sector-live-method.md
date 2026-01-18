@@ -27,7 +27,7 @@ Additionally this FIP proposes exposing a helper method `get_sector_expiration` 
 <!--A short (~200 word) description of the technical issue being addressed.-->
 We propose exporting a new method `validate_sector_status` from the builtin miner actor for creating user space FEVM smart contracts that can check the status of filecoin sectors, either live or dead, on chain.  An additional exported method `generate_sector_status_info` can be used in an offchain call to generate inputs to `validate_sector_status`.
 
-Combined with the recent changes to ProveCommitSectors3 in FIP 109 allowing smart contract notifications upon sector commitent, this FIP establishes a minimally useful interface for a rich set of programmable storage applications.
+Combined with the recent changes to ProveCommitSectors3 in FIP-0109 allowing smart contract notifications upon sector commitent, this FIP establishes a minimally useful interface for a rich set of programmable storage applications.
 
 Additionally this FIP proposes exposing a helper method `get_sector_expiration` which takes as input the output of `generate_sector_status_info`. It returns the expiration epoch for live sectors and fails for dead sectors.
 
