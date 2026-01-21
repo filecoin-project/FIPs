@@ -2,7 +2,7 @@
 fip: "<to be assigned>"
 title: Add Support for EIP-7939 (CLZ Opcode) in the FEVM
 author: "Aarav Mehta (@aaravm), Michael Seiler (@snissn)"
-discussions-to: https://github.com/filecoin-project/FIPs/discussions
+discussions-to: https://github.com/filecoin-project/FIPs/discussions/1229
 status: Draft
 type: Technical
 category: Core
@@ -96,7 +96,6 @@ Implementations are expected in:
 - Node implementations (e.g., Lotus, Forest) consuming the updated built-in actors bundle in a network upgrade
 
 ## TODO
-- Create and link a concrete `discussions-to` thread.
 - Decide the target network upgrade / actor bundle version for activation.
 
 ## Copyright
