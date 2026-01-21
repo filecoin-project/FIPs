@@ -148,4 +148,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0109](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0109.md) | Enable smart contract notifications for Direct Data Onboarding (DDO) | FIP | Rod Vagg (@rvagg) | Final |
 | [0110](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0110.md) | Allow Shorter Deal Durations | FIP | Will Scott (@willscott) | Draft |
 | [0111](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0111.md) | Add Support for EIP-7702 (Set Code for EOAs) in the FEVM | FIP | Michael Seiler (@snissn), Aarav Mehta (@aaravm) | Draft |
-
+| [XXXX](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-draft_secp256r1-precompile.md) | secp256r1 (P-256) P256VERIFY Precompile for FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Draft |
