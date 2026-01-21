@@ -1,0 +1,103 @@
+---
+fip: "<to be assigned>"
+title: Add Support for EIP-7939 (CLZ Opcode) in the FEVM
+author: "Aarav Mehta (@aaravm), Michael Seiler (@snissn)"
+discussions-to: https://github.com/filecoin-project/FIPs/discussions
+status: Draft
+type: Technical
+category: Core
+created: 2026-01-21
+---
+
+# FIP: Add Support for EIP-7939 (CLZ Opcode) in the FEVM
+
+## Simple Summary
+This proposal adds the `CLZ` (Count Leading Zeros) opcode to the Filecoin EVM (FEVM), matching Ethereum’s EIP-7939 behavior. `CLZ` provides a fast, gas-efficient way to count leading zero bits in a 256-bit word, which is widely used in math, compression, bitmap, and ZK proving workflows.
+
+## Abstract
+This FIP proposes implementing Ethereum’s [EIP-7939](https://eips.ethereum.org/EIPS/eip-7939) in the FEVM by introducing a new opcode, `CLZ` (`0x1e`). The opcode pops one 256-bit stack word `x` and pushes the number of leading zero bits in `x` (0–256). If `x == 0`, it pushes `256`. This change improves Ethereum compatibility (EIP-7939 is activated on Ethereum mainnet in the Fusaka upgrade) and enables cheaper and simpler implementations of common bit-operations in FEVM smart contracts.
+
+## Change Motivation
+Today, counting leading zeros in Solidity requires multiple shifts, comparisons, and constants. This is:
+- More expensive in runtime cost and bytecode size than a dedicated opcode.
+- More complex for developers and auditors.
+- Often costly for zero-knowledge proving systems, where dynamic shifts can be disproportionately expensive.
+
+Adding `CLZ` improves FEVM’s portability with modern EVM environments and reduces friction for deploying EVM applications and libraries that expect EIP-7939 to exist.
+
+## Specification
+
+### Opcode
+Add a new opcode:
+
+| Name | Opcode | Stack Inputs | Stack Outputs |
+|------|--------|--------------|---------------|
+| `CLZ` | `0x1e` | 1 | 1 |
+
+### Semantics
+`CLZ` pops `x` (a 256-bit unsigned integer) and pushes `r`:
+
+- If `x == 0`, `r = 256`.
+- Otherwise, `r` is the number of leading zero bits preceding the most significant set bit of `x`.
+
+Equivalently:
+
+```
+CLZ(x) = 256 - bit_length(x), for x != 0
+CLZ(0) = 256
+```
+
+Where `bit_length(x)` is the minimum number of bits required to represent `x` (i.e., `floor(log2(x)) + 1` for `x > 0`).
+
+### Gas Cost
+On Ethereum, EIP-7939 specifies a gas cost of `5` (matching `MUL`). The FEVM does not use Ethereum’s opcode gas schedule; opcode execution is metered under Filecoin gas accounting (see FIP-0054). Therefore, this FIP does not introduce a new EVM gas parameter for `CLZ`.
+
+## Design Rationale
+This FIP adopts the EIP-7939 specification directly to maximize compatibility with Ethereum tooling and contracts.
+
+EIP-7939 chooses the special case `CLZ(0) = 256`, which is convenient for byte/word scanning patterns and enables compact downstream computations (e.g., `CLZ(0) >> 3 == 32`).
+
+## Backwards Compatibility
+This FIP introduces a new opcode at byte value `0x1e`. Before activation, `0x1e` is treated as an undefined instruction and causes execution to abort. After activation, contracts executing byte `0x1e` will observe `CLZ` semantics instead of an invalid opcode abort.
+
+While it is unusual for production contracts to intentionally use undefined opcodes, this is a backwards-incompatible change for any contract that depended on `0x1e` abort behavior.
+
+## Test Cases
+An implementation of this FIP SHOULD include:
+- Unit tests for boundary values (`0`, `1`, `2^255`, `2^256-1`).
+- Conformance tests using EIP-7939 examples, including:
+  - `CLZ(0x0000...0000) = 256`
+  - `CLZ(0x8000...0000) = 0`
+  - `CLZ(0xffff...ffff) = 0`
+  - `CLZ(0x4000...0000) = 1`
+  - `CLZ(0x7fff...ffff) = 1`
+  - `CLZ(0x0000...0001) = 255`
+- Bytecode-level tests verifying stack effects and determinism.
+
+## Security Considerations
+`CLZ` is a stateless opcode with constant-time behavior relative to word size. It does not introduce new cryptographic assumptions or external dependencies.
+
+As with any new opcode, implementations must ensure:
+- Deterministic behavior across clients.
+- Correct handling of the `x == 0` case.
+
+## Incentive Considerations
+This proposal does not change Filecoin consensus incentives. It reduces the on-chain cost of certain computations, which may enable new application patterns but does not directly affect Filecoin storage or retrieval incentives.
+
+## Product Considerations
+Adding `CLZ` improves developer experience and compatibility with Ethereum environments that include EIP-7939. It also enables more efficient on-chain implementations for math primitives, compression/decompression, and bitmap navigation, and can reduce ZK proving costs for applications that currently emulate `CLZ` using `SHR`.
+
+## Implementation
+Implementations are expected in:
+- `builtin-actors` (FEVM EVM interpreter opcode table and semantics). A reference implementation includes:
+  - Opcode table mapping for `CLZ` at `0x1e`.
+  - A constant-time implementation based on a `leading_zeros` operation over 256-bit words.
+  - Unit and end-to-end tests covering the EIP-7939 test vectors.
+- Node implementations (e.g., Lotus, Forest) consuming the updated built-in actors bundle in a network upgrade
+
+## TODO
+- Create and link a concrete `discussions-to` thread.
+- Decide the target network upgrade / actor bundle version for activation.
+
+## Copyright
+Copyright and related rights waived via [CC0](https://creativecommons.org/publicdomain/zero/1.0/).
