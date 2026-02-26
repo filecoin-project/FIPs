@@ -118,7 +118,8 @@ This precompile makes passkey/WebAuthn-backed authentication and device-secure s
 
 ## Implementation
 Reference implementation is available and ready for review:
-- `builtin-actors`: https://github.com/filecoin-project/builtin-actors/pull/1708
+- builtin-actors: https://github.com/filecoin-project/builtin-actors/pull/1708
+- Lotus (integration test): TODO
 
 Node implementations (e.g., Lotus, Forest) will need to consume the updated built-in actors bundle in a network upgrade.
 
