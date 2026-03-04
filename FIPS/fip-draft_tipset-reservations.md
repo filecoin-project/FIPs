@@ -28,11 +28,28 @@ For messages that execute, gas metering and `GasOutputs` are computed exactly as
 
 ## Change Motivation
 
-Under the current protocol, tipset execution can expose block producers to miner-charged gas penalties when a sender drains their balance within the same tipset. A common pattern is an intra-tipset “self-drain” sequence: a first message (M1) at nonce X executes contract logic that transfers away most of the sender’s funds, and a second message (M2) at nonce X+1 declares a large gas limit. At block construction time, the packer evaluates M2’s affordability based on the sender’s balance before M1 runs and admits it into the block. At execution time, however, M1 has already moved the funds, so M2 no longer has enough balance; today this shortfall can fall back to a miner penalty, even though the sender initiated both messages.
+Under the current protocol, tipset execution can expose block producers to miner-charged gas penalties when a sender drains their balance within the same tipset.
 
-Existing mitigations rely on local heuristics during block construction, such as tracking declared message value and simple balance checks for individual messages. These techniques are inherently limited: they cannot fully account for arbitrary contract-level value movements, reordering across blocks in the same tipset, or the interaction of many messages from the same sender. As deferred execution and complex contracts become more common, the window in which a sender can pre-commit gas-heavy messages and then drain their account within the same tipset widens, increasing the risk that honest miners are forced to subsidize execution.
+A common pattern is an intra-tipset “self-drain” sequence:
 
-This FIP addresses the problem at the protocol level by reserving gas across the entire tipset up-front and enforcing affordability inside the execution engine itself. Rather than introducing a new on-chain actor or escrow mechanism, the engine maintains an internal, tipset-local reservation ledger that locks each sender’s maximum possible gas spend (`Σ(gas_limit * gas_fee_cap)`) before any message executes. Free balance during the tipset is defined as on-chain balance minus the remaining reservation, so any attempt to transfer funds needed to cover reserved gas will fail deterministically across implementations. For messages that are selected for execution, this design preserves existing receipts and gas outputs, avoids state migrations, and provides a consensus-level guarantee that miners are not exposed to underfunded gas charges created by intra-tipset self-drain.
+- A first message (M1) at nonce `X` executes contract logic that transfers away most of the sender’s funds.
+- A second message (M2) at nonce `X+1` declares a large gas limit.
+
+At block construction time, the packer evaluates M2’s affordability based on the sender’s balance before M1 runs and admits it into the block. At execution time, however, M1 has already moved the funds, so M2 no longer has enough balance. Today this shortfall can fall back to a miner penalty, even though the sender initiated both messages.
+
+Existing mitigations rely on local heuristics during block construction (for example tracking declared message value, or simple per-message balance checks). These techniques are inherently limited. In particular, they cannot fully account for:
+
+- arbitrary contract-level value movements;
+- cross-block interactions and reordering within the same tipset; or
+- the aggregate effect of many messages from the same sender.
+
+As deferred execution and complex contracts become more common, the window in which a sender can pre-commit gas-heavy messages and then drain their account within the same tipset widens, increasing the risk that honest miners are forced to subsidize execution.
+
+This FIP addresses the problem at the protocol level by reserving gas across the entire tipset up-front and enforcing affordability inside the execution engine itself.
+
+Rather than introducing a new on-chain actor or escrow mechanism, the engine maintains an internal, tipset-local reservation ledger that locks each sender’s maximum possible gas spend (`Σ(gas_limit * gas_fee_cap)`) before any message executes.
+
+Free balance during the tipset is defined as on-chain balance minus the remaining reservation, so any attempt to transfer funds needed to cover reserved gas fails deterministically across implementations. For messages that are selected for execution, this design preserves existing receipts and gas outputs, avoids state migrations, and provides a consensus-level guarantee that miners are not exposed to underfunded gas charges created by intra-tipset self-drain.
 
 This issue exists today, but becomes materially more important with delegated execution patterns such as EIP-7702 (see [FIP-0111](./fip-0111.md)). EIP-7702 increases the practical likelihood that a single sender can execute arbitrary logic (including value-moving behavior) and then submit additional gas-heavy messages in the same tipset. As part of evaluating EIP-7702 for the FEVM, this FIP was identified as a necessary hardening measure; while it is a general network improvement, it should be treated as a prerequisite for enabling EIP-7702 on any network.
 
@@ -44,9 +61,44 @@ This specification introduces tipset-wide gas reservations for explicit messages
 
 This FIP also introduces **Strict Sender Partitioning** during tipset message selection: once a sender contributes any message from a higher-precedence block in a tipset, messages from that sender in lower-precedence blocks are ignored (they are not executed and they produce no receipt). This makes reservations well-defined in multi-block tipsets.
 
-Base fee computation is unchanged.
+### Tipset execution with reservations (non-normative)
 
-### Tipset-wide reservation plan
+Tipset processing with reservations works as follows:
+
+1. Construct the canonical explicit message list `M(T)` from the blocks in the tipset (CID deduplication across blocks plus Strict Sender Partitioning).
+2. Compute the reservation plan `plan_T` from `M(T)` by summing `gas_cost(m) = GasLimit(m) * GasFeeCap(m)` per sender.
+3. If `plan_T` is non-empty, Begin the reservation session seeded with `plan_T`.
+4. Execute explicit messages in `M(T)` in canonical order. While the session is open, all non-gas value transfers must fit within the sender’s free balance.
+5. For each message, release its reserved amount exactly once: immediately if it fails prevalidation, otherwise at settlement after execution.
+6. After all explicit messages in `M(T)` have been processed, End the session. The tipset is valid only if all reservations have been fully released.
+7. Execute implicit/system messages (for example block rewards and cron) after the reservation session ends.
+
+In a compact form:
+
+```text
+blocks in tipset
+  -> build M(T)
+  -> build plan_T
+  -> Begin(plan_T)
+  -> for m in M(T): preflight -> execute -> settle (releasing reservation)
+  -> End()
+  -> execute implicit messages
+```
+
+Base fee adjustment is unchanged; see “Base fee computation (unchanged)” below.
+
+### Key terms (non-normative)
+
+The rest of this section uses the following terms:
+
+- `M(T)`: the canonical ordered list of explicit messages that are executed for tipset `T` and produce receipts. Messages ignored by CID deduplication or Strict Sender Partitioning do not execute and produce no receipt.
+- `plan_T`: a per-sender plan computed from `M(T)` that reserves the maximum possible gas spend for that sender in this tipset.
+- `reserved[s]`: the remaining reserved amount for sender `s` while the reservation session is open.
+- `free[s]`: the sender’s spendable balance during the session, `free[s] = balance[s] − reserved[s]`.
+- `gas_cost(m)`: the maximum possible gas charge for a message `m`, defined as `GasLimit(m) * GasFeeCap(m)`.
+- `consumption`: the actual gas charge to the sender at settlement (`base_fee_burn + over_estimation_burn + miner_tip`), computed exactly as in legacy rules.
+
+### Canonical explicit messages and reservation plan
 
 This section defines (1) the canonical explicit message set `M(T)` for a tipset and (2) the reservation plan `plan_T` derived from that set.
 
@@ -158,13 +210,14 @@ Reservation mode applies only to explicit messages in `M(T)`. Implicit messages 
 
 Preflight does not change on-chain balances. It checks that each message’s reservation coverage is consistent with `plan_T` and, if a message fails prevalidation (and therefore will not execute), it releases that message’s reservation immediately.
 
-For each explicit message `m` from sender `s` processed while `session_open` is true, preflight MUST compute `gas_cost(m)` (as defined above) using the same arithmetic and units as existing gas accounting, defined over unbounded integers. If an implementation cannot represent this value (for example due to numeric overflow), it MUST treat this as an implementation error, not as an alternative consensus outcome.
+For each explicit message `m` from sender `s` processed while `session_open` is true, preflight MUST:
 
-Preflight MUST then check that `reserved[s] ≥ gas_cost(m)`. Violation of this condition indicates that the host has constructed an inconsistent `plan_T`; this MUST be treated as an implementation error.
+- compute `gas_cost(m)` (as defined above) using the same arithmetic and units as existing gas accounting, defined over unbounded integers; if an implementation cannot represent this value (for example due to numeric overflow), it MUST treat this as an implementation error, not as an alternative consensus outcome;
+- check that `reserved[s] ≥ gas_cost(m)`; violation of this condition indicates that the host has constructed an inconsistent `plan_T`, and it MUST be treated as an implementation error;
+- NOT deduct `gas_cost(m)` from the sender’s on-chain balance; and
+- if the message fails prevalidation (for example due to bad syntax, invalid nonce, or other legacy preflight failures) and is classified as a prevalidation failure, release the message’s reserved amount by applying `reserved[s] := reserved[s] − gas_cost(m)`.
 
-Preflight MUST NOT deduct `gas_cost(m)` from the sender’s on-chain balance.
-
-If the message fails prevalidation (for example, due to bad syntax, invalid nonce, or other legacy preflight failures) and is classified as a prevalidation failure, then before returning, the engine MUST decrement `reserved[s] := reserved[s] − gas_cost(m)`. This decrement is well-defined because the invariant `reserved[s] ≥ gas_cost(m)` has been verified. The message’s gas accounting (including any miner penalty) remains as specified in the legacy rules. After this decrement, the engine MUST NOT make any additional changes to `reserved[]` for this message.
+The reservation-release decrement is well-defined because `reserved[s] ≥ gas_cost(m)` has been verified. The message’s gas accounting (including any miner penalty) remains as specified in the legacy rules. The engine MUST release a message’s reservation at most once.
 
 If preflight succeeds and the message proceeds to execution, `reserved[s]` is left unchanged until settlement in `finish_message` (see below).
 
@@ -184,7 +237,7 @@ This check applies uniformly to all value-moving paths during message execution,
 
 ### Settlement behaviour and invariants
 
-Note (non-normative): Under legacy rules, the sender effectively front-loads a maximum gas charge and later receives a refund for unused gas. In reservation mode, `reserved[s]` plays the role of that front-loaded amount (by reducing free balance during execution), and the refund is realized when `reserved[s]` is decremented at settlement.
+#### Settlement rule (normative)
 
 For each explicit message `m` from sender `s` that passes preflight and runs to completion (including messages that exit with failure codes), the engine computes `GasOutputs` exactly as in the legacy rules. In particular:
 
@@ -202,10 +255,16 @@ Then the engine MUST deduct `consumption` from the sender’s on-chain balance s
 
 This decrement is well-defined because preflight has ensured `reserved[s] ≥ gas_cost(m)`. If the resulting reservation entry is zero, the entry for `s` MAY be removed from the ledger.
 
-These rules imply the following invariants:
+#### Settlement intuition (non-normative)
 
-- For every message `m` in reservation mode, `consumption + refund = gas_cost(m)`.
-- Let `(balance_pre, reserved_pre)` be the sender’s on-chain balance and reservation entry immediately before settlement for `m`, and `(balance_post, reserved_post)` be the values immediately after settlement for `m`. Settlement MUST satisfy:
+Under legacy rules, the sender effectively front-loads a maximum gas charge and later receives a refund for unused gas. In reservation mode, `reserved[s]` plays the role of that front-loaded amount by reducing the sender’s free balance during execution. The refund is realized when `reserved[s]` is decremented at settlement, which increases free balance without requiring any explicit refund transfer.
+
+#### Settlement guarantees (normative)
+
+For every explicit message `m` that is settled in reservation mode, settlement MUST satisfy:
+
+- `consumption + refund = gas_cost(m)`.
+- Let `(balance_pre, reserved_pre)` be the sender’s on-chain balance and reservation entry immediately before settlement for `m`, and `(balance_post, reserved_post)` be the values immediately after settlement for `m`. Then:
 
   `balance_post = balance_pre − consumption`
 
@@ -217,10 +276,8 @@ These rules imply the following invariants:
 
   `free_post − free_pre = gas_cost(m) − consumption = refund`.
 
-  This matches the legacy intuition where the sender is net-charged `consumption` and the unused portion is returned as a refund; in reservation mode the refund is realized entirely by reducing `reserved[s]`.
-- For each sender `s`, `reserved[s]` remains non-negative throughout the session, and it is reduced by `gas_cost(m)` exactly once per message `m` executed (or prevalidated) from `s`.
-
-If a message terminates during preflight as a prevalidation failure, settlement follows the legacy rules for burn and miner penalties, but it MUST still apply `reserved[s] := reserved[s] − gas_cost(m)` with no changes to the sender’s on-chain balance. This ensures that, for a correctly constructed `plan_T`, all reservations are fully released by the end of the tipset.
+- For each sender `s`, `reserved[s]` remains non-negative throughout the session.
+- Each message’s reserved amount is released exactly once: either in preflight when it fails prevalidation, or at settlement after execution.
 
 ### Activation and consensus rules
 
@@ -228,9 +285,7 @@ This FIP introduces a consensus rule that becomes mandatory from network version
 
 Before activation (network versions < 28), clients MAY implement reservation mode as a best-effort or testing feature, optionally gated by local configuration. However, any reservation failures (including Begin/End failures, overflow, or invariant violations) MUST NOT cause a tipset to be considered invalid under consensus. Pre-activation, the canonical state transition for block validity remains the legacy semantics without reservations.
 
-After activation (network versions ≥ 28), for any tipset at or after the configured upgrade epoch for network version 28, the state transition MUST behave as if a reservation session were applied to explicit messages in `M(T)` according to this specification. A tipset is valid only if there exists a reservation plan `plan_T` and an execution in reservation mode that:
-
-successfully calls Begin with `plan_T` (with no sender-resolution failures, insufficient-funds failures, size-limit violations, or arithmetic overflow); then processes all explicit messages in `M(T)` while maintaining the invariants above; and finally successfully calls End with all reservations fully released (i.e., with no remaining `reserved[a] > 0`).
+After activation (network versions ≥ 28), for any tipset at or after the configured upgrade epoch for network version 28, the state transition MUST behave as if a reservation session were applied to explicit messages in `M(T)` according to this specification. A tipset is valid only if there exists a reservation plan `plan_T` and an execution in reservation mode that successfully calls Begin with `plan_T` (with no sender-resolution failures, insufficient-funds failures, size-limit violations, or arithmetic overflow), then processes all explicit messages in `M(T)` while maintaining the invariants above, and finally successfully calls End with all reservations fully released (i.e., with no remaining `reserved[a] > 0`).
 
 If a node cannot start, maintain, or end a reservation session for a candidate tipset without violating these invariants, that tipset MUST NOT be considered valid.
 
