@@ -128,10 +128,7 @@ When all entries pass these checks, the engine sets `reserved[a] = amount` for e
 
 #### In-session invariants
 
-The following invariants MUST hold whenever `session_open` is true:
-
-- For every actor `a`, `reserved[a] ≥ 0`.
-- For every sender `a` in `plan_T`, `reserved[a] ≤ balance[a]`.
+Whenever `session_open` is true, the engine MUST maintain the following invariants: for every actor `a`, `reserved[a] ≥ 0`; and for every sender `a` present in `plan_T`, `reserved[a] ≤ balance[a]`.
 
 #### End
 
@@ -143,18 +140,13 @@ A conforming implementation MUST NOT open more than one reservation session per 
 
 ### Worked example (non-normative)
 
-Assume a tipset `T` contains two blocks `B_1` (higher precedence) and `B_2` (lower precedence) with the following explicit messages (in in-block execution order), and assume all message CIDs are unique:
+Consider a tipset `T` containing two blocks, `B_1` (higher precedence) and `B_2` (lower precedence). In canonical in-block order, `B_1` contains two explicit messages `m1` from sender `A` and `m2` from sender `B`, and `B_2` contains `m3` from sender `A` and `m4` from sender `C`. Assume all message CIDs are unique.
 
-- `B_1`: `m1` from `A`, `m2` from `B`
-- `B_2`: `m3` from `A`, `m4` from `C`
+Under Strict Sender Partitioning, `m3` is ignored because `A` has already contributed messages from the higher-precedence block `B_1`. As a result, the canonical explicit message list is `M(T) = [m1, m2, m4]`. The ignored message `m3` is not executed, produces no receipt, and does not contribute to the reservation plan.
 
-Under **Strict Sender Partitioning**, `m3` is ignored because sender `A` already contributed messages from the higher-precedence block `B_1`. Therefore `M(T) = [m1, m2, m4]`; `m3` produces no receipt and does not contribute to reservations.
+The reservation plan `plan_T` is computed by summing `gas_cost(m) = GasLimit(m) * GasFeeCap(m)` per sender over `M(T)`. Begin succeeds only if each sender has sufficient on-chain balance to cover its plan entry, and it initializes `reserved[s] = plan_T[s]`.
 
-The reservation plan `plan_T` is then computed by summing `gas_cost(m) = GasLimit(m) * GasFeeCap(m)` per sender over the messages in `M(T)`. Begin succeeds only if each sender has sufficient on-chain balance to cover its plan entry, and initializes `reserved[s] = plan_T[s]`.
-
-While the session is open, a sender’s **free balance** is `free[s] = balance[s] − reserved[s]`. This means a sender can spend (transfer) at most its free balance on non-gas value transfers during the tipset, even though its raw on-chain balance may be higher. When a message finishes, the sender is charged only for actual gas consumption and the reservation is released; the refund effect is realized by an increase in free balance when `reserved[s]` is decremented.
-
-For example, if `plan_T[A] = gas_cost(m1) = 30` and `balance[A] = 35` at Begin, then `reserved[A] = 30` and `free[A] = 5`. Any attempt during `m1` execution to transfer more than `5` units of value from `A` (other than gas settlement) fails deterministically. If at settlement `consumption = 12` and `refund = 18` (so `consumption + refund = gas_cost(m1)`), then after settlement `balance[A]` decreases by `12` while `reserved[A]` decreases by `30`, causing `free[A]` to increase by `18` (the refund) without any explicit refund transfer.
+While the session is open, the sender’s free balance is `free[s] = balance[s] − reserved[s]`. For example, if `plan_T[A] = gas_cost(m1) = 30` and `balance[A] = 35` at Begin, then `reserved[A] = 30` and `free[A] = 5`. Any attempt during `m1` execution to transfer more than `5` units of value from `A` (other than gas settlement) fails deterministically. If, at settlement, `consumption = 12` and `refund = 18` (so `consumption + refund = gas_cost(m1)`), then settlement decreases `balance[A]` by `12` and decreases `reserved[A]` by `30`, causing `free[A]` to increase by `18` (the refund) without any explicit refund transfer.
 
 ### Reservation mode and legacy mode
 
@@ -206,35 +198,29 @@ First, define:
 
 - `consumption = base_fee_burn + over_estimation_burn + miner_tip`.
 
-Then the engine MUST:
-
-- deduct `consumption` from the sender’s on-chain balance, so that the sender’s net on-chain balance change over the message matches legacy behavior;
-- credit the existing system accounts as in the legacy rules (increase the burn account balance by `base_fee_burn + over_estimation_burn`, and increase the appropriate reward account balance by `miner_tip`);
-- NOT transfer `refund` back to the sender as an explicit balance credit; and
-- decrement the reservation ledger by the full maximum gas cost by applying `reserved[s] := reserved[s] − gas_cost(m)`.
+Then the engine MUST deduct `consumption` from the sender’s on-chain balance so that the sender’s net on-chain balance change over the message matches legacy behavior. It MUST credit the existing system accounts as in the legacy rules (increase the burn account balance by `base_fee_burn + over_estimation_burn` and increase the appropriate reward account balance by `miner_tip`). It MUST NOT transfer `refund` back to the sender as an explicit balance credit. Finally, it MUST decrement the reservation ledger by the full maximum gas cost by applying `reserved[s] := reserved[s] − gas_cost(m)`.
 
 This decrement is well-defined because preflight has ensured `reserved[s] ≥ gas_cost(m)`. If the resulting reservation entry is zero, the entry for `s` MAY be removed from the ledger.
 
-These rules imply the key invariants:
+These rules imply the following invariants:
 
 - For every message `m` in reservation mode, `consumption + refund = gas_cost(m)`.
-- Let `(balance_pre, reserved_pre)` be the sender’s on-chain balance and reservation entry immediately before settlement for `m`, and `(balance_post, reserved_post)` be the values immediately after settlement. Then:
+- Let `(balance_pre, reserved_pre)` be the sender’s on-chain balance and reservation entry immediately before settlement for `m`, and `(balance_post, reserved_post)` be the values immediately after settlement for `m`. Settlement MUST satisfy:
 
-  - `balance_post = balance_pre − consumption`
-  - `reserved_post = reserved_pre − gas_cost(m)`
+  `balance_post = balance_pre − consumption`
 
-  so the sender’s free balance `free = balance − reserved` increases by exactly `refund` at settlement:
+  and
 
-  `free_post − free_pre = gas_cost(m) − consumption = refund.`
+  `reserved_post = reserved_pre − gas_cost(m)`.
+
+  Therefore the sender’s free balance `free = balance − reserved` increases by exactly `refund` at settlement:
+
+  `free_post − free_pre = gas_cost(m) − consumption = refund`.
 
   This matches the legacy intuition where the sender is net-charged `consumption` and the unused portion is returned as a refund; in reservation mode the refund is realized entirely by reducing `reserved[s]`.
-- Each `reserved[s]` remains non-negative throughout, and is reduced by `gas_cost(m)` exactly once per message `m` from `s`.
+- For each sender `s`, `reserved[s]` remains non-negative throughout the session, and it is reduced by `gas_cost(m)` exactly once per message `m` executed (or prevalidated) from `s`.
 
-For messages that terminate during preflight as prevalidation failures, settlement follows the legacy rules for burn and miner penalties, but MUST still apply:
-
-- `reserved[s] := reserved[s] − gas_cost(m),`
-
-with no changes to the sender’s on-chain balance. This ensures that, for a correctly constructed `plan_T`, all reservations are fully released by the end of the tipset.
+If a message terminates during preflight as a prevalidation failure, settlement follows the legacy rules for burn and miner penalties, but it MUST still apply `reserved[s] := reserved[s] − gas_cost(m)` with no changes to the sender’s on-chain balance. This ensures that, for a correctly constructed `plan_T`, all reservations are fully released by the end of the tipset.
 
 ### Activation and consensus rules
 
@@ -244,9 +230,7 @@ Before activation (network versions < 28), clients MAY implement reservation mod
 
 After activation (network versions ≥ 28), for any tipset at or after the configured upgrade epoch for network version 28, the state transition MUST behave as if a reservation session were applied to explicit messages in `M(T)` according to this specification. A tipset is valid only if there exists a reservation plan `plan_T` and an execution in reservation mode that:
 
-- successfully calls Begin with `plan_T` (no sender-resolution failures, no insufficient-funds, no size-limit violations, and no arithmetic overflow),
-- processes all explicit messages in `M(T)` while maintaining the invariants above, and
-- successfully calls End with all reservations fully released (no `reserved[a] > 0`).
+successfully calls Begin with `plan_T` (with no sender-resolution failures, insufficient-funds failures, size-limit violations, or arithmetic overflow); then processes all explicit messages in `M(T)` while maintaining the invariants above; and finally successfully calls End with all reservations fully released (i.e., with no remaining `reserved[a] > 0`).
 
 If a node cannot start, maintain, or end a reservation session for a candidate tipset without violating these invariants, that tipset MUST NOT be considered valid.
 
