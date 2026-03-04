@@ -55,6 +55,8 @@ This issue exists today, but becomes materially more important with delegated ex
 
 ## Specification
 
+Conceptually, this FIP temporarily locks the maximum possible gas spend for each sender at the start of a tipset. Those funds remain reserved until the sender’s messages have finished executing, preventing them from being transferred elsewhere during the same tipset.
+
 ### Overview (non-normative)
 
 This specification introduces tipset-wide gas reservations for explicit messages. Concretely, for each tipset the node constructs a canonical explicit message list `M(T)` and reserves, per sender, the maximum possible gas cost of that sender’s messages in `M(T)`. While the reservation session is open, the execution engine enforces all non-gas value transfers against the sender’s **free balance**, defined as on-chain balance minus remaining reserved amount. At message completion, the sender is charged only for actual gas consumption and the reservation is released; the refund effect is realized by increasing free balance as the reservation is decremented, without changing receipt formats.
@@ -111,10 +113,12 @@ Conforming implementations MUST derive `M(T)` from the blocks in `T` by applying
 - legacy CID deduplication across blocks; and
 - Strict Sender Partitioning (at most one block contributes messages for a given sender).
 
-To do so, order the blocks in `T` by ticket precedence (highest precedence first; equivalently, lower tickets first). Then iterate those blocks in order, and within each block iterate explicit messages in the same canonical in-block order as legacy execution. During this walk, maintain:
+To do so, order the blocks in `T` by ticket precedence (highest precedence first; equivalently, lower tickets first). Then iterate those blocks in order, and within each block iterate explicit messages in the same canonical in-block order as legacy execution.
 
-- a set of message CIDs that have already been seen in this tipset, `CID_seen`; and
-- a set of senders whose messages have been accepted from earlier (higher-precedence) blocks, `S_seen`.
+During this walk, maintain two sets:
+
+- `CID_seen`: message CIDs already encountered in this tipset.
+- `S_seen`: senders whose messages have already been accepted from a higher-precedence block.
 
 For each explicit message `m` encountered:
 
@@ -158,6 +162,8 @@ This FIP does not change base fee computation. Base fee adjustment for a tipset 
 
 ### Reservation session API and lifecycle
 
+A reservation session spans the execution of explicit messages in a tipset. It begins before the first message in `M(T)` is executed and ends immediately after the last one.
+
 When `plan_T` is non-empty, the Filecoin state transition at a tipset executes in two additional phases around explicit message execution:
 
 1. **Begin reservation session**: before executing any explicit message in `M(T)`, the node attempts to open exactly one reservation session for the tipset, parameterized by `plan_T`.
@@ -172,7 +178,7 @@ The reservation session is maintained inside the execution engine as an ephemera
 
 If `plan_T` is empty, Begin MUST be a no-op: `session_open` remains false and the engine MUST NOT enter reservation mode for this tipset.
 
-If `plan_T` is non-empty and `session_open` is already true, Begin MUST fail with a single-session violation.
+If `plan_T` is non-empty and `session_open` is already true, Begin MUST fail (only one reservation session may exist per tipset).
 
 To begin a non-empty session, the engine resolves each sender address in `plan_T` to an `ActorID` using the current state tree. Resolution MUST succeed for all entries; failure to resolve any sender is a reservation failure. For each resolved actor `a`, with on-chain balance `balance[a]` at the start of the tipset, the engine MUST check `0 ≤ amount ≤ balance[a]`. If this condition fails for any actor, Begin MUST fail with an insufficient-funds reservation failure.
 
@@ -225,7 +231,7 @@ If preflight succeeds and the message proceeds to execution, `reserved[s]` is le
 
 While `session_open` is true, the engine MUST enforce all non-gas value transfers against a sender’s **free balance**, rather than against the sender’s raw on-chain balance.
 
-For any operation that attempts to transfer an amount `value` from an actor `a` to any recipient (excluding gas settlement itself), define:
+For any operation that transfers an amount `value` from actor `a` (excluding gas settlement itself), define:
 
 - `balance[a]` as `a`’s current on-chain balance,
 - `reserved[a]` as `a`’s current reservation entry (or 0 if `a` is not present in the reservation ledger), and
@@ -384,7 +390,7 @@ This FIP is a consensus-breaking change that activates via a network upgrade (ne
 Implementations of this FIP MUST be accompanied by targeted tests and fuzzing that validate reservation behaviour, gas accounting invariants, and activation semantics. The concrete test suites will differ across clients, but should cover at least the following categories.
 
 - **Engine unit tests (reservation session and preflight).**
-  - Session lifecycle: opening and closing a single session; empty-plan no-op semantics; enforcing single-session invariants; rejecting plans that exceed affordability, sender-count (`MAX_RESERVATION_SENDERS`), or size (`MAX_RESERVATION_PLAN_BYTES`) limits; rejecting unknown senders or resolution failures.
+  - Session lifecycle: opening and closing a single session; empty-plan no-op semantics; enforcing the single-session invariant; rejecting plans that exceed affordability, sender-count (`MAX_RESERVATION_SENDERS`), or size (`MAX_RESERVATION_PLAN_BYTES`) limits; rejecting unknown senders or resolution failures.
   - Preflight under reservations: computing `gas_cost = gas_fee_cap * gas_limit` with checked arithmetic; asserting coverage (`reserved[sender] ≥ gas_cost`) without pre-deducting funds; on prevalidation failures (invalid sender, nonce, or inclusion gas limit), decrementing the reservation by `gas_cost` so that the ledger can end at zero.
 - **Engine unit tests (transfer enforcement and settlement).**
   - Transfer enforcement: ensuring all value-moving operations (including message value sends, actor creation, EVM CALL/DELEGATECALL, SELFDESTRUCT, and built-in implicit sends) route through a transfer primitive that enforces affordability against free balance `free = balance − reserved_remaining`, and reject `value > free` with an appropriate `InsufficientFunds` error.
