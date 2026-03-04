@@ -40,17 +40,9 @@ This issue exists today, but becomes materially more important with delegated ex
 
 ### Overview (non-normative)
 
-At a high level, tipset execution changes as follows:
+This specification introduces tipset-wide gas reservations for explicit messages. Concretely, for each tipset the node constructs a canonical explicit message list `M(T)` and reserves, per sender, the maximum possible gas cost of that sender’s messages in `M(T)`. While the reservation session is open, the execution engine enforces all non-gas value transfers against the sender’s **free balance**, defined as on-chain balance minus remaining reserved amount. At message completion, the sender is charged only for actual gas consumption and the reservation is released; the refund effect is realized by increasing free balance as the reservation is decremented, without changing receipt formats.
 
-1. Determine the canonical explicit message list `M(T)` for the tipset:
-   - Keep legacy CID deduplication across blocks.
-   - Additionally apply **Strict Sender Partitioning**: once any message from a sender is taken from a higher-precedence block, that sender’s messages in lower-precedence blocks are ignored (not executed and producing no receipt).
-2. Build a per-sender reservation plan `plan_T` from `M(T)` by reserving, for each sender, the sum of `GasLimit * GasFeeCap` over that sender’s messages.
-3. Before executing `M(T)`, open a single reservation session seeded with `plan_T`. While the session is open, each sender has a **free balance** equal to `balance − remaining_reserved`.
-4. Execute messages in `M(T)` in the same order as legacy, except:
-   - All non-gas value transfers must fit within free balance.
-   - At message end, the sender is charged only for actual gas consumption and the reservation is released (so the refund is realized by increasing free balance rather than by a dedicated refund transfer).
-5. After all explicit messages complete, end the session; the tipset is only valid if all reservations have been fully released.
+This FIP also introduces **Strict Sender Partitioning** during tipset message selection: once a sender contributes any message from a higher-precedence block in a tipset, messages from that sender in lower-precedence blocks are ignored (they are not executed and they produce no receipt). This makes reservations well-defined in multi-block tipsets.
 
 Base fee computation is unchanged.
 
@@ -62,38 +54,24 @@ This section defines (1) the canonical explicit message set `M(T)` for a tipset 
 
 For each tipset `T` at height `h`, let `M(T)` denote the canonical ordered list of explicit messages used for explicit message execution, receipt generation, and reservation planning at that height.
 
-`M(T)` is derived from the blocks in `T` by applying:
+Conforming implementations MUST derive `M(T)` from the blocks in `T` by applying both:
 
 - legacy CID deduplication across blocks; and
-- **Strict Sender Partitioning** to prevent conflicting reservations (at most one block contributes messages for a given sender).
+- Strict Sender Partitioning (at most one block contributes messages for a given sender).
 
-Let `B_1, B_2, ..., B_n` be the blocks in `T`, ordered by ticket precedence (where `B_1` has the highest precedence/lowest ticket).
-Let `S_seen` be the set of senders whose messages have been accepted in previous blocks, initially empty.
-Let `CID_seen` be the set of message CIDs seen so far, initially empty.
+To do so, order the blocks in `T` by ticket precedence (highest precedence first; equivalently, lower tickets first). Then iterate those blocks in order, and within each block iterate explicit messages in the same canonical in-block order as legacy execution. During this walk, maintain:
 
-Conforming implementations MUST construct `M(T)` according to the following pseudocode (or any equivalent procedure):
+- a set of message CIDs that have already been seen in this tipset, `CID_seen`; and
+- a set of senders whose messages have been accepted from earlier (higher-precedence) blocks, `S_seen`.
 
-```text
-M := []
-CID_seen := ∅
-S_seen := ∅
+For each explicit message `m` encountered:
 
-for each block B_i in T ordered by ticket precedence:
-    S_i := ∅
-    for each explicit message m in B_i in legacy in-block order:
-        if cid(m) ∈ CID_seen:
-            continue  # legacy CID deduplication; no receipt
-        CID_seen := CID_seen ∪ {cid(m)}
-        if from(m) ∈ S_seen:
-            continue  # strict sender partitioning; no receipt
-        M := M ++ [m]
-        S_i := S_i ∪ {from(m)}
-    S_seen := S_seen ∪ S_i
+1. If `cid(m) ∈ CID_seen`, the message MUST be ignored as a duplicate. It is not executed and produces no receipt.
+2. Otherwise, add `cid(m)` to `CID_seen`.
+3. If `from(m) ∈ S_seen`, the message MUST be ignored due to Strict Sender Partitioning. It is not executed and produces no receipt.
+4. Otherwise, the message MUST be appended to `M(T)`.
 
-return M
-```
-
-Strict Sender Partitioning is block-scoped: `S_seen` is updated only after an entire block is processed, so all messages from a sender within the first accepted block for that sender are included as normal.
+Strict Sender Partitioning is block-scoped: `S_seen` is updated only after the entire block has been processed. Concretely, while processing a block `B_i`, collect the set of senders of messages appended to `M(T)` from `B_i`, and add those senders to `S_seen` only after `B_i` has been fully scanned. This ensures that if a sender appears multiple times within the first accepted block for that sender, all of those messages are included as normal.
 
 System / implicit messages (for example block rewards and cron) are not members of `M(T)`.
 
@@ -128,32 +106,25 @@ This FIP does not change base fee computation. Base fee adjustment for a tipset 
 
 ### Reservation session API and lifecycle
 
-The Filecoin state transition at a tipset with non-empty `plan_T` operates in two phases around message execution:
+When `plan_T` is non-empty, the Filecoin state transition at a tipset executes in two additional phases around explicit message execution:
 
 1. **Begin reservation session**: before executing any explicit message in `M(T)`, the node attempts to open exactly one reservation session for the tipset, parameterized by `plan_T`.
 2. **End reservation session**: after processing all explicit messages in `M(T)`, and before executing any implicit messages for `T`, the node closes the reservation session.
 
-The reservation session is maintained inside the execution engine as an ephemeral ledger:
+The reservation session is maintained inside the execution engine as an ephemeral, tipset-local ledger:
 
 - For each sender `s` (resolved to `ActorID`) the engine stores a non-negative reserved amount `reserved[s]`.
 - A boolean flag `session_open` indicates whether a session is active.
 
 #### Begin
 
-- If `plan_T` is empty, Begin MUST be a no-op: `session_open` remains false and the engine MUST NOT enter reservation mode for this tipset.
-- If `plan_T` is non-empty and `session_open` is already true, Begin MUST fail with a single-session violation.
-- For each entry `(address, amount)` in `plan_T`, the engine resolves the address to an `ActorID` using the current state tree. Resolution MUST succeed for all entries; failure to resolve any sender is a reservation failure.
-- For each resolved actor `a`, with on-chain balance `balance[a]` at the start of the tipset, the engine MUST check:
+If `plan_T` is empty, Begin MUST be a no-op: `session_open` remains false and the engine MUST NOT enter reservation mode for this tipset.
 
-  `0 ≤ amount ≤ balance[a].`
+If `plan_T` is non-empty and `session_open` is already true, Begin MUST fail with a single-session violation.
 
-  If this condition fails for any actor, Begin MUST fail with an insufficient-funds reservation failure.
-- When all entries pass these checks, the engine sets:
+To begin a non-empty session, the engine resolves each sender address in `plan_T` to an `ActorID` using the current state tree. Resolution MUST succeed for all entries; failure to resolve any sender is a reservation failure. For each resolved actor `a`, with on-chain balance `balance[a]` at the start of the tipset, the engine MUST check `0 ≤ amount ≤ balance[a]`. If this condition fails for any actor, Begin MUST fail with an insufficient-funds reservation failure.
 
-  - `reserved[a] = amount` for each resolved sender `a` in `plan_T`;
-  - `session_open = true`.
-
-  Actors not present in `plan_T` are treated as having `reserved[a] = 0`.
+When all entries pass these checks, the engine sets `reserved[a] = amount` for each resolved sender `a` in `plan_T` and sets `session_open = true`. Actors not present in `plan_T` are treated as having `reserved[a] = 0`.
 
 #### In-session invariants
 
@@ -164,9 +135,9 @@ The following invariants MUST hold whenever `session_open` is true:
 
 #### End
 
-- If `session_open` is false, End MUST fail with a session-closed violation.
-- If `session_open` is true, the engine MUST verify that all reservations have been released (i.e., there is no remaining `reserved[a] > 0`). Any non-zero entry is a reservation remainder failure.
-- On success, the engine clears all `reserved` entries and sets `session_open = false`.
+End MUST be called only when `session_open` is true; if `session_open` is false, End MUST fail with a session-closed violation.
+
+When `session_open` is true, the engine MUST verify that all reservations have been released, i.e., there is no remaining `reserved[a] > 0`. Any non-zero entry is a reservation remainder failure. On success, the engine clears all `reserved` entries and sets `session_open = false`.
 
 A conforming implementation MUST NOT open more than one reservation session per tipset, and MUST ensure that any successful Begin with a non-empty `plan_T` is paired with exactly one End before processing implicit messages for that tipset.
 
@@ -187,63 +158,37 @@ For example, if `plan_T[A] = gas_cost(m1) = 30` and `balance[A] = 35` at Begin, 
 
 ### Reservation mode and legacy mode
 
-When `session_open` is true, the engine operates in **reservation mode** for all explicit messages in `M(T)`. When `session_open` is false, the engine operates in **legacy mode**, preserving existing preflight, transfer, and settlement behavior.
-
-- In reservation mode, the rules in the following subsections apply.
-- In legacy mode, the rules prior to this FIP continue to apply; `reserved[a]` is treated as zero for all actors, and Begin/End are not invoked.
+When `session_open` is true, the engine operates in **reservation mode** for explicit messages in `M(T)`, applying the rules in the following subsections. When `session_open` is false, the engine operates in **legacy mode**, preserving existing preflight, transfer, and settlement behavior; `reserved[a]` is treated as zero for all actors, and Begin/End are not invoked.
 
 Reservation mode applies only to explicit messages in `M(T)`. Implicit messages (including block rewards and cron) do not participate in the reservation plan and execute in legacy mode after End has succeeded.
 
 ### Preflight behaviour and coverage
 
-Preflight does not change on-chain balances. It checks that each message’s reservation coverage is consistent with `plan_T` and, if a message fails prevalidation (and therefore will not execute), releases that message’s reservation immediately.
+Preflight does not change on-chain balances. It checks that each message’s reservation coverage is consistent with `plan_T` and, if a message fails prevalidation (and therefore will not execute), it releases that message’s reservation immediately.
 
-For each explicit message `m` from sender `s` processed while `session_open` is true, preflight MUST:
+For each explicit message `m` from sender `s` processed while `session_open` is true, preflight MUST compute `gas_cost(m)` (as defined above) using the same arithmetic and units as existing gas accounting, defined over unbounded integers. If an implementation cannot represent this value (for example due to numeric overflow), it MUST treat this as an implementation error, not as an alternative consensus outcome.
 
-1. Compute
+Preflight MUST then check that `reserved[s] ≥ gas_cost(m)`. Violation of this condition indicates that the host has constructed an inconsistent `plan_T`; this MUST be treated as an implementation error.
 
-   `gas_cost(m)` (as defined above)
+Preflight MUST NOT deduct `gas_cost(m)` from the sender’s on-chain balance.
 
-   using the same arithmetic and units as existing gas accounting, defined over unbounded integers. If an implementation cannot represent this value (for example due to numeric overflow), it MUST treat this as an implementation error, not as an alternative consensus outcome.
-2. Check that `reserved[s] ≥ gas_cost(m)`. Violation of this condition indicates that the host has constructed an inconsistent `plan_T`; this MUST be treated as an implementation error.
-3. MUST NOT deduct `gas_cost(m)` from the sender’s on-chain balance as part of preflight.
-4. If the message fails prevalidation (for example, due to bad syntax, invalid nonce, or other legacy preflight failures) and is classified as a prevalidation failure, then before returning, the engine MUST decrement
-
-   `reserved[s] := reserved[s] − gas_cost(m),`
-
-   which is well-defined because step 2 ensures `reserved[s] ≥ gas_cost(m)`. The message’s gas accounting (including any miner penalty) remains as specified in the legacy rules. After this decrement, the engine MUST NOT make any additional changes to `reserved[]` for this message.
+If the message fails prevalidation (for example, due to bad syntax, invalid nonce, or other legacy preflight failures) and is classified as a prevalidation failure, then before returning, the engine MUST decrement `reserved[s] := reserved[s] − gas_cost(m)`. This decrement is well-defined because the invariant `reserved[s] ≥ gas_cost(m)` has been verified. The message’s gas accounting (including any miner penalty) remains as specified in the legacy rules. After this decrement, the engine MUST NOT make any additional changes to `reserved[]` for this message.
 
 If preflight succeeds and the message proceeds to execution, `reserved[s]` is left unchanged until settlement in `finish_message` (see below).
 
 ### Transfer enforcement via free balance
 
-While `session_open` is true, the engine MUST enforce all value transfers against a sender’s **free balance** rather than its raw on-chain balance.
+While `session_open` is true, the engine MUST enforce all non-gas value transfers against a sender’s **free balance**, rather than against the sender’s raw on-chain balance.
 
-For any value-moving operation that transfers an amount `value` from actor `a` to some recipient, other than gas settlement itself:
+For any operation that attempts to transfer an amount `value` from an actor `a` to any recipient (excluding gas settlement itself), define:
 
-- Let `balance[a]` denote `a`’s current on-chain balance.
-- Let `reserved[a]` denote the current reservation entry for `a` (0 if not present).
-- Define the free balance
+- `balance[a]` as `a`’s current on-chain balance,
+- `reserved[a]` as `a`’s current reservation entry (or 0 if `a` is not present in the reservation ledger), and
+- `free[a] = balance[a] − reserved[a]`.
 
-  `free[a] = balance[a] − reserved[a].`
+The engine MUST require `free[a] ≥ 0` while `session_open` is true, and it MUST treat `value ≤ free[a]` as a precondition for the transfer. If `value > free[a]`, the transfer MUST fail with the existing insufficient-funds semantics for that operation, and neither on-chain balances nor `reserved[]` entries may be modified as a result of that failed transfer.
 
-The engine MUST require:
-
-- `free[a] ≥ 0` at all times while `session_open` is true; and
-- `value ≤ free[a]` as a precondition for the transfer.
-
-If `value > free[a]`, the transfer MUST fail with the existing insufficient-funds semantics for that operation, and no balances or `reserved[]` entries are updated as a result of that transfer.
-
-This affordability rule MUST be applied uniformly to all value-moving paths during message execution, including but not limited to:
-
-- top-level message value transfers,
-- actor-initiated transfers,
-- sub-calls that send value,
-- actor creation that includes an initial balance,
-- SELFDESTRUCT-like flows that send remaining balance to a beneficiary,
-- implicit sends performed by built-in actors as part of their logic.
-
-Gas settlement at the end of a message (burning base fee, overestimation burn, and crediting miner tips) is handled separately and is exempt from the free-balance affordability check, as described below.
+This check applies uniformly to all value-moving paths during message execution, including top-level message value, actor-initiated sends, sub-calls that carry value, actor creation with initial balance, SELFDESTRUCT-like flows, and any implicit sends performed by built-in actors. Gas settlement at the end of a message (burning base fee, overestimation burn, and crediting miner tips) is handled separately and is exempt from the free-balance check, as described below.
 
 ### Settlement behaviour and invariants
 
@@ -255,28 +200,20 @@ For each explicit message `m` from sender `s` that passes preflight and runs to 
 
 with all quantities non-negative and measured in attoFIL.
 
-In reservation mode, settlement for `m` MUST satisfy the following steps and invariants:
+In reservation mode, settlement for `m` MUST preserve legacy gas accounting and MUST update both on-chain balances and the reservation ledger as follows.
 
-1. Define
+First, define:
 
-   `consumption = base_fee_burn + over_estimation_burn + miner_tip.`
+- `consumption = base_fee_burn + over_estimation_burn + miner_tip`.
 
-2. Deduct `consumption` from the sender’s on-chain balance:
+Then the engine MUST:
 
-   `balance[s] := balance[s] − consumption.`
+- deduct `consumption` from the sender’s on-chain balance, so that the sender’s net on-chain balance change over the message matches legacy behavior;
+- credit the existing system accounts as in the legacy rules (increase the burn account balance by `base_fee_burn + over_estimation_burn`, and increase the appropriate reward account balance by `miner_tip`);
+- NOT transfer `refund` back to the sender as an explicit balance credit; and
+- decrement the reservation ledger by the full maximum gas cost by applying `reserved[s] := reserved[s] − gas_cost(m)`.
 
-   This MUST be implemented so that the sender’s net balance change over the message matches the legacy behavior.
-3. Credit the existing system accounts as in the legacy rules:
-
-   - increase the burn account balance by `base_fee_burn + over_estimation_burn`;
-   - increase the appropriate reward account balance by `miner_tip`.
-
-4. Do NOT transfer `refund` back to the sender as an explicit balance credit.
-5. Decrement the reservation ledger by the full maximum gas cost:
-
-   `reserved[s] := reserved[s] − gas_cost(m),`
-
-   which is well-defined because preflight has ensured `reserved[s] ≥ gas_cost(m)`. If the result is zero, the entry for `s` MAY be removed from the ledger.
+This decrement is well-defined because preflight has ensured `reserved[s] ≥ gas_cost(m)`. If the resulting reservation entry is zero, the entry for `s` MAY be removed from the ledger.
 
 These rules imply the key invariants:
 
@@ -301,23 +238,17 @@ with no changes to the sender’s on-chain balance. This ensures that, for a cor
 
 ### Activation and consensus rules
 
-This FIP introduces a new consensus rule that becomes mandatory from network version 28 onward.
+This FIP introduces a consensus rule that becomes mandatory from network version 28 onward.
 
-- **Pre-activation (network versions < 28):**
+Before activation (network versions < 28), clients MAY implement reservation mode as a best-effort or testing feature, optionally gated by local configuration. However, any reservation failures (including Begin/End failures, overflow, or invariant violations) MUST NOT cause a tipset to be considered invalid under consensus. Pre-activation, the canonical state transition for block validity remains the legacy semantics without reservations.
 
-  - Clients MAY implement reservation mode as a best-effort or testing feature, optionally gated by local configuration.
-  - Any reservation failures (including Begin/End failures, overflow, or invariant violations) MUST NOT cause a tipset to be considered invalid under consensus. Pre-activation, the canonical state transition for block validity remains the legacy semantics without reservations.
+After activation (network versions ≥ 28), for any tipset at or after the configured upgrade epoch for network version 28, the state transition MUST behave as if a reservation session were applied to explicit messages in `M(T)` according to this specification. A tipset is valid only if there exists a reservation plan `plan_T` and an execution in reservation mode that:
 
-- **Post-activation (network versions ≥ 28):**
+- successfully calls Begin with `plan_T` (no sender-resolution failures, no insufficient-funds, no size-limit violations, and no arithmetic overflow),
+- processes all explicit messages in `M(T)` while maintaining the invariants above, and
+- successfully calls End with all reservations fully released (no `reserved[a] > 0`).
 
-  - For any tipset at or after the configured upgrade epoch for network version 28, the state transition MUST behave as if a reservation session were applied to explicit messages in `M(T)` according to this specification.
-  - A tipset is valid only if there exists a reservation plan `plan_T` and an execution in reservation mode that:
-
-    - successfully calls Begin with `plan_T` (no sender-resolution failures, no insufficient-funds, no size-limit violations, no arithmetic overflow), and
-    - processes all explicit messages in `M(T)` while maintaining the invariants above, and
-    - successfully calls End with all reservations fully released (no `reserved[a] > 0`).
-
-  - If a node cannot start, maintain, or end a reservation session for a candidate tipset without violating these invariants, that tipset MUST NOT be considered valid.
+If a node cannot start, maintain, or end a reservation session for a candidate tipset without violating these invariants, that tipset MUST NOT be considered valid.
 
 Implementations remain free to expose different operational modes (for example, non-strict or strict pre-activation reservation checks), but from network version 28 onward, all conforming implementations MUST converge on the reservation mode semantics described here for consensus validity.
 
