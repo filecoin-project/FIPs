@@ -14,6 +14,8 @@ spec-sections:
   - section-systems.filecoin_vm.interpreter.duplicate-messages
 ---
 
+# FIP-XXXX: Multi-Stage Tipset Gas Reservations
+
 ## Simple Summary
 
 This FIP introduces tipset-wide gas reservations for explicit messages. Before executing the canonical explicit messages in a tipset, nodes reserve enough funds per sender to cover the maximum possible gas cost of that sender’s messages. While the reservation session is open, all non-gas value transfers are enforced against the sender’s free balance (on-chain balance minus remaining reserved gas), preventing intra-tipset “self-drain” patterns from making later messages underfunded. For messages that execute, receipts and gas accounting remain unchanged; the difference is how fund availability is enforced during the tipset.
@@ -57,13 +59,13 @@ This issue exists today, but becomes materially more important with delegated ex
 
 Conceptually, this FIP temporarily locks the maximum possible gas spend for each sender at the start of a tipset. Those funds remain reserved until the sender’s messages have finished executing, preventing them from being transferred elsewhere during the same tipset.
 
-### Overview (non-normative)
+### Overview
 
 This specification introduces tipset-wide gas reservations for explicit messages. Concretely, for each tipset the node constructs a canonical explicit message list `M(T)` and reserves, per sender, the maximum possible gas cost of that sender’s messages in `M(T)`. While the reservation session is open, the execution engine enforces all non-gas value transfers against the sender’s **free balance**, defined as on-chain balance minus remaining reserved amount. At message completion, the sender is charged only for actual gas consumption and the reservation is released; the refund effect is realized by increasing free balance as the reservation is decremented, without changing receipt formats.
 
 This FIP also introduces **Strict Sender Partitioning** during tipset message selection: once a sender contributes any message from a higher-precedence block in a tipset, messages from that sender in lower-precedence blocks are ignored (they are not executed and they produce no receipt). This makes reservations well-defined in multi-block tipsets.
 
-### Tipset execution with reservations (non-normative)
+### Tipset execution with reservations
 
 Tipset processing with reservations works as follows:
 
@@ -89,7 +91,7 @@ blocks in tipset
 
 Base fee adjustment is unchanged; see “Base fee computation (unchanged)” below.
 
-### Key terms (non-normative)
+### Key terms
 
 The rest of this section uses the following terms:
 
@@ -196,7 +198,7 @@ When `session_open` is true, the engine MUST verify that all reservations have b
 
 A conforming implementation MUST NOT open more than one reservation session per tipset, and MUST ensure that any successful Begin with a non-empty `plan_T` is paired with exactly one End before processing implicit messages for that tipset.
 
-### Worked example (non-normative)
+### Worked example
 
 Consider a tipset `T` containing two blocks, `B_1` (higher precedence) and `B_2` (lower precedence). In canonical in-block order, `B_1` contains two explicit messages `m1` from sender `A` and `m2` from sender `B`, and `B_2` contains `m3` from sender `A` and `m4` from sender `C`. Assume all message CIDs are unique.
 
@@ -243,7 +245,7 @@ This check applies uniformly to all value-moving paths during message execution,
 
 ### Settlement behaviour and invariants
 
-#### Settlement rule (normative)
+#### Settlement rule
 
 For each explicit message `m` from sender `s` that passes preflight and runs to completion (including messages that exit with failure codes), the engine computes `GasOutputs` exactly as in the legacy rules. In particular:
 
@@ -261,11 +263,11 @@ Then the engine MUST deduct `consumption` from the sender’s on-chain balance s
 
 This decrement is well-defined because preflight has ensured `reserved[s] ≥ gas_cost(m)`. If the resulting reservation entry is zero, the entry for `s` MAY be removed from the ledger.
 
-#### Settlement intuition (non-normative)
+#### Settlement intuition
 
 Under legacy rules, the sender effectively front-loads a maximum gas charge and later receives a refund for unused gas. In reservation mode, `reserved[s]` plays the role of that front-loaded amount by reducing the sender’s free balance during execution. The refund is realized when `reserved[s]` is decremented at settlement, which increases free balance without requiring any explicit refund transfer.
 
-#### Settlement guarantees (normative)
+#### Settlement guarantees
 
 For every explicit message `m` that is settled in reservation mode, settlement MUST satisfy:
 
@@ -467,7 +469,7 @@ Implementing this FIP requires coordinated changes across clients and the execut
   - plumb reservation plans and session lifecycle calls between client and engine;
   - standardize error typing and reporting for reservation failures.
 
-Prototype work (non-normative) has been explored in:
+Prototype work has been explored in:
 
 - https://github.com/filecoin-project/ref-fvm/pull/2236
 - https://github.com/filecoin-project/lotus/pull/13427
