@@ -18,15 +18,15 @@ spec-sections:
 
 ## Simple Summary
 
-This FIP reserves each sender's tipset-wide maximum gas spend before explicit messages execute. While that reservation session is open, non-gas value transfers are enforced against `balance - reserved`, preventing earlier messages in the same tipset from draining funds needed to pay later gas charges. For executed explicit messages, receipts and gas accounting remain unchanged.
+This FIP reserves each sender's maximum gas spend across a tipset before explicit messages execute. During that reservation session, non-gas transfers are limited to `balance - reserved`, preventing earlier messages from draining funds needed for later gas charges. Executed explicit messages keep legacy receipts and gas accounting.
 
-To make reservations well-defined in multi-block tipsets, this FIP also introduces **Strict Sender Partitioning** during tipset message selection: if a sender’s messages are accepted from a higher-precedence block in the tipset, messages from that sender in lower-precedence blocks are ignored and produce no receipts.
+The FIP also introduces **Strict Sender Partitioning**: once a sender contributes explicit messages from a higher-precedence block in a tipset, that sender contributes none from lower-precedence blocks.
 
 ## Abstract
 
-This FIP introduces tipset-scope gas reservations as a consensus rule for Filecoin to eliminate miner exposure to underfunded gas charges within a single tipset. For each tipset, nodes derive the canonical explicit message set `M(T)` (including strict sender partitioning) and construct a per-sender reservation plan equal to the sum, over `M(T)`, of each message’s `gas_limit * gas_fee_cap`. The execution engine maintains an internal reservation session ledger keyed by actor identifier; when a session is open, each sender’s free balance is defined as on-chain balance minus the remaining reserved amount recorded in this ledger.
+This FIP adds tipset-wide gas reservations for explicit messages. For each tipset, nodes derive the canonical explicit message set `M(T)`, compute `plan_T[s] = Σ gas_limit * gas_fee_cap` over the messages contributed by sender `s` in `M(T)`, and open a tipset-local reservation session in the execution engine. While the session is open, non-gas value transfers are checked against `balance - reserved`.
 
-For messages that execute, gas metering and `GasOutputs` are computed exactly as today. Preflight checks assert that reserved funds cover each message’s maximum gas cost, and all non-gas value transfers are enforced against free balance rather than raw balance, so a sender cannot move away funds needed to pay for reserved gas. Settlement net-charges the sender only for actual consumption (base-fee burn, overestimation burn, and miner tip) while releasing the full reserved amount, realizing refunds by increasing free balance instead of issuing explicit refund transfers. The reservation ledger is tipset-local and requires no new on-chain actors or state migrations. The new rules activate in a future network upgrade.
+For executed explicit messages, gas metering, receipts, and `GasOutputs` remain unchanged: the sender is charged only for actual gas consumption and the full reservation for the message is then released. The FIP also adds Strict Sender Partitioning when constructing `M(T)`: once a sender contributes messages from a higher-precedence block, lower-precedence blocks contribute none for that sender. This keeps reservation planning aligned with execution and avoids cross-block aggregation of conflicting sender message sets. The reservation ledger is engine-local, requires no state migration, and activates in a future network upgrade.
 
 ## Change Motivation
 
