@@ -54,6 +54,8 @@ This section defines the protocol rules for tipset-wide gas reservations.
 | `MAX_RESERVATION_SENDERS` | `65,536` | Maximum number of distinct sender addresses in `plan_T`. |
 | `MAX_RESERVATION_PLAN_BYTES` | `8 MiB` | Maximum encoded size of `plan_T` passed to the execution engine. |
 
+These are the proposed consensus values for the draft and remain subject to benchmarking before the FIP leaves Draft.
+
 ### Definitions
 
 - `M(T)`: the canonical ordered list of explicit messages executed for tipset `T`. Only messages in `M(T)` execute and produce receipts.
@@ -131,7 +133,7 @@ At `End`:
 - every reservation entry MUST have been fully released, i.e. there MUST be no remaining `reserved[a] > 0`; any non-zero remainder is a node error;
 - on success, the engine MUST clear the reservation ledger and set `session_open = false`.
 
-### Explicit Message Processing
+### Explicit Message Processing in Reservation Mode
 
 When a reservation session is open, each message in `M(T)` MUST be processed under the following rules.
 
@@ -208,6 +210,8 @@ After activation, a candidate tipset that triggers a reservation failure is inva
 Node errors are outside consensus. A node that encounters a node error while evaluating a candidate tipset MUST treat it as a local fault, not as an alternative valid or invalid state transition, and SHOULD stop following the chain until the fault is investigated.
 
 ## Design Rationale
+
+The subsections below explain the execution flow and the main design choices behind the rules in `## Specification`.
 
 ### Reservation Flow
 
