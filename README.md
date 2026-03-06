@@ -102,7 +102,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0061](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0061.md) | WindowPoSt Grindability Fix | FIP | @cryptonemo @Kubuxu @DrPeterVanNostrand @Nicola @porcuquine @vmx @arajasek| Final |
 | [0062](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0062.md) | Fallback Method Handler for the Multisig Actor | FIP | Dimitris Vyzovitis (@vyzo), Raúl Kripalani (@raulk)| Final |
 | [0063](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0063.md) | Switching to new Drand mainnet network | FIP | @yiannisbot, @CluEleSsUK, @AnomalRoil, @nikkolasg, @willscott | Final |
-| [0064](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0064.md) | Add Parameters to Base Fee Mechanism | FIP | @guy-goren | Draft |
+| [0064](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0064.md) | Add Parameters to Base Fee Mechanism | FIP | @guy-goren | Withdrawn |
 | [0065](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0065.md) | Ignore built-in market locked balance in circulating supply calculation | FIP | @anorth | Final |
 | [0066](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0066.md) | Piece Retrieval Gateway | FRC | @willscott, @dirkmc | Draft |
 | [0067](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0067.md) | PoRep Security Policy & Replacement Sealing Enforcement | FIP | @Kubuxu, @anorth, @irenegia, @lucaniz | Accepted |
@@ -148,4 +148,5 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0109](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0109.md) | Enable smart contract notifications for Direct Data Onboarding (DDO) | FIP | Rod Vagg (@rvagg) | Final |
 | [0110](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0110.md) | Allow Shorter Deal Durations | FIP | Will Scott (@willscott) | Draft |
 | [0111](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0111.md) | Add Support for EIP-7702 (Set Code for EOAs) in the FEVM | FIP | Michael Seiler (@snissn), Aarav Mehta (@aaravm) | Draft |
+| [0113](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0113.md) | secp256r1 (P-256) P256VERIFY Precompile for FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Draft |
 | [0114](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0114.md) | Add Support for EIP-7939 (CLZ Opcode) in the FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Draft |
