@@ -52,22 +52,22 @@ The following table defines the REQUIRED mapping between JSON-RPC conditions and
 | Scenario | HTTP Status Code | JSON-RPC Error Code | Response Body |
 |---|---|---|---|
 | Successful result | `200 OK` | N/A | JSON-RPC result object |
-| Parse error | `500 Internal Server Error` | `-32700` | JSON-RPC error object |
-| Invalid Request | `400 Bad Request` | `-32600` | JSON-RPC error object |
-| Method not found | `404 Not Found` | `-32601` | JSON-RPC error object |
-| Invalid params | `500 Internal Server Error` | `-32602` | JSON-RPC error object |
-| Internal error | `500 Internal Server Error` | `-32603` | JSON-RPC error object |
-| Server error (reserved range) | `500 Internal Server Error` | `-32099` to `-32000` | JSON-RPC error object |
-| Application-defined error | `200 OK` | Any code outside reserved range | JSON-RPC error object |
 | Notification (no `id`) | `204 No Content` | N/A | Empty |
+| Parse error | `400 Bad Request` | `-32700` | JSON-RPC error object |
+| Invalid Request | `400 Bad Request` | `-32600` | JSON-RPC error object |
+| Invalid params | `400 Bad Request` | `-32602` | JSON-RPC error object |
 | Missing or invalid JWT token | `401 Unauthorized` | N/A | Optional |
 | Insufficient JWT permissions | `403 Forbidden` | N/A | Optional |
+| Method not found | `404 Not Found` | `-32601` | JSON-RPC error object |
 | Unsupported HTTP method | `405 Method Not Allowed` | N/A | Optional |
 | Wrong Content-Type | `415 Unsupported Media Type` | N/A | Optional |
+| Internal/server error | `500 Internal Server Error` | `-32603`, `-32099` to `-32000` | JSON-RPC error object |
+| Application-defined error | `500 Internal Server Error` | Any code outside reserved range | JSON-RPC error object |
+| Method not yet implemented | `501 Not Implemented` | `-32601` | JSON-RPC error object |
 
 When the HTTP status code indicates an error (4xx or 5xx) and the error originated from JSON-RPC processing, the response body MUST still contain a valid [JSON-RPC 2.0 Error Object](https://www.jsonrpc.org/specification#error_object).
 
-Application-defined errors (error codes outside the reserved `-32768` to `-32000` range) MUST return HTTP `200 OK`. These represent application-level conditions that were processed successfully at the protocol level.
+Application-defined errors (error codes outside the reserved `-32768` to `-32000` range) MUST return HTTP `500 Internal Server Error`. While these errors originate from application logic rather than the JSON-RPC protocol itself, they still represent error conditions that clients should be able to detect at the HTTP layer without parsing the response body.
 
 ### Batch Requests
 
@@ -99,10 +99,6 @@ However, the pragmatic benefits of mapping errors to HTTP status codes outweigh 
 1. **Lightweight error detection.** An HTTP client can determine that an error occurred from the status code alone, without parsing the response body. This is especially valuable when the response body is large.
 2. **Infrastructure compatibility.** Proxies, load balancers, CDNs, and monitoring tools are built around HTTP status codes. Returning 200 for errors makes these tools blind to failure conditions.
 3. **Precedent.** The [JSON-RPC 2.0 Transport: HTTP](https://www.simple-is-better.org/json-rpc/transport_http.html) community draft defines this mapping. While not an official standard, it represents the most widely referenced specification for JSON-RPC over HTTP.
-
-### Why separate application errors from protocol errors?
-
-Application-defined errors (codes outside the `-32768` to `-32000` reserved range) return HTTP 200 because they represent conditions that were processed successfully at the JSON-RPC protocol level. The distinction is: reserved error codes indicate problems with the RPC mechanism itself (malformed request, unknown method, server failure), while application errors indicate business logic outcomes that happen to be negative.
 
 ### Why not follow the Ethereum ecosystem?
 
