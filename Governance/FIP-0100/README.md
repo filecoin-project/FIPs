@@ -30,6 +30,8 @@ The committee includes diverse members across Filecoin roles:
 - **Ørjan Røren** – Ecosystem Contributor  
 - **rvagg** – Core Developer  
 
+**Tanisha Katara** chairs and facilitates coordination, consensusand committee progress. 
+
 This diversity is intentional to ensure technical, economic, operational, and community views are represented — including both supporters and critics of FIP-100.
 
 ### Section 1.2: Individual Capacity Service
