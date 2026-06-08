@@ -21,7 +21,7 @@ This FIP deprecates the Filecoin Plus (FIL+) datacap minting and allocation syst
   - b. *Service Reward Allocation* (α\_floor of block rewards): flows to a new FEVM actor (Service Reward Actor) that funds the Service Orchestrator to support storage services. This replaces the implicit datacap-based split with an explicit, predictable mechanism.
   - c. *Burn* ((α − α\_floor) of block rewards): the gap between the service budget and the proven allocation is burned, creating deflationary pressure and enforcing fiscal discipline.
 
-α (the service budget rate) follows a continuous linear ramp from 5% to 50% over approximately 9 quarters. α\_floor (the allocation rate) is a revenue-gated step function that starts at 10% after a bootstrap quarter and can increase by 5 pp per quarter if on-chain deal revenue clears a public, verifiable threshold. If the revenue gate fails, α\_floor stays unchanged and the gap between α and α\_floor burns.
+α (the service budget rate) follows a continuous linear ramp from 5% to 50% over approximately 9 quarters. α\_floor (the allocation rate) is a revenue-gated step function that starts at 10% after a bootstrap quarter and can increase by 5 pp per quarter if on-chain deal revenue clears a public, verifiable, programmatic threshold. If the revenue gate fails, α\_floor stays unchanged and the gap between α and α\_floor burns.
 
 ## Abstract
 
@@ -31,7 +31,7 @@ The current incentive system (FIL+) successfully created network capacity but fa
 
 2. **Block reward split with gated allocation and burn:** Once datacap is removed, we need a replacement mechanism to reserve a part of block reward for service activity that creates value for the Filecoin economy. At each block reward issuance, a fraction α of the new reward tokens is removed from consensus and deposited into the **Service Reward Actor**, a new FEVM actor. α follows a continuous, deterministic linear ramp from 5% to 50%. However, not all of the service budget is allocated immediately. Only the fraction α\_floor (the "allocation rate") flows to the Service Orchestrator and is quarterly allocated to fund the service economy. The gap (α − α\_floor) is burned. α\_floor starts at 10% after a bootstrap quarter and can step up by 5 pp per quarter, but only if on-chain deal revenue clears a verifiable revenue target. No action is required from the storage provider; the split is unconditional and applies to all new block rewards.
 
-3. **Service Orchestrator model:** The service allocation funds are deployed by a Service Orchestrator, the go-to-market layer between Filecoin's on-chain service infrastructure and client demand. The Orchestrator originates deals, structures pricing, matches clients with storage providers, and manages client relationships. In Phase 1, a single named Orchestrator receives the full α\_floor allocation and is accountable for one outcome: on-chain paid deal revenue settled through Filecoin Pay. Phase 2 introduces multiple competing Orchestrators with performance-weighted allocation. Phase 3 enables permissionless entry.
+3. **Service Orchestrator model:** The service allocation funds are deployed by a Service Orchestrator, the go-to-market layer between Filecoin's on-chain service infrastructure and client demand. The Orchestrator originates deals, structures pricing, matches clients with storage providers, and manages client relationships. In Phase 1, a single named Orchestrator receives the full α\_floor allocation and is accountable for one outcome: on-chain paid deal revenue settled through Filecoin Pay. Phase 2 introduces multiple competing Orchestrators with performance-weighted allocation. Phase 3 enables permissionless Orchestrator entry.
 
 ## Motivation
 
@@ -45,7 +45,7 @@ This initiative also represents a significant opportunity to **simplify the L1**
 
 ### Could we just remove FIL+ and let the market work?
 
-Removing FIL+ would support more onboarding and allow the block reward to function as an indirect subsidy for service provision (e.g., a SP can offer lower prices because they earn from mining). However, this action would eliminate a crucial **protocol-level mechanism for encouraging the transition to a service-oriented economy**. While one might argue that genuine paying clients negate the need for this support, the reality is that current *client payments are often too small compared to the cost gap* of storing real data versus engaging in pure mining activities. Without an incentive exclusively dedicated to service, SPs would naturally prioritize mining. Therefore, reserving a portion of the block reward for services is not merely an economic lever; it is a way to define the **network's identity**. Filecoin's fundamental mission is to be a storage service network, differentiating it from a generic network that simply uses storage. Achieving this mission will ultimately benefit all participants.
+Removing FIL+ would support more onboarding and allow the block reward to function as an indirect subsidy for service provision (e.g., a SP can offer lower prices because they earn from mining). However, this action would eliminate a crucial **protocol-level mechanism for encouraging the transition to a service-oriented economy**. While one might argue that genuine paying clients negate the need for this support, the reality is that current *client payments are often too small compared to the cost gap* of storing real data versus engaging in pure mining activities. Without an incentive exclusively dedicated to service, SPs would naturally prioritize pure consensus mining without providing value-creating services. Therefore, reserving a portion of the block reward for services is not merely an economic lever; it is a way to define the **network's identity**. Filecoin's fundamental mission is to be a storage service network, differentiating it from a generic network that simply uses storage. Achieving this mission will ultimately benefit all participants.
 
 ### Why a continuous ramp up for alpha?
 
@@ -215,11 +215,11 @@ func QuarterlyGateCheck(Q uint64):
     // else: gate fails, alpha_floor unchanged
 ```
 
-`MeasuredDealRevenue(Q)`: sum of all deal payments settled through Filecoin Pay during quarter Q. **Dependency:** Filecoin Pay does not currently expose a revenue accounting interface. This FIP requires a companion specification.
+`MeasuredDealRevenue(Q)`: sum of all deal payments settled through Filecoin Pay during quarter Q. TODO
 
 `TotalBlockRewards(Q-1)`: sum of all block rewards minted during quarter Q-1. Computable in the reward actor.
 
-**Trigger mechanism.** `QuarterlyGateCheck` must execute exactly once per quarter boundary via an automated, time-bound mechanism. A manual trigger would introduce centralization risk and a single point of failure. The exact on-chain mechanism is to be determined with the implementation team.
+**Trigger mechanism.** `QuarterlyGateCheck` must execute exactly once per quarter boundary via an automated, time-bound mechanism.TODO
 
 #### 2.3 Actor Code Changes and BR-split Mechanism
 
@@ -258,18 +258,13 @@ func DistributeBlockReward(e Epoch, BR TokenAmount, state RewardState):
 
 ### 3. Service Reward Actor
 
-The Service Reward Actor is implemented as a SAFE wallet deployed as an FEVM actor (f4/f40 address), rather than a new built-in system actor. Its state schema is defined in Section 2 above. Key design properties:
+The Service Reward Actor is implemented as a SAFE wallet deployed as an FEVM actor (f4/f40 address), rather than a new built-in system actor. Its state schema is defined in Section 2 above. 
 
-- **Minimal L1 change:** The only built-in actor modification is in the reward actor: at `AwardBlockReward`, send α × BR to the actor's address.
-- **Upgradeable without network upgrades:** Disbursement rules, spending caps, and future governance logic can be iterated at the FEVM level.
-- **Enforcement is mechanized:** (α − α\_floor) × BR burns automatically. No separate enforcement layer needed.
-- **Future governance evolution:** A future FIP could add a governance module (on-chain voting, DAO-style allocation) without L1 changes.
-- **Quarterly gate trigger:** Executes `QuarterlyGateCheck` once per quarter boundary. Trigger mechanism TBD (can be triggered manually since it is only once per quarter).
-- **Deal revenue accounting:** Reads `MeasuredDealRevenue` from Filecoin Pay (FEVM-to-FEVM call). Requires companion spec.
+TODO
 
 ### 4. Service Rewards Allocation
 
-Sections 2.1 to 2.3 fix how much of each block reward reaches the Service Reward Actor and how the quarterly gate and the burn discipline that share. This section specifies the other half: who controls the actor, what they are accountable for, and how control evolves from a single named operator to competitive and then permissionless entry.
+Sections 2.1 to 2.4 fix how much of each block reward reaches the Service Reward Actor and how the quarterly gate and the burn discipline that share. This section specifies the other half: who controls the actor, what they are accountable for, and how control evolves from a single named operator to competitive and then permissionless entry.
 
 #### 4.1 The Service Orchestrator Role
 
@@ -278,6 +273,7 @@ A Service Orchestrator is the go-to-market layer between Filecoin's on-chain ser
 The Orchestrator originates storage deals across one or more FOC service operators, structures pricing including subsidized rates during bootstrapping, matches clients with qualified storage providers, and manages client relationships through the deal lifecycle. FOC operators run the on-chain contracts and handle technical delivery. The Orchestrator owns commercial conversion.
 
 Its authority stops at the wallet. The Orchestrator does not set consensus parameters, change the block reward split, or run the quarterly gate. Those are fixed in Sections 2 and 3. Its one protocol-level obligation is to generate the on-chain deal revenue that clears the gate.
+
 
 #### 4.2 Accountability
 
