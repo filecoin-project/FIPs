@@ -43,27 +43,21 @@ This proposal resolves that tension by **shifting the signal** from upfront data
 
 This initiative also represents a significant opportunity to **simplify the L1** protocol over the long term. While deprecating the existing Fil+ system may require up to 18 months, the final outcome will be a simpler and more predictable L1 and tokenomics. By decoupling consensus and service economics, we get a system where PoRep can exist for consensus security and services can use whatever proving system the market demands rather than requiring PoRep as the only pathway to block reward-linked service provision.
 
-### Could we just remove FIL+ and let the market work?
+#### Could we just remove FIL+ and let the market work?
 
 Removing FIL+ would support more onboarding and allow the block reward to function as an indirect subsidy for service provision (e.g., a SP can offer lower prices because they earn from mining). However, this action would eliminate a crucial **protocol-level mechanism for encouraging the transition to a service-oriented economy**. While one might argue that genuine paying clients negate the need for this support, the reality is that current *client payments are often too small compared to the cost gap* of storing real data versus engaging in pure mining activities. Without an incentive exclusively dedicated to service, SPs would naturally prioritize pure consensus mining without providing value-creating services. Therefore, reserving a portion of the block reward for services is not merely an economic lever; it is a way to define the **network's identity**. Filecoin's fundamental mission is to be a storage service network, differentiating it from a generic network that simply uses storage. Achieving this mission will ultimately benefit all participants.
 
-### Why a continuous ramp up for alpha?
+#### Why a continuous ramp up for alpha?
 
-Why not pick a single fixed α and leave it there? Two complementary reasons for a scheduled increase:
+Why not pick a single fixed α and leave it there? The main reason is to create headroom for a growing service allocation. α sets the ceiling: the maximum that can flow to services once demand is proven. Starting at 5 % and ramping to 50 % ensures the protocol makes room gradually rather than forcing a single large cut to consensus rewards. If α were fixed too low, α_floor would eventually hit the ceiling and the service economy could not grow further; if fixed too high from the start, miners face an unnecessarily large immediate reduction in consensus rewards. The ramp balances both risks, and as a side effect, a predetermined schedule gives builders a known trajectory to invest against, rather than hoping for future governance votes to expand the ceiling.
 
-- **Economic rationale: matching the subsidy budget to a growing service economy.** Even if each individual client eventually converts from subsidized to organic demand, a constantly growing influx of new service customers requires an increasing budget for onboarding credits (POCs, initial discounts, client acquisition). Services also need investment beyond deal subsidies. In the future, Service Orchestrators may deploy funds toward improving their services. While this FIP keeps the initial mandate focused on deal subsidies (to keep things simple and auditable), the principle is that healthy services reinvest in their own growth.
+#### Why the Revenue Gate and Burn Mechanism?
 
-- **Identity rationale: confirming Filecoin's long-term direction as a service network.** Committing to a ramp schedule, rather than starting at a flat rate with no clear path forward, sends a concrete signal that Filecoin is a storage service network, not merely an L1 that uses storage for proof-of-work, and that this commitment is structural, not a bootstrap-phase experiment. Launching this change with a flat allocation and no scheduled ramp could be read by ecosystem participants as hedging against the service direction, undermining confidence in building on Filecoin as a service platform.
+α determines how much leaves consensus, but how much actually funds services is governed by α_floor and the revenue gate.
 
-A continuous function rather than discrete steps avoids unnecessary shocks to SP business planning and reduces gaming incentive around checkpoint dates (confirmed by simulations). The specific parameters (start, cap, duration) are discussed in Design Rationale.
+- *Don’t spend without proof*. The Service Orchestrators receive what the service economy has proven it deserves. The allocation rate (α_floor) can only step up when on-chain deal revenue clears a verifiable target. If revenue falls short, α_floor stays unchanged and the Orchestrators continue receiving at the previously proven rate.
 
-### Why the Revenue Gate and Burn Mechanism?
-
-The original proposal in the FIP discussion included a security-gate mechanism (a multisig that could halt step-ups if consensus health was at risk). Community feedback raised a fundamental concern: a committee-allocated treasury without proof of results just replaces one set of gatekeepers with another. The redesigned mechanism addresses this with two interlocking principles:
-
-- **Don't spend without proof.** α determines how much leaves consensus (the "service budget"), but not all of it should be spent immediately. The Service Orchestrator should only receive what the service economy has proven it deserves. The allocation rate (α\_floor) can only step up when on-chain deal revenue clears a verifiable target. If revenue falls short, α\_floor stays unchanged and the Orchestrator continues receiving at the previously proven rate.
-
-- **Burn what isn't allocated.** The gap between α (what leaves consensus) and α\_floor (what is actually allocated) burns. Why burn rather than leaving it in the consensus share? Because continuing to reduce the consensus share has meaningful benefits for the broader Filecoin economy: both through deflationary pressure and as a signal to attract serious service providers. This adds an explicit goal (reducing L1 consensus costs) that was not part of the original motivation. However, consensus cost reduction was a valuable side effect of the original proposal, and after weighing the tradeoffs, we believe it is worth preserving.
+- *Burn what isn’t allocated*. The gap between α (what leaves consensus) and α_floor (what is actually allocated) burns. Why burn rather than leaving it in the consensus share? Because continuing to reduce the consensus share has meaningful benefits for the broader Filecoin economy: both through deflationary pressure and as a signal to attract serious service providers. 
 
 ## Specification (WIP)
 
