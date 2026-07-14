@@ -100,7 +100,7 @@ constraint that the sum of all weights is equal to 1. At
 the time this FIP ships, the weight schedules for the two existing
 streams are as follows. The weight w1 ramps down from 95% to 50% over
 roughly 9 quarters. During the first quarter (the bootstrap phase), w2 =
-1 − w1 so nothing is burned and w1 reaches 10% by the end of the
+1 − w1 so nothing is burned and w2 reaches 10% by the end of the
 quarter. From Q2 onward, w2 steps up by 5 percentage points per quarter,
 capped at the ceiling 1 − w1, and only when on-chain aggregated Filecoin
 Pay Volume (FPV) clears its target for the quarter. The SWA is governed
@@ -250,10 +250,10 @@ steps up as volume targets are cleared, and the gap is burned.
 
 #### Why the volume gate and burn mechanism?
 
-w1 determines how much leaves consensus (ie, 1-w1), but how much
-actually funds services is governed by w1 and the volume gate.
+The consensus weight w1 determines how much leaves consensus (ie, 1-w1), but how much
+actually funds services is governed by the service weight w2 and the volume gate.
 
-  - **Don’t spend without proof**. The service stream weight (w2) can
+  - **Don’t spend without proof**. The service weight (w2) can
     only step up when on-chain Filecoin Pay volume clears a verifiable
     target. If volume falls short, w2 stays unchanged and the
     registered Orchestrator addresses continue receiving at the
@@ -510,9 +510,9 @@ Once per quarter, off the per-epoch path:
     cannot produce diverging numbers.
 
 4.  **Weights and shares updates.** QuarterlyGateCheck compares the
-    USD-denominated AggregatedFPV(Q) against ComputeTarget(w1), the
+    USD-denominated AggregatedFPV(Q) against ComputeTarget(w2), the
     fixed USD target (Section 3.1.1). If it passes, the SWA calls
-    SetWeightRecords to raise w1. SplitRule sets each Orchestrator's
+    SetWeightRecords to raise w2. SplitRule sets each Orchestrator's
     share in proportion to its USD-denominated FPV_i(Q), using the
     same converted values as the gate (one oracle reading serves both
     the gate comparison and the split), and the SRA writes the
@@ -638,8 +638,8 @@ own governance (the SRA under SRA Governance, Section 4).
 
         1.  **v_start**: the weight's starting value
 
-        2.  **slope**: change per epoch (negative for w0's ramp, 0 for
-            a constant weight like w1)
+        2.  **slope**: change per epoch (negative for w1's ramp, 0 for
+            a constant weight like w2)
 
         3.  **t_start**: the epoch the segment starts from
 
@@ -720,8 +720,8 @@ func ComputeWeight(w Weight, e Epoch) -> Rational:
     return clamp(w.v_start + w.slope * (e - w.t_start), w.floor, w.cap)
 
 // per-epoch weights, all evaluated by the same function:
-w1(e)  = ComputeWeight(W_consensus, e)  // linear: slope < 0, floor = W0_FLOOR, cap = W0_START
-w2(e)  = ComputeWeight(W_service, e)    // Q1: linear bootstrap record mirroring w0's ramp;
+w1(e)  = ComputeWeight(W_consensus, e)  // linear: slope < 0, floor = W1_FLOOR, cap = W1_START
+w2(e)  = ComputeWeight(W_service, e)    // Q1: linear bootstrap record mirroring w1's ramp;
                                         // Q2 onward: constant record stepped by the gate
 w0(e) = 1 - Σ_{i>=1} ComputeWeight(W_i, e)  // residual over all streams; never stored
 ```
@@ -766,7 +766,7 @@ particular
     alone able to cancel a pending write;
 
   - It contains the code for executing the **gate mechanism** (see
-    section 3.1.1) **for the weight w1;**
+    section 3.1.1) for the weight w2;
 
   - It is the only contract allowed to call f02’s methods
     RegisterStream, RemoveStream, SetWeightRecords,SetDistribution,
@@ -774,7 +774,7 @@ particular
 
   - The SWA holds the gate parameters (Section 3.1.1),
     governance-settable via SetGateParams, which govern how the next
-    w1 weight record is computed once per quarter; the Weight records
+    service weight record is computed once per quarter; the Weight records
     themselves live in f02 (Section 2.2), the SWA only writes them. It
     also holds the last executed quarter (enforcing at most one gate
     step per quarter), the two SWA Safe addresses (Section 4.2), and
@@ -791,7 +791,7 @@ particular
         closed), and that no step has yet executed for Q. Its read of
         AggregatedFPV(Q) triggers the SRA’s FinalizeConversion(Q) if
         it has not yet run (Section 2.1). Runs the gate rule of
-        Section 3.1.1 and, when the gate passes, writes the new w1
+        Section 3.1.1 and, when the gate passes, writes the new w2
         Weight record to f02 via SetWeightRecords. It can submit only
         the value it computes.
 
@@ -825,7 +825,7 @@ Q2 onward:
 stream’s initial record:
 
 ```
-W_service = { v_start: 0.05, slope: -slope_w0, t_start: activation_epoch, floor: 0.05, cap: W1_INITIAL }
+W_service = { v_start: 0.05, slope: -slope_w1, t_start: activation_epoch, floor: 0.05, cap: W2_INITIAL }
 ```
 
 Because the slope is defined as the exact negative of w1’s, w2(e) = 1 −
@@ -833,7 +833,7 @@ w1(e) at every epoch of Q1: the service stream absorbs the full ceiling
 and nothing is burned during the bootstrap quarter.
 
 **Steady state (Q2 onward).** The ramp rate is 5pp per quarter, so 1 −
-w2 reaches W1_INITIAL (10%) exactly at the Q1 boundary, where the
+w2 reaches W2_INITIAL (10%) exactly at the Q1 boundary, where the
 record clamps at its cap. No end-of-quarter write is needed to exit the
 bootstrap: the clamp does it. From then on, w2 is a step function: when a
 gate passes, QuarterlyGateCheck replaces the record with a constant one
@@ -853,28 +853,28 @@ func QuarterlyGateCheck(Q uint64):
 
     // 2. Read current w2
     state = f02.GetState()
-    w1 = state.w1
+    w2 = state.w2
 
     // 3. Compute the volume target
-    target = ComputeTarget(w1)  // fixed USD schedule, see below
+    target = ComputeTarget(w2)  // fixed USD schedule, see below
 
     // 4. Gate decision
     if measured >= target:
-        new_ws = min(w2 + W2_STEP, 1 - state.w0)  // w0 read from f02.GetState(), not recomputed
-        f02.SetWeightRecords({ w1: new_ws })      // SWA-only; f02 re-derives w_b
+        new_ws = min(w2 + W2_STEP, 1 - state.w1)  // w1 read from f02.GetState(), not recomputed
+        f02.SetWeightRecords({ w2: new_ws })      // SWA-only; f02 re-derives w0
     // else: gate fails, w2 unchanged
 ```
 
 **ComputeTarget (volume target).** The gate compares USD-denominated
 volume directly against a fixed schedule: **AggregatedFPV(Q) ≥
-ComputeTarget(w1)**, where w2 is the service weight before the step-up.
+ComputeTarget(w2)**, where w2 is the service weight before the step-up.
 It sets how much on-chain volume the service economy must generate to
-unlock the next w1 step-up.
+unlock the next w2 step-up.
 
 ```
 W2_STEP    = 0.05  // quarterly increment (5pp) when volume targets are cleared
 W2_INITIAL = 0.10  // starting service weight (10%) established post-bootstrap (end of Q1)
-W2_CAP     = 0.50  // terminal service allocation ceiling (50%), equivalent to 1 - W0_FLOOR
+W2_CAP     = 0.50  // terminal service allocation ceiling (50%), equivalent to 1 - W1_FLOOR
 
 VOL_TARGET_ENTRY = 3_500  // USD. First gate (10% -> 15%); calibrated to current
                           // Filecoin Pay actuals, at FIL = $1
@@ -885,7 +885,7 @@ VOL_TARGET_RATIO = 2.7    // per-step escalation; back-loads the volume requirem
 // Frozen schedule (USD): 3.5K, 9.4K, 25.5K, 68.9K, 186K, 502K, 1.36M, 3.66M
 // for gates 10->15 through 45->50. Fixed at FIP time.
 
-func ComputeTarget(w1 Rational) -> USD:
+func ComputeTarget(w2) -> USD:
     steps = (w2 - W2_INITIAL) / W2_STEP  // count of 5pp increments above start
     steps = clamp(steps, 0, (W2_CAP - W2_INITIAL) / W2_STEP - 1)  // bound within [0, 7]: 8 gates, indices 0-7
     return VOL_TARGET_ENTRY * VOL_TARGET_RATIO ^ steps
@@ -991,7 +991,7 @@ FIP.
 The system is secured because every deliberate change waits in a public
 queue before it takes effect and can be cancelled during the wait. A
 governance tier that fails can be replaced from the level above.
-Everything else is mechanism-executed: the w0 ramp, the volume gate, and
+Everything else is mechanism-executed: the w1 ramp, the volume gate, and
 the quarterly share recompute run permissionlessly and can emit only
 what the code computes (Sections 2 and 3). Neither governed contract
 touches value: both only write parameters into f02, and there is no
@@ -1065,7 +1065,7 @@ Every discretionary change follows the same path: both Safes approve,
 the change is published and held, and either Safe can cancel during the
 hold. There is no exemption by category beyond one carve-out (below), so
 reducing a weight to zero is held exactly like removing a stream.
-Mechanism-executed updates cannot be cancelled: the gate’s quarterly w1
+Mechanism-executed updates cannot be cancelled: the gate’s quarterly w2
 write queues in f02 under SWA_TIMELOCK for visibility, but it is tagged
 as a mechanism write at queue time and CancelPending rejects it (Section
 2.2), while the SRA’s quarterly share map is never queued and binds
@@ -1230,11 +1230,11 @@ the contracts at runtime, for two reasons.
   - **Ramp duration = 9 quarters (~2.25 years).** Enough time for the
     service economy to prove itself through the gate before the
     ceiling reaches meaningful levels. By Q4 the ceiling ≈ 25%; by
-    then the gate must have passed at least three times to keep w1
+    then the gate must have passed at least three times to keep w2
     tracking, a natural check.
 
   - **Step size = 5pp per gate pass.** Matches the quarterly ceiling
-    increment (~5pp). If every gate passes, w1 tracks the ceiling
+    increment (~5pp). If every gate passes, w2 tracks the ceiling
     with at most a one-quarter lag; if a gate fails, the gap (and
     burn) grows by 5pp that quarter.
 
@@ -1308,14 +1308,14 @@ This proposal does not change Filecoin’s consensus protocol or its
 cryptographic security: leader election, Expected Consensus, the power
 table, proofs, and finality are untouched, and only a FIP can alter
 them. What it does change is the consensus reward budget, the consensus
-weight w0 ramps from 95% down to a floor of 50%, so direct block reward
+weight w1 ramps from 95% down to a floor of 50%, so direct block reward
 to miners falls by a bounded, pre-announced amount. The risks below are
 therefore the economic and governance risks created by that reduction
 and by the two new governed surfaces, not changes to the consensus
 mechanism itself.
 
   - **Governance over consensus.** Because SWA Governance
-    (via the SWA) can change the w0 schedule and how consensus is
+    (via the SWA) can change the w1 schedule and how consensus is
     rewarded, though not the consensus protocol itself, which only a
     FIP can change, the most consequential risk is a captured
     governance tier. The mitigations are the 7-day objection window
@@ -1336,8 +1336,8 @@ mechanism itself.
     change, which is public during the cancellation hold. One indirect
     path is not bounded by share validation alone: the gate reads
     AggregatedFPV from SRA state, so a compromised SRA could report
-    inflated volume to force a w1 step-up. That step is still bounded
-    (≤ W2_STEP per quarter, capped at 1 − w0), held by SWA_TIMELOCK,
+    inflated volume to force a w2 step-up. That step is still bounded
+    (≤ W2_STEP per quarter, capped at 1 − w1), held by SWA_TIMELOCK,
     and visible during that hold, though not cancellable since gate
     steps are mechanism-executed (Section 4.3) and the posted FPV is
     itself held by the verification window and correctable against
@@ -1384,9 +1384,9 @@ mechanism itself.
     settlement events and on SRA Governance correcting a false posting
     inside the verification window, before the value binds (Section
     2.1). If no figure is posted or supplied via CorrectVolume, values
-    bind as zero, the gate cannot pass and w1 holds, the safe
+    bind as zero, the gate cannot pass and w2 holds, the safe
     direction; if a false figure is posted and the verification duty
-    fails, w1 can step up wrongly. This is why the quarterly
+    fails, w2 can step up wrongly. This is why the quarterly
     recomputation is an explicit SRA Governance duty rather than a
     best-effort community task, and why a misreport remains detectable
     afterwards: FPV is recomputable by anyone, so an unnoticed error
@@ -1414,7 +1414,7 @@ mechanism itself.
 
   - **Compromised orchestrator wallet.** An orchestrator address holds
     no authority, so a key compromise cannot redirect the split, but
-    the compromised wallet keeps receiving its share of w1 until
+    the compromised wallet keeps receiving its share of w2 until
     removal by the SRA.
 
 ## Incentive Considerations
