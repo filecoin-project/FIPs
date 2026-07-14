@@ -23,34 +23,36 @@ allocation system and replaces it with a two-part mechanism:
 
   - **The block reward is split into streams.** At every epoch the
     minted block reward is divided by weight into named streams:
-
-      - **Consensus stream** (weight w0): flows to the winning miner
-        in the leader election mechanism, as today.
-
-      - **Service stream** (weight w1): paid out to registered Service
+    
+      - **Service stream** (weight w2): paid out to registered Service
         Orchestrators proportional to their onchain service volume.
         The *Service Rewards Actor* (SRA), a new (governed) actor,
         contains and regulates the list of registered Orchestrators.
+
+      - **Consensus stream** (weight w1): flows to the winning miner
+        in the leader election mechanism, as today.
+        
+      - **Burn stream** (weight w0): flows to the burn actor.
+
 
 These weights are set through another new (governed) actor, the *Stream
 Weights Actor* (SWA), which at the time this FIP is accepted and shipped
 has the following definition for the existing weights:
 
-  - w0 follows a published linear ramp **down from 95% to 50% over ~9
-    quarters**;
-
-  - w1 follows a volume-gated step-up: it starts at 5% and (after a
+  - w2 follows a volume-gated step-up: it starts at 5% and (after a
     bootstrap quarter) programmatically rises 5 percentage points per
     quarter, but only if the quarterly aggregated Filecoin Pay Volume
     (aggregatedFPV(Q), ie sum of deal payments settled through
     Filecoin Pay over each registered orchestrator's (payer,operator)
     pairs, during quarter Q, see Section 2) is larger or equal than a
     predefined USD-denominated target (Section 3.1.1). If this
-    condition fails, w1 stays constant.
+    condition fails, w2 stays constant.
+    
+  - w1 follows a published linear ramp down from 95% to 50% over ~9
+    quarters;
 
-The remainder, called w_burn, (ie, w_burn = 1 − w0 − w1) is burned at
-each epoch (except during the bootstrap quarter Q1, when w1 = 1 − w0 and
-nothing is burned, see Section 3.1.1), providing deflationary discipline
+  - w0 is set as the remainder (ie, w0 = 1 − w2 − w1) and is burned at
+each epoch, providing deflationary discipline
 whenever the service economy has not yet proven the volume to justify a
 larger share.
 
@@ -77,11 +79,11 @@ to a service-oriented economy. Two main changes:
     issuance, the built-in L1 Reward Actor (f02) divides the block
     reward by weight:
 
-      - w0 to the winning miner (consensus stream),
+      - w2 to the *Service Orchestrator wallets* (service stream),
+        
+      - w1 to the winning miner (consensus stream),
 
-      - w1 to the *Service Orchestrator wallets* (service stream),
-
-      - and the residual w_burn = 1 − w0 − w1 to the burn actor.
+      - and the residual w0 = 1 − w2 − w1 to the burn actor.
 
 The Reward Actor (f02) performs the per-epoch split using the weight
 values for that epoch, which it computes from a set of cached, in-state
@@ -94,13 +96,13 @@ computes all of the weight-schedule parameters and can update them over
 time. Each update writes the new parameters into the L1 Reward Actor
 (f02) and is subject to the activation timelock mechanism (see Section
 4). The SWA can also add new streams, subject to the L1-enforced
-constraint that the sum of all weights is less than or equal to 1. At
+constraint that the sum of all weights is equal to 1. At
 the time this FIP ships, the weight schedules for the two existing
-streams are as follows. The weight w0 ramps down from 95% to 50% over
-roughly 9 quarters. During the first quarter (the bootstrap phase), w1 =
-1 − w0, so nothing is burned and w1 reaches 10% by the end of the
-quarter. From Q2 onward, w1 steps up by 5 percentage points per quarter,
-capped at the ceiling 1 − w0, and only when on-chain aggregated Filecoin
+streams are as follows. The weight w1 ramps down from 95% to 50% over
+roughly 9 quarters. During the first quarter (the bootstrap phase), w2 =
+1 − w1 so nothing is burned and w1 reaches 10% by the end of the
+quarter. From Q2 onward, w2 steps up by 5 percentage points per quarter,
+capped at the ceiling 1 − w1, and only when on-chain aggregated Filecoin
 Pay Volume (FPV) clears its target for the quarter. The SWA is governed
 by **SWA Governance** (see Section 4).
 
@@ -123,7 +125,7 @@ registry to the (payer, operator) pairs in Filecoin Pay whose settled
 volume counts toward it; bindings are unique (a pair belongs to at most
 one Orchestrator), declared by the Orchestrator, and verified by the SRA
 Governance. Incentive alignment comes from the system-level volume gate:
-the service weight w1 rises only when on-chain volume settled through
+the service weight w2 rises only when on-chain volume settled through
 Filecoin Pay clears the target. Accountability is layered on top: posted
 volume is recomputable by anyone from public settlement events, so a
 misreported figure is detectable and correctable, while distinguishing
@@ -216,13 +218,13 @@ every block reward at issuance, a flow of value, nothing more. The
 naming avoids a term already taken in this ecosystem while keeping the
 design's lineage explicit.
 
-#### Why a continuous ramp down for w0 (consensus reward stream weight)?
+#### Why a continuous ramp down for w1 (consensus reward stream weight)?
 
-w0 is the price the network pays for its L1: consensus security,
+w1 is the price the network pays for its L1: consensus security,
 blockspace, settlement, the execution layer that everything else
 (including Filecoin Pay) runs on. The schedule reflects the fact that
 the L1 needs to be funded indefinitely, but its value does not scale
-with what is spent on it, so w0 ramps down to a 50% floor rather than to
+with what is spent on it, so w1 ramps down to a 50% floor rather than to
 zero. Security must be sufficient to protect what the chain settles and
 to make attacks prohibitively expensive; beyond sufficiency, each
 marginal FIL spent on consensus buys little additional security and no
@@ -243,23 +245,23 @@ reward changes with a lag, so a single large cut risks an abrupt drop in
 power and security margin. A predictable ramp lets the security budget
 shrink at a pace the SP economy can absorb, and gives service builders a
 credible trajectory to invest against rather than a promise of future
-governance votes. Note that 1 − w0 is a ceiling, not a transfer: w1 only
+governance votes. Note that 1 − w1 is a ceiling, not a transfer: w2 only
 steps up as volume targets are cleared, and the gap is burned.
 
 #### Why the volume gate and burn mechanism?
 
-w0 determines how much leaves consensus (ie, 1-w0), but how much
+w1 determines how much leaves consensus (ie, 1-w1), but how much
 actually funds services is governed by w1 and the volume gate.
 
-  - **Don’t spend without proof**. The service stream weight (w1) can
+  - **Don’t spend without proof**. The service stream weight (w2) can
     only step up when on-chain Filecoin Pay volume clears a verifiable
-    target. If volume falls short, w1 stays unchanged and the
+    target. If volume falls short, w2 stays unchanged and the
     registered Orchestrator addresses continue receiving at the
     previously proven rate.
 
   - **Burn what isn’t allocated.** The gap between what leaves
-    consensus (1 − w0) and what is actually allocated (w1) is burned
-    as w_b = 1 − w0 − w1. Why burn rather than leaving it in the
+    consensus (1 − w1) and what is actually allocated (w2) is burned
+    as w0 = 1 − w2 − w1. Why burn rather than leaving it in the
     consensus share? Because continuing to reduce the consensus share
     has meaningful benefits for the broader Filecoin economy: both
     through deflationary pressure and as a signal to attract serious
@@ -405,8 +407,7 @@ orchestrators**.
     of the service stream directly, and burns the remainder.
 
 2.  **Stream Weight Actor (SWA): the split AMONG streams.** It
-    registers or removes streams and sets every stream’s weight (w0,
-    w1, and any future stream) as a *Weight record*; each stream’s
+    registers or removes streams and sets every stream’s weight as a *Weight record*; each stream’s
     designated writer sets the wallets and shares within its own
     stream; and f02 itself enforces the hard guardrails (Σw ≤ 1, caps
     on the number of streams and recipients, and an activation
@@ -726,8 +727,8 @@ w1(e)  = ComputeWeight(W_service, e)    // Q1: linear bootstrap record mirroring
 w_b(e) = 1 - Σ_i ComputeWeight(W_i, e)  // residual over all streams; never stored
 ```
 
-**About the invariant (Σ ≤ 1).** f02 requires Σ_i ComputeWeight(W_i,
-e) ≤ 1 at every epoch, so the burn residual w_b stays ≥ 0. When two or
+**About the invariant (Σ w_i = 1).** f02 requires Σ_{i>=1} ComputeWeight(W_i,
+e) ≤ 1 at every epoch, so the burn residual w0 stays ≥ 0. When two or
 more weights ramp at the same time their lines can sum above 1
 mid-segment even when both endpoints are in range, so the heavy
 validation lives off the consensus path: the SWA checks the combined
