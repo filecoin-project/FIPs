@@ -837,7 +837,7 @@ w2 reaches W2_INITIAL (10%) exactly at the Q1 boundary, where the
 record clamps at its cap. No end-of-quarter write is needed to exit the
 bootstrap: the clamp does it. From then on, w2 is a step function: when a
 gate passes, QuarterlyGateCheck replaces the record with a constant one
-at the new level, { v_start: new_w1, slope: 0, floor = cap = new_w2
+at the new level, { v_start: new_w2, slope: 0, floor = cap = new_w2
 }, via SetWeightRecords under SWA_TIMELOCK; when a gate fails, the
 record is untouched and w2 holds. Burn resumes automatically from the Q1
 boundary: w1 keeps ramping down while w2 holds at its gate-set level,
