@@ -409,7 +409,7 @@ orchestrators**.
 2.  **Stream Weight Actor (SWA): the split AMONG streams.** It
     registers or removes streams and sets every stream’s weight as a *Weight record*; each stream’s
     designated writer sets the wallets and shares within its own
-    stream; and f02 itself enforces the hard guardrails (Σw ≤ 1, caps
+    stream; and f02 itself enforces the hard guardrails (Σ_i w_i = 1, caps
     on the number of streams and recipients, and an activation
     timelock).
 
@@ -601,8 +601,8 @@ Add the following structures and methods:
 
     1.  **Distribution**: who receives each stream. There are only two
         possible values: IMPLICIT (nothing stored; f02 resolves the
-        recipient from protocol state; consensus stream only). The
-        consensus stream is the only IMPLICIT case, its recipient
+        recipient from protocol state; consensus stream only). For example, the
+        consensus stream is IMPLICIT, its recipient
         being the block winner chosen by leader election each epoch.
         Or EXPLICIT (stored wallet-to-share map; updated only by the
         stream's designated **writer** via SetShares; for example, for
@@ -659,9 +659,9 @@ later).
     objection process is bypassed.
 
 4)  **New method SetWeightRecords.** Callable only by the SWA. Sets
-    the Weight record (v_start, slope, t_start, floor, cap) for w0,
-    w1, and any other stream. Validates the minimal conditions before
-    applying: Σw ≤ 1 (so the burn residual is ≥ 0). Implement the
+    the Weight record (v_start, slope, t_start, floor, cap) for w1,
+    w2, and any other future stream. Validates the minimal conditions before
+    applying: Σ_{i>=1} w_i ≤ 1 (so the burn residual w0 is ≥ 0). Implement the
     *activation timelock policy* (ie, the SWA send message, f02
     register but queues and holds for SWA_TIMELOCK epochs)
 
@@ -677,8 +677,7 @@ later).
 7)  **RegisterStream**(id, weight_record, distribution,
     activation_epoch) adds a stream by writing its Stream record into
     the list, validating that the stream count is below MAX_STREAMS,
-    the resulting recipient count stays within MAX_RECIPIENTS, Σ
-    stream weights ≤ 1, activation_epoch ≥ current_epoch +
+    the resulting recipient count stays within MAX_RECIPIENTS, activation_epoch ≥ current_epoch +
     SWA_TIMELOCK, and the distribution is one of the two supported
     forms (IMPLICIT or EXPLICIT); the stream pays nothing until its
     activation_epoch.
@@ -721,10 +720,10 @@ func ComputeWeight(w Weight, e Epoch) -> Rational:
     return clamp(w.v_start + w.slope * (e - w.t_start), w.floor, w.cap)
 
 // per-epoch weights, all evaluated by the same function:
-w0(e)  = ComputeWeight(W_consensus, e)  // linear: slope < 0, floor = W0_FLOOR, cap = W0_START
-w1(e)  = ComputeWeight(W_service, e)    // Q1: linear bootstrap record mirroring w0's ramp;
+w1(e)  = ComputeWeight(W_consensus, e)  // linear: slope < 0, floor = W0_FLOOR, cap = W0_START
+w2(e)  = ComputeWeight(W_service, e)    // Q1: linear bootstrap record mirroring w0's ramp;
                                         // Q2 onward: constant record stepped by the gate
-w_b(e) = 1 - Σ_i ComputeWeight(W_i, e)  // residual over all streams; never stored
+w0(e) = 1 - Σ_{i>=1} ComputeWeight(W_i, e)  // residual over all streams; never stored
 ```
 
 **About the invariant (Σ w_i = 1).** f02 requires Σ_{i>=1} ComputeWeight(W_i,
@@ -816,16 +815,11 @@ particular
 
 ##### 3.1.1 The volume gate mechanism
 
-The weight w1 is the fraction of block reward actually allocated to the
+The service weight w2 is the fraction of block reward actually allocated to the
 Service Orchestrators. It is a step function that can only increase at
 quarter boundaries, and only if on-chain Filecoin Pay Volume clears a
-target. Whatever part of the ceiling 1 − w0 is not allocated to w1 is
-burned as w_b. The weight w1 evolves differently in Q1 (bootstrap) vs.
+target. The weight w2 evolves differently in Q1 (bootstrap) vs.
 Q2 onward:
-
-The weight w1 is realized entirely through WeightRecords evaluated by
-ComputeWeight (Section 2.2): there is no separate evaluation function
-and no bootstrap special case in f02.
 
 **Bootstrap record (Q1).** At activation the SWA writes the service
 stream’s initial record:
@@ -834,19 +828,19 @@ stream’s initial record:
 W_service = { v_start: 0.05, slope: -slope_w0, t_start: activation_epoch, floor: 0.05, cap: W1_INITIAL }
 ```
 
-Because the slope is defined as the exact negative of w0’s, w1(e) = 1 −
-w0(e) at every epoch of Q1: the service stream absorbs the full ceiling
-and nothing is burned during the bootstrap quarter (Σw = 1 exactly).
+Because the slope is defined as the exact negative of w1’s, w2(e) = 1 −
+w1(e) at every epoch of Q1: the service stream absorbs the full ceiling
+and nothing is burned during the bootstrap quarter.
 
 **Steady state (Q2 onward).** The ramp rate is 5pp per quarter, so 1 −
-w0 reaches W1_INITIAL (10%) exactly at the Q1 boundary, where the
+w2 reaches W1_INITIAL (10%) exactly at the Q1 boundary, where the
 record clamps at its cap. No end-of-quarter write is needed to exit the
-bootstrap: the clamp does it. From then on w1 is a step function: when a
+bootstrap: the clamp does it. From then on, w2 is a step function: when a
 gate passes, QuarterlyGateCheck replaces the record with a constant one
-at the new level, { v_start: new_w1, slope: 0, floor = cap = new_w1
+at the new level, { v_start: new_w1, slope: 0, floor = cap = new_w2
 }, via SetWeightRecords under SWA_TIMELOCK; when a gate fails, the
-record is untouched and w1 holds. Burn resumes automatically from the Q1
-boundary: w0 keeps ramping down while w1 holds at its gate-set level,
+record is untouched and w2 holds. Burn resumes automatically from the Q1
+boundary: w1 keeps ramping down while w2 holds at its gate-set level,
 and the residual is burned.
 
 **QuarterlyGateCheck**, run once per quarter from Q2 onward:
@@ -857,7 +851,7 @@ func QuarterlyGateCheck(Q uint64):
     //    (see FPV definitions in Section 2)
     measured = AggregatedFPV(Q)
 
-    // 2. Read current w1
+    // 2. Read current w2
     state = f02.GetState()
     w1 = state.w1
 
@@ -866,21 +860,21 @@ func QuarterlyGateCheck(Q uint64):
 
     // 4. Gate decision
     if measured >= target:
-        new_ws = min(w1 + W1_STEP, 1 - state.w0)  // w0 read from f02.GetState(), not recomputed
+        new_ws = min(w2 + W2_STEP, 1 - state.w0)  // w0 read from f02.GetState(), not recomputed
         f02.SetWeightRecords({ w1: new_ws })      // SWA-only; f02 re-derives w_b
-    // else: gate fails, w1 unchanged
+    // else: gate fails, w2 unchanged
 ```
 
 **ComputeTarget (volume target).** The gate compares USD-denominated
 volume directly against a fixed schedule: **AggregatedFPV(Q) ≥
-ComputeTarget(w1)**, where w1 is the service weight before the step-up.
+ComputeTarget(w1)**, where w2 is the service weight before the step-up.
 It sets how much on-chain volume the service economy must generate to
 unlock the next w1 step-up.
 
 ```
-W1_STEP    = 0.05  // quarterly increment (5pp) when volume targets are cleared
-W1_INITIAL = 0.10  // starting service weight (10%) established post-bootstrap (end of Q1)
-W1_CAP     = 0.50  // terminal service allocation ceiling (50%), equivalent to 1 - W0_FLOOR
+W2_STEP    = 0.05  // quarterly increment (5pp) when volume targets are cleared
+W2_INITIAL = 0.10  // starting service weight (10%) established post-bootstrap (end of Q1)
+W2_CAP     = 0.50  // terminal service allocation ceiling (50%), equivalent to 1 - W0_FLOOR
 
 VOL_TARGET_ENTRY = 3_500  // USD. First gate (10% -> 15%); calibrated to current
                           // Filecoin Pay actuals, at FIL = $1
@@ -892,8 +886,8 @@ VOL_TARGET_RATIO = 2.7    // per-step escalation; back-loads the volume requirem
 // for gates 10->15 through 45->50. Fixed at FIP time.
 
 func ComputeTarget(w1 Rational) -> USD:
-    steps = (w1 - W1_INITIAL) / W1_STEP  // count of 5pp increments above start
-    steps = clamp(steps, 0, (W1_CAP - W1_INITIAL) / W1_STEP - 1)  // bound within [0, 7]: 8 gates, indices 0-7
+    steps = (w2 - W2_INITIAL) / W2_STEP  // count of 5pp increments above start
+    steps = clamp(steps, 0, (W2_CAP - W2_INITIAL) / W2_STEP - 1)  // bound within [0, 7]: 8 gates, indices 0-7
     return VOL_TARGET_ENTRY * VOL_TARGET_RATIO ^ steps
 ```
 
@@ -1224,12 +1218,12 @@ the contracts at runtime, for two reasons.
 
 ### Parameter Choices and Calibration
 
-  - **Starting w0 = 95% (ceiling 1 − w0 = 5%).** We start small. At a
+  - **Starting w1 = 95% (ceiling 1 − w1 = 5%).** We start small. At a
     5% non-consensus ceiling, the daily cost to an SP mining blocks
     (~0.00175 FIL for 10 TiB) is less than buying datacap at 5
     FIL/TiB amortized over 5 years (~0.0025 FIL/day).
 
-  - **w0 floor = 50%.** Half of block rewards always flow to
+  - **w1 floor = 50%.** Half of block rewards always flow to
     consensus, ambitious enough to signal long-term commitment,
     conservative enough to guarantee consensus-security funding.
 
@@ -1245,7 +1239,7 @@ the contracts at runtime, for two reasons.
     burn) grows by 5pp that quarter.
 
   - **Target Volume Schedule ($3.5K entry, ×2.7 per step).** At the
-    first gate (w1 = 10%) the target is $3,500, calibrated to current
+    first gate (w2 = 10%) the target is $3,500, calibrated to current
     Filecoin Pay values; each 5pp step multiplies the target by 2.7,
     reaching ~$3.66M at the final gate (45% → 50%). The schedule is
     fixed in code and stablecoin-anchored: stablecoin volume counts at
@@ -1343,14 +1337,14 @@ mechanism itself.
     path is not bounded by share validation alone: the gate reads
     AggregatedFPV from SRA state, so a compromised SRA could report
     inflated volume to force a w1 step-up. That step is still bounded
-    (≤ W1_STEP per quarter, capped at 1 − w0), held by SWA_TIMELOCK,
+    (≤ W2_STEP per quarter, capped at 1 − w0), held by SWA_TIMELOCK,
     and visible during that hold, though not cancellable since gate
     steps are mechanism-executed (Section 4.3) and the posted FPV is
     itself held by the verification window and correctable against
     recomputation (Section 2.1).
 
   - **Sustainability of consensus mining.** The initial ceiling (1 −
-    w0 = 5%) is not expected to materially threaten L1-PoRep SP
+    w1 = 5%) is not expected to materially threaten L1-PoRep SP
     profitability, and the continuous ramp provides predictability. At
     higher ceilings the burn maintains discipline: unproven funds burn
     rather than accumulate, and the consensus-share reduction is
@@ -1360,16 +1354,16 @@ mechanism itself.
     of the block reward, but the total minting rate itself is not
     stream-neutral: through baseline minting, per-epoch issuance
     depends on raw-byte network power, which is sustained almost
-    entirely by the consensus stream. Consensus income (w0·B)
+    entirely by the consensus stream. Consensus income (w1·BR)
     therefore depends only on activity in its own stream, while the
-    service stream’s income (w1·B) also depends on consensus power
+    service stream’s income (w2·BR) also depends on consensus power
     staying near the baseline. At the parameters in this FIP the
-    coupling is benign: w0 never falls below its 50% floor and network
+    coupling is benign: w1 never falls below its 50% floor and network
     power is not expected to decline materially. It becomes relevant
-    only if a future change lowers w0 far enough for power to shrink
+    only if a future change lowers w1 far enough for power to shrink
     toward the baseline, which would slow issuance for every stream,
     including the service stream. We flag this as known debt rather
-    than a design change: any future FIP that substantially reduces w0
+    than a design change: any future FIP that substantially reduces w1
     should revisit baseline minting alongside it.
 
   - **Volume-gate manipulation.** Potential gaming via wash trading is
@@ -1429,12 +1423,12 @@ mechanism itself.
 real-time deal infrastructure without waiting for datacap allocation.
 
 **SP incentives:** all SPs see their direct block-reward income reduced
-by the non-consensus share (1 − w0). SPs who serve clients recover this
+by the non-consensus share (1 − w1). SPs who serve clients recover this
 through deal payments; SPs who do not see a permanent reduction (the
 intended outcome).
 
   - **A) Consensus-focused SPs (no client services):** direct effect,
-    block reward decreases by 1 − w0; offset, reduced pressure to
+    block reward decreases by 1 − w1; offset, reduced pressure to
     “pretend” to be a service provider and less
     governance/externality burden from FIL+ gaming and review;
     long-term, the model stays valid but contributes a predictable
@@ -1442,7 +1436,7 @@ intended outcome).
     legitimacy.
 
   - **B) On-chain storage-service SPs (PoRep-based):** direct effect,
-    block rewards decrease by 1 − w0; compensating opportunity, access
+    block rewards decrease by 1 − w1; compensating opportunity, access
     to the service stream plus increased client-paid flows; long-term,
     if Filecoin succeeds as a service economy, these SPs can earn more
     than the reduction via client payments.
