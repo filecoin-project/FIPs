@@ -393,6 +393,10 @@ parameterised by **two governed contracts off the consensus path**. This
 separates the **split among streams** from the **split among
 orchestrators**.
 
+![Block-reward split across streams: burn (w0), service (w2) with orchestrator shares, consensus (w1) paying PoRep miners, and registrable future streams](../resources/fip-solstice/block-reward-split.png)
+
+*Figure (non-normative): the two-level split. Each epoch, f02 divides the block reward across streams by weight: w1 to the consensus stream (winning miner, split by consensus power as today), w2 to the service stream (orchestrator wallets, shares s_i set quarterly by the SRA in proportion to Filecoin Pay volume), and the residual w0 = 1 - w1 - w2 to the burn actor. Dashed elements (future streams, future orchestrators) can be added later: streams by an SWA write under an accepted FIP (Section 2.4), orchestrators by SRA Governance (Section 3.2). The ~20M FIL / year issuance figure is indicative.*
+
 1.  **Reward actor (f02): the thin splitter (L1, built-in).** It holds
     an ordered *list of streams* records, each holding a *Weight* (how
     much of the block reward the stream receives) and a *Distribution*
@@ -424,6 +428,10 @@ orchestrators**.
 
 Quarters are consecutive EPOCHS_PER_QUARTER-epoch windows counted from
 the activation epoch.
+
+![Timeline of one quarter: posting period, verification window, values bind, conversion, gate check, shares update, timelock](../resources/fip-solstice/quarter-timeline.png)
+
+*Figure (non-normative): one quarter, end to end. Quarter Q ends at epoch E(Q) = activation_epoch + Q x EPOCHS_PER_QUARTER; steps 1 to 7 all run after E. Durations shown (3-day posting, 7-day verification) are the proposed values maintained in the governance repository; SWA_TIMELOCK is 7 days (Section 2.4). QuarterlyGateCheck (5) and SubmitShares (6) are independent and can run in either order. The gate cycle runs from Q2 onward; Q1 is the bootstrap (Section 3.1.1).*
 
 Once per quarter, off the per-epoch path:
 
