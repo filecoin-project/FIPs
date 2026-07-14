@@ -1314,14 +1314,7 @@ therefore the economic and governance risks created by that reduction
 and by the two new governed surfaces, not changes to the consensus
 mechanism itself.
 
-  - **Governance over consensus.** Because SWA Governance
-    (via the SWA) can change the w1 schedule and how consensus is
-    rewarded, though not the consensus protocol itself, which only a
-    FIP can change, the most consequential risk is a captured
-    governance tier. The mitigations are the 7-day objection window
-    (every change is visible and contestable before it binds), the
-    keyless value path with no standing balance (nothing to drain, no
-    reward redirectable in flight).
+  - **Governance over consensus.** SWA Governance can rewrite the consensus weight schedule, so the main risk is a captured tier. Its power stops at parameters: the consensus protocol is changeable only by FIP and network upgrade, and the path is keyless, nothing to drain, no reward redirectable in flight. Mitigations layer: every discretionary write needs a published, accepted FIP; both Safes must approve and either alone can cancel during the hold; the 7-day hold is enforced by f02 itself, binding even under a maliciously upgraded SWA; a failed tier is replaced from above via network upgrade (Section 4.3). Residual worst case: with both Safes captured, a hostile write still sits visibly queued for the full timelock, and the bound is that race, an emergency network upgrade within SWA_TIMELOCK.
 
   - **Governance over the registry (SRA capture).** A
     captured SRA Governance could admit a bogus orchestrator, misattribute
@@ -1341,7 +1334,7 @@ mechanism itself.
     and visible during that hold, though not cancellable since gate
     steps are mechanism-executed (Section 4.3) and the posted FPV is
     itself held by the verification window and correctable against
-    recomputation (Section 2.1).
+    recomputation (Section 2.1). Unlike the share misallocation, which is confined to one quarter, a wrongly executed step is standing: the gate only moves w2 up, so reversing it takes a discretionary, FIP-backed SWA write lowering the w2 record (Section 4.2).
 
   - **Sustainability of consensus mining.** The initial ceiling (1 −
     w1 = 5%) is not expected to materially threaten L1-PoRep SP
@@ -1366,8 +1359,7 @@ mechanism itself.
     than a design change: any future FIP that substantially reduces w1
     should revisit baseline minting alongside it.
 
-  - **Volume-gate manipulation.** Potential gaming via wash trading is
-    mitigated by Filecoin Pay fees. Detection and enforcement are then
+  - **Volume-gate manipulation.** Detection and enforcement are then
     a governance duty, not an automatic property of the chain. Because
     FPV is recomputable from public settlement events, anomalies are
     visible to anyone, but distinguishing genuine demand from circular
@@ -1386,7 +1378,7 @@ mechanism itself.
     2.1). If no figure is posted or supplied via CorrectVolume, values
     bind as zero, the gate cannot pass and w2 holds, the safe
     direction; if a false figure is posted and the verification duty
-    fails, w2 can step up wrongly. This is why the quarterly
+    fails, w2 can step up wrongly, and the step is standing until a FIP-backed SWA write reverses it (see the SRA-capture bullet). This is why the quarterly
     recomputation is an explicit SRA Governance duty rather than a
     best-effort community task, and why a misreport remains detectable
     afterwards: FPV is recomputable by anyone, so an unnoticed error
@@ -1413,7 +1405,7 @@ mechanism itself.
     recipients can be contracts.
 
   - **Compromised orchestrator wallet.** An orchestrator address holds
-    no authority, so a key compromise cannot redirect the split, but
+    no authority over weights or other participants' shares; misreports and bogus registrations are windowed and dispute-correctable. A key compromise cannot redirect the split, but
     the compromised wallet keeps receiving its share of w2 until
     removal by the SRA.
 
@@ -1422,7 +1414,7 @@ mechanism itself.
 **Client incentives:** clients gain access to subsidised, verifiable,
 real-time deal infrastructure without waiting for datacap allocation.
 
-**SP incentives:** all SPs see their direct block-reward income reduced
+**SP incentives:** all PoRep SPs see their direct block-reward income reduced
 by the non-consensus share (1 − w1). SPs who serve clients recover this
 through deal payments; SPs who do not see a permanent reduction (the
 intended outcome).
@@ -1452,6 +1444,8 @@ competitive pressure.
 
 **Token-holder incentives:** the burn creates deflationary pressure
 whenever the service economy underperforms.
+
+**Pledge and locked capital**: the initial pledge formula is unchanged; only its input changes. New sectors onboard at 10× QAP, so pledge per raw byte scales up accordingly, as does expected reward: return on pledge is roughly preserved, and lifting a legacy sector (snap or ExtendSectorExpiration3) simply requires the matching top-up. Each lift locks additional FIL, so aggregate locked supply rises with the QAP bump, and per-sector economics converge to today's verified-sector levels, already the norm for ~83% of the network.
 
 ## Product Considerations
 
