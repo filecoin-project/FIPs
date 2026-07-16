@@ -442,12 +442,17 @@ Once per quarter, off the per-epoch path:
     Orchestrator's registered pairs. Because rails settle in more than
     one asset, FPV_i(Q) is not a single number but a pair of raw
     components: (a) admitted-stablecoin volume, in USD at face value,
-    and (b) FIL-denominated volume, in attoFIL. Each Orchestrator
-    verifies its own figure and posts both components to the SRA via
-    PostVolume. The posted values are accepted optimistically: it is
+    and (b) FIL-denominated volume, in attoFIL, broken down by pricing
+    period: for each qualifying print that cleared in Q (the FIL
+    pricing rule, Section 2.3), the attoFIL settled in that print's
+    period, together with the print reference and its implied FIL/USD
+    rate. Each Orchestrator verifies its own figure and posts both
+    components to the SRA via PostVolume. The posted values, prints
+    included, are accepted optimistically: everything is
     deterministically recomputable by anyone from the same public
-    events and the on-chain registry state for the quarter, so a
-    misreport is detectable by any observer. A posted value binds only
+    events (settlements and fee-auction claims) and the on-chain
+    registry state for the quarter, so a misreport is detectable by
+    any observer. A posted value binds only
     at the close of the verification window (mechanics below): a wrong
     value is corrected before it binds via CorrectVolume, and SRA
     Governance may freeze or remove the Orchestrator that posted it
@@ -487,19 +492,23 @@ Once per quarter, off the per-epoch path:
         damage is bounded to that quarter's service stream.
 
     5.  Determinism: FPV_i(Q) is fully determined by (i) settlement
-        events from admitted Filecoin Pay contracts whose settlement
-        epoch falls in quarter Q, (ii) each rail's operator as fixed
-        at rail creation, (iii) the registry bindings effective at the
-        settlement epoch, (iv) gross settled value in the settlement
-        asset: admitted stablecoin amounts at face USD value, FIL
-        amounts in attoFIL, and (v) the set of Filecoin Pay contract
-        addresses admitted by SRA Governance effective for quarter Q.
-        The FIL component is converted to USD exactly once, later in
-        the cycle (step 3); the oracle reading used there is on-chain
-        state, so the conversion is equally recomputable. This
-        paragraph is the normative algorithm; a versioned reference
-        implementation of the indexer is maintained in the governance
-        repository.
+        events from admitted Filecoin Pay contracts: stablecoin
+        settlements whose settlement epoch falls in quarter Q, and
+        FIL settlements whose pricing print clears in quarter Q (the
+        FIL pricing rule, Section 2.3), (ii) each rail's operator as
+        fixed at rail creation, (iii) the registry bindings effective
+        at the settlement epoch, (iv) gross settled value in the
+        settlement asset: admitted stablecoin amounts at face USD
+        value, FIL amounts in attoFIL, (v) the set of Filecoin Pay
+        contract addresses admitted by SRA Governance effective for
+        quarter Q, and (vi) the qualifying prints of quarter Q,
+        themselves public fee-auction claim events on the same
+        admitted contracts. The FIL component is converted to USD
+        exactly once, later in the cycle (step 3); the prints used
+        there are on-chain events, so the conversion is equally
+        recomputable. This paragraph is the normative algorithm; a
+        versioned reference implementation of the indexer is
+        maintained in the governance repository.
 
 3.  **Conversion and Read state.** The FIL component is converted
     exactly once per quarter, by the SRA method FinalizeConversion(Q):
@@ -507,23 +516,27 @@ Once per quarter, off the per-epoch path:
     window has closed, and invoked automatically by the first consumer
     that needs USD values (the SWA’s QuarterlyGateCheck before it
     reads, or SubmitShares). It converts every bound FPV_i(Q) FIL
-    component at the 30-day TWAP of the FIL/USD price read from the
-    on-chain oracle at that moment and stores the resulting USD
-    figures as the quarter’s final values. The SRA’s read view then
-    exposes AggregatedFPV(Q) in USD from the stored values: the
-    stablecoin component at face value plus the finalized FIL
-    component. The SWA reads this USD figure from SRA state; it never
-    sees raw FIL amounts and performs no conversion of its own.
-    Because the gate comparison and SplitRule both read the stored
-    values, the execution order of QuarterlyGateCheck and SubmitShares
-    cannot produce diverging numbers.
+    component in one pass, multiplying each pricing period's attoFIL
+    amount by its print's implied FIL/USD rate (the FIL pricing rule,
+    Section 2.3), and stores the resulting USD figures as the
+    quarter’s final values. Every period attributable to Q is priced
+    by construction: its print cleared within Q, before the posting
+    window even opened, so there is no unpriced or stale case to
+    handle at finalization. The SRA’s read view then exposes
+    AggregatedFPV(Q) in USD from the stored values: the stablecoin
+    component at face value plus the finalized FIL component. The SWA
+    reads this USD figure from SRA state; it never sees raw FIL
+    amounts and performs no conversion of its own. Because the gate
+    comparison and SplitRule both read the stored values, the
+    execution order of QuarterlyGateCheck and SubmitShares cannot
+    produce diverging numbers.
 
 4.  **Weights and shares updates.** QuarterlyGateCheck compares the
     USD-denominated AggregatedFPV(Q) against ComputeTarget(w2), the
     fixed USD target (Section 3.1.1). If it passes, the SWA calls
     SetWeightRecords to raise w2. SplitRule sets each Orchestrator's
     share in proportion to its USD-denominated FPV_i(Q), using the
-    same converted values as the gate (one oracle reading serves both
+    same converted values as the gate (one set of prints serves both
     the gate comparison and the split), and the SRA writes the
     wallet-to-share map into f02 via SetShares. Orchestrators frozen at
     the close of the posting period are excluded from both
@@ -549,6 +562,12 @@ Once per quarter, off the per-epoch path:
             **reconstructed**, since the one-time-payment table stores
             no gross field), within Q's block window.
 
+          - "In quarter Q" is asset-dependent: a stablecoin
+            settlement belongs to Q when its settlement epoch falls
+            in Q; a FIL settlement belongs to Q when its pricing
+            print clears in Q (the FIL pricing rule below), which is
+            always at or after the settlement epoch.
+
           - Attribution is keyed on the (payer, operator) pair,
             residual collisions (two orchestrators, same client, same
             operator) are excluded by the contract (see Section 3.2).
@@ -573,13 +592,67 @@ Once per quarter, off the per-epoch path:
     aggregated computed by the SRA are the same object and cannot
     diverge.
 
+  - **FIL pricing rule.** FIL-denominated volume is priced without
+    any third-party oracle, using Filecoin Pay's own fee auctions as
+    the price source. Filecoin Pay accumulates its network fees in
+    the tokens rails settle in; the non-FIL fees are periodically
+    claimed by keepers who pay FIL (which is burned) for the
+    accumulated tokens. Each such claim of an admitted stablecoin is
+    an on-chain market print: a lot of $Y face value claimed for X
+    FIL implies a price of Y/X USD per FIL. Note this is a price
+    *reading* only: FIL settlements themselves never go through an
+    auction, and their fee burn is unchanged.
+
+      - *Qualifying print.* A fee-auction claim, on an admitted
+        Filecoin Pay contract, of an admitted stablecoin, whose lot
+        face value is at least MIN_LOT. Lots below MIN_LOT still
+        auction and burn normally; they just do not price. MIN_LOT
+        exists because the competitive-bidding defense fails on dust
+        lots: nobody races to claim a sub-gas-cost lot, so its Dutch
+        price can decay far past fair value and mint an artificially
+        high FIL/USD print.
+
+      - *The rule.* Each FIL settlement is converted at the implied
+        rate of the first qualifying print at or after its settlement
+        epoch, and is attributed to the quarter in which that print
+        clears. Equivalently: each qualifying print prices the FIL
+        volume of the period ending at it. Ordering holds by
+        construction: the pricing print never exists at settlement
+        time, so the rate applied to a settlement is never known when
+        transacting.
+
+      - *Roll-forward, no fallback needed.* The FIL volume settled
+        after a quarter's last qualifying print is priced by, and
+        attributed to, the next quarter's first print: nothing is
+        zeroed, nothing needs correcting mid-window, and every
+        settlement counts exactly once. During an auction dry spell
+        pending FIL volume simply waits for the next print; if
+        qualifying prints stop entirely, it stays uncounted. The rule
+        can only under-count, never over-count.
+
+      - *Parameters.* MIN_LOT (minimum lot face value for a
+        qualifying print), PRICE_BAND (a posted print whose implied
+        rate deviates from the last bound qualifying print by more
+        than the band is rejected at posting; the thin-auction
+        guard), and MAX_PRICE_PERIODS (upper bound on pricing periods
+        applied per quarter; if more prints qualify, adjacent periods
+        are merged and the merged slice is converted at the
+        lot-weighted mean of its prints). All three are SRA state,
+        governance-settable like the admitted lists (Section 3.2);
+        proposed initial values are maintained in the governance
+        repository (MIN_LOT of a few hundred USD, sized so that
+        correcting a mispriced qualifying lot is always profitable
+        for a competing bidder; MAX_PRICE_PERIODS = 32 against the
+        observed roughly weekly auction cadence).
+
   - **One conversion rule.** FPV is denominated in USD, and the
     pipeline has exactly one conversion point, on-chain. To recap who
     does what:
 
       - *Orchestrators report raw.* PostVolume carries the two
         components (admitted-stablecoin volume in USD at face value;
-        FIL volume in attoFIL). Orchestrators never convert.
+        FIL volume in attoFIL per pricing period, with print
+        references). Orchestrators never convert.
 
       - *The SRA converts, once.* At conversion finalization (step 3)
         the SRA computes the USD value of the bound figures:
@@ -587,11 +660,10 @@ Once per quarter, off the per-epoch path:
         Governance; the whitelist is SRA state, updated by SRA
         Governance like any registry change (Section 3.2)) count at
         face value with no conversion; the FIL component is converted
-        using a 30-day TWAP of the FIL/USD price read from an on-chain
-        oracle. The feed address and staleness threshold are governed
-        parameters. If the oracle is stale or unavailable at
-        finalization, the quarter's FIL volume counts as zero: the
-        gate can only under-count, never over-count.
+        at the qualifying prints per the FIL pricing rule above. The
+        prints are public on-chain events, so the conversion is
+        recomputable by anyone; there is no external feed to trust or
+        to go stale.
 
       - *The SWA reads USD only.* The gate comparison and SplitRule
         both consume the same once-converted values.
@@ -921,13 +993,14 @@ divided among orchestrators. In particular,
     verification-window durations are parameters settled in the
     governance repository (Section 4.4); the admitted-stablecoin
     whitelist, the admitted Filecoin Pay contract addresses, and the
-    FIL/USD oracle configuration (feed address, staleness threshold)
-    are SRA state, updated by SRA Governance under SRA_CANCEL_HOLD
-    like any registry change (Section 4.2). Read-only views expose the
-    registry, the bound volumes, and AggregatedFPV(Q) in USD (bound
-    stablecoin volume at face value, plus the quarter’s FIL volume
-    converted at the 30-day TWAP read from the FIL/USD oracle at
-    conversion finalization, Section 2.1), which the SWA’s gate reads.
+    FIL pricing parameters (MIN_LOT, PRICE_BAND, MAX_PRICE_PERIODS,
+    Section 2.3) are SRA state, updated by SRA Governance under
+    SRA_CANCEL_HOLD like any registry change (Section 4.2). Read-only
+    views expose the registry, the bound volumes, and AggregatedFPV(Q)
+    in USD (bound stablecoin volume at face value, plus the quarter’s
+    FIL volume converted at the qualifying fee-auction prints at
+    conversion finalization, Sections 2.1 and 2.3), which the SWA’s
+    gate reads.
 
   - **Frozen status.** Frozen means admitted but suspended, and it is
     reversible. While frozen, an Orchestrator cannot call RegisterPairs
@@ -953,13 +1026,17 @@ divided among orchestrators. In particular,
       - **PostVolume(Q, fpv).** Callable by an admitted, non-frozen
         Orchestrator, only during the posting period and at most once
         per quarter.
-        Posts its quarterly figure FPV_i(Q) as two components
-        (admitted-stablecoin volume in USD at face value;
-        FIL-denominated volume in attoFIL), deterministically
-        recomputable by anyone from public settlement events and the
+        Posts its quarterly figure FPV_i(Q) as two components:
+        admitted-stablecoin volume in USD at face value, and
+        FIL-denominated volume as a per-period vector of at most
+        MAX_PRICE_PERIODS entries (print reference, implied FIL/USD
+        rate, attoFIL amount), one per qualifying print of Q (Section
+        2.3). A posted print outside PRICE_BAND is rejected at
+        posting. Everything is deterministically recomputable by
+        anyone from public settlement and fee-auction events and the
         quarter’s registry state; the value binds only after the
         verification window (Section 2.1), during which SRA Governance
-        can correct a misreport.
+        can correct a misreport, wrong prints included.
 
       - **CorrectVolume(orch, Q, value).** Callable only by both
         Registry Safes jointly, and only during the verification
@@ -972,11 +1049,14 @@ divided among orchestrators. In particular,
 
       - **FinalizeConversion(Q).** Permissionless and idempotent;
         callable once the verification window for Q has closed.
-        Performs the quarter’s single FIL to USD conversion at the
-        30-day TWAP and stores the final USD figures (Section 2.1); if
-        the oracle is stale or unavailable, the FIL component is
-        stored as zero. Invoked automatically by QuarterlyGateCheck’s
-        read and by SubmitShares when not already run.
+        Performs the quarter’s single FIL to USD conversion in one
+        pass, applying each pricing period’s print to its attoFIL
+        amount (the FIL pricing rule, Section 2.3), and stores the
+        final USD figures (Section 2.1). Every bound period is priced
+        by construction (its print cleared within Q), so there is no
+        stale or unpriced case. Invoked automatically by
+        QuarterlyGateCheck’s read and by SubmitShares when not
+        already run.
 
       - **SubmitShares(Q).** Permissionless once every FPV_i(Q) for
         the quarter is bound. Triggers FinalizeConversion(Q) if it has
@@ -1077,7 +1157,10 @@ accepted FIP:
     whitelist and the admitted Filecoin Pay contract addresses
     (Section 2.1);
 
-  - the FIL/USD oracle configuration;
+  - the FIL pricing parameters (MIN_LOT, PRICE_BAND,
+    MAX_PRICE_PERIODS, Section 2.3); the prints themselves come from
+    the admitted Filecoin Pay contracts' fee auctions, so the print
+    source is already governed by the admitted lists;
 
   - upgrade the SRA's code, the one registry change that requires a
     FIP.
@@ -1280,9 +1363,9 @@ the contracts at runtime, for two reasons.
     Filecoin Pay values; each 5pp step multiplies the target by 2.7,
     reaching ~$3.66M at the final gate (45% → 50%). The schedule is
     fixed in code and stablecoin-anchored: stablecoin volume counts at
-    face, FIL volume via the 30-day TWAP oracle. Retuning it is a
-    SetGateParams write, which requires a published FIP but no network
-    upgrade.
+    face, FIL volume via the fee-auction prints (the FIL pricing
+    rule, Section 2.3). Retuning it is a SetGateParams write, which
+    requires a published FIP but no network upgrade.
 
 #### Why 10× to New Sectors
 
@@ -1325,11 +1408,27 @@ economy should clear before taking half the ceiling.
 The target is denominated in USD, so the target side is
 price-independent and oracle-free. On the measurement side, stablecoin
 settlements count at face value and FIL settlements are included,
-converted at a 30-day TWAP from an on-chain FIL/USD oracle. The
-resulting oracle dependency is acceptable because the TWAP turns
-manipulation into a weeks-long sustained-price attack whose payoff is
-bounded by the FIL share of volume, and a stale oracle defaults to
-counting FIL volume as zero.
+converted at Filecoin Pay's own fee-auction prints (the FIL pricing
+rule, Section 2.3), so no external price feed exists anywhere in the
+pipeline. The pricing is safe on four grounds. First, ordering: a
+settlement is always priced by a print that clears after it, so the
+applied rate is never known at transaction time; over-crediting
+requires FIL to rise after transacting, a speculative price risk
+rather than the riskless backward-looking arbitrage a trailing
+average would offer. Second, the manipulation asymmetry: pushing a
+print upward (the direction that inflates FIL volume credit) requires
+the lot to clear at too few FIL, which is open arbitrage that any
+competing bidder profitably corrects, while pushing it downward costs
+real FIL that is burned and lowers the manipulator's own credit.
+Third, blast radius: each print prices only the period ending at it,
+so sustaining an over-pricing requires winning every print, quarter
+after quarter, against open competition. Fourth, the guards: MIN_LOT
+keeps dust lots (where bidding competition is not economical) from
+pricing anything, PRICE_BAND rejects posted prints far off the last
+bound one, and the verification window makes every print publicly
+recomputable and correctable before it binds. In the degenerate case
+where no qualifying prints clear, FIL volume waits and the gate can
+only under-count, never over-count.
 
 ## Backwards Compatibility
 
