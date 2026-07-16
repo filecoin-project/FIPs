@@ -22,24 +22,24 @@ allocation system and replaces it with a two-part mechanism:
     content. The initial pledge mechanism is unchanged.
 
   - **The block reward is split into streams.** At every epoch the
-    minted block reward is divided by weight into named streams:
+    minted block reward is divided into named streams:
     
-      - **Service stream** (weight w2): paid out to registered Service
+      - **Service stream** pays out to registered Service
         Orchestrators proportional to their onchain service volume.
         The *Service Rewards Actor* (SRA), a new (governed) actor,
         contains and regulates the list of registered Orchestrators.
 
-      - **Consensus stream** (weight w1): flows to the winning miner
+      - **Consensus stream** pays the winning miner
         in the leader election mechanism, as today.
         
-      - **Burn stream** (weight w0): flows to the burn actor.
+      - **Burn stream** pays to the burn actor.
 
 
-These weights are set through another new (governed) actor, the *Stream
+The division among the streams happens according to **weights**: w0 for the burn stream, w1 for the consensus stream, w2 for the service stream. These weights are set through another new (governed) actor, the *Stream
 Weights Actor* (SWA), which at the time this FIP is accepted and shipped
 has the following definition for the existing weights:
 
-  - w2 follows a volume-gated step-up: it starts at 5% and (after a
+  - **w2** follows a volume-gated step-up: it starts at 5% and (after a
     bootstrap quarter) programmatically rises 5 percentage points per
     quarter, but only if the quarterly aggregated Filecoin Pay Volume
     (aggregatedFPV(Q), ie sum of deal payments settled through
@@ -48,10 +48,10 @@ has the following definition for the existing weights:
     predefined USD-denominated target (Section 3.1.1). If this
     condition fails, w2 stays constant.
     
-  - w1 follows a published linear ramp down from 95% to 50% over ~9
+  - **w1** follows a published linear ramp down from 95% to 50% over ~9
     quarters;
 
-  - w0 is set as the remainder (ie, w0 = 1 − w2 − w1) and is burned at
+  - **w0** is set as the remainder (ie, w0 = 1 − w2 − w1) and is burned at
 each epoch, providing deflationary discipline
 whenever the service economy has not yet proven the volume to justify a
 larger share.
@@ -59,7 +59,7 @@ larger share.
 
 ![Block-reward split across streams: burn (w0), service (w2) with orchestrator shares, consensus (w1) paying PoRep miners, and registrable future streams](../resources/fip-solstice/block-reward-split.png)
 
-*Figure 1: the two-level split. At each epoch, f02 divides the block reward across streams by weight: w1 to the consensus stream (winning miner, split by consensus power as today), w2 to the service stream (orchestrator wallets, shares s_i set quarterly by the SRA in proportion to Filecoin Pay volume), and the residual w0 = 1 - w1 - w2 to the burn actor. Dashed elements (future streams, future orchestrators) can be added later: streams by an SWA write under an accepted FIP (Section 2.4), orchestrators by SRA Governance (Section 3.2). The ~20M FIL / year issuance figure is indicative.*
+*Figure 1: the two-level split. At each epoch f02 divides the block reward among the streams by weight; each stream then pays its recipients by its own rule. Dashed elements (future streams, future orchestrators) can be added later (Sections 2.4 and 3.2). The ~20M FIL / year issuance figure is indicative.*
 
 ## Abstract
 
@@ -81,14 +81,14 @@ to a service-oriented economy. Two main changes:
     pledge formula is unchanged.
 
 2.  **Split the block reward into weighted streams.** At each
-    issuance, the built-in L1 Reward Actor (f02) divides the block
-    reward by weight:
+    issuance, the built-in L1 Reward Actor (f02) divides the full block
+    reward BR by weight:
 
-      - w2 to the *Service Orchestrator wallets* (service stream),
+      - w2 x BR to the *Service Orchestrator wallets* (service stream),
         
-      - w1 to the winning miner (consensus stream),
+      - w1 x BR to the winning miner (consensus stream),
 
-      - and the residual w0 = 1 − w2 − w1 to the burn actor.
+      - and the residual w0 x BR, with w0 = 1 − w2 − w1, to the burn actor.
 
 The Reward Actor (f02) performs the per-epoch split using the weight
 values for that epoch, which it computes from a set of cached, in-state
@@ -102,7 +102,7 @@ time. Each update writes the new parameters into the L1 Reward Actor
 (f02) and is subject to the activation timelock mechanism (see Section
 4). The SWA can also add new streams, subject to the L1-enforced
 constraint that the sum of all weights is equal to 1. At
-the time this FIP ships, the weight schedules for the two existing
+the time this FIP ships, the weight schedules for the existing
 streams are as follows. The weight w1 ramps down from 95% to 50% over
 roughly 9 quarters. During the first quarter (the bootstrap phase), w2 =
 1 − w1 so nothing is burned and w2 reaches 10% by the end of the
@@ -209,7 +209,8 @@ the subnet model pioneered by Bittensor and similar subnet-based
 incentive networks* (e.g. BitRobot), where a fixed emission is split
 across subnets by governed weights and redistributed according to a
 measured contribution. We acknowledge that conceptual inspiration
-directly.
+directly. As in those systems, the weights are not static: they can adjust over time in response to measured signals (here, the volume gate on w2), letting the network learn the right division of issuance rather than fixing it upfront.
+
 
 We do **not** adopt the word “subnet.” In Filecoin, “subnet” already has
 an established and different meaning: an IPC (InterPlanetary Consensus)
@@ -219,9 +220,8 @@ meaning and mislead readers into expecting a separate consensus network,
 sequencing, or settlement layer. None of that is involved here.
 
 We therefore use “**stream**”: each stream is a named, weighted share of
-every block reward at issuance, a flow of value, nothing more. The
-naming avoids a term already taken in this ecosystem while keeping the
-design's lineage explicit.
+every block reward at issuance, defined by its recipients (who it pays) and its weight (how large the share is). The naming avoids a term already taken in this ecosystem while keeping the design’s lineage explicit.
+
 
 #### Why a continuous ramp down for w1 (consensus reward stream weight)?
 
@@ -406,12 +406,12 @@ orchestrators** (see Figure 1).
     new stream needs no new code to be paid. Adding a future stream is
     an on-chain list write rather than a network upgrade. By
     governance convention it still requires an accepted FIP. We begin
-    with only two streams: Consensus and Service, at every epoch f02
-    reads its own state, splits BR across the two streams by current
-    weight, pays winning miner and each orchestrator wallet its share
+    with only 3 streams: Consensus, Service and Burn; at every epoch f02
+    reads its own state, splits BR across the streams by current
+    weight: pays winning miner and each orchestrator wallet its share
     of the service stream directly, and burns the remainder.
 
-2.  **Stream Weight Actor (SWA): the split AMONG streams.** It
+2.  **Stream Weights Actor (SWA): the split AMONG streams.** It
     registers or removes streams and sets every stream’s weight as a *Weight record*; each stream’s
     designated writer sets the wallets and shares within its own
     stream; and f02 itself enforces the hard guardrails (Σ_i w_i = 1, caps
@@ -611,7 +611,7 @@ Add the following structures and methods:
 1)  **Stream**: a named share of the block reward Stream = { id,
     WeightRecord, Distribution }.
 
-    1.  **Distribution**: who receives each stream. There are only two
+    1.  **Distribution**: the stream’s recipients and how the stream is split among them. There are only two
         possible values: IMPLICIT (nothing stored; f02 resolves the
         recipient from protocol state; consensus stream only). For example, the
         consensus stream is IMPLICIT, its recipient
@@ -767,7 +767,7 @@ reverting the epoch's distribution. Neither contract ever receives or
 holds value; the SWA only sets weights records and the SRA only computes
 shares, and both simply write them to f02.
 
-#### 3.1 Stream Weight Actor (SWA): the split among streams
+#### 3.1 Stream Weights Actor (SWA): the split among streams
 
 The SWA is the actor that sets and updates the weight records. In
 particular
@@ -1237,7 +1237,7 @@ The split is executed entirely by the f02 built-in actor, which stores
 the stream weights and the orchestrator wallet-to-share map in its own
 state and, each epoch, reads only that local state. It makes no FEVM
 call on the consensus path. The two governed contracts sit off the
-consensus path and only *write into* f02: the Stream Weight Actor pushes
+consensus path and only *write into* f02: the Stream Weights Actor pushes
 weights via SetWeightRecords and the SRA pushes the share map via
 SetShares, once per quarter. We chose this write-in topology, rather
 than routing the service stream through the SRA or having f02 read from
@@ -1260,7 +1260,7 @@ the contracts at runtime, for two reasons.
     (~0.00175 FIL for 10 TiB) is less than buying datacap at 5
     FIL/TiB amortized over 5 years (~0.0025 FIL/day).
 
-  - **w1 floor = 50%.** Half of block rewards always flow to
+  - **w1 floor = 50%.** Half of block rewards always paid to
     consensus, ambitious enough to signal long-term commitment,
     conservative enough to guarantee consensus-security funding.
 
