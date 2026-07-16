@@ -1410,25 +1410,11 @@ price-independent and oracle-free. On the measurement side, stablecoin
 settlements count at face value and FIL settlements are included,
 converted at Filecoin Pay's own fee-auction prints (the FIL pricing
 rule, Section 2.3), so no external price feed exists anywhere in the
-pipeline. The pricing is safe on four grounds. First, ordering: a
-settlement is always priced by a print that clears after it, so the
-applied rate is never known at transaction time; over-crediting
-requires FIL to rise after transacting, a speculative price risk
-rather than the riskless backward-looking arbitrage a trailing
-average would offer. Second, the manipulation asymmetry: pushing a
-print upward (the direction that inflates FIL volume credit) requires
-the lot to clear at too few FIL, which is open arbitrage that any
-competing bidder profitably corrects, while pushing it downward costs
-real FIL that is burned and lowers the manipulator's own credit.
-Third, blast radius: each print prices only the period ending at it,
-so sustaining an over-pricing requires winning every print, quarter
-after quarter, against open competition. Fourth, the guards: MIN_LOT
-keeps dust lots (where bidding competition is not economical) from
-pricing anything, PRICE_BAND rejects posted prints far off the last
-bound one, and the verification window makes every print publicly
-recomputable and correctable before it binds. In the degenerate case
-where no qualifying prints clear, FIL volume waits and the gate can
-only under-count, never over-count.
+pipeline. The manipulation analysis of the prints is in Security
+Considerations; the short version is that a settlement is always
+priced by a print that clears after it, over-pricing a print is open
+arbitrage against the manipulator, and a missing print can only
+under-count.
 
 ## Backwards Compatibility
 
@@ -1522,6 +1508,33 @@ mechanism itself.
     answered through audit, freeze, or removal, since bound values are
     final (Section 2.1). The verification-window length is an open
     parameter (Section 4.4).
+
+  - **FIL pricing manipulation.** FIL-denominated volume is priced by
+    Filecoin Pay's own fee-auction prints rather than an external
+    feed (Section 2.3), so there is no oracle operator to compromise
+    and no staleness failure mode; the residual risk is manipulation
+    of the prints themselves, and it is bounded on four sides.
+    Ordering: a settlement is priced by the first print that clears
+    after it, so the applied rate never exists at transaction time,
+    and over-crediting requires FIL to rise after transacting, a
+    speculative forward price risk rather than the riskless
+    backward-looking arbitrage a trailing average would offer.
+    Asymmetry: a print moves upward (the direction that inflates FIL
+    volume credit) only if the lot clears at too few FIL, which is
+    open arbitrage that any competing bidder profitably corrects,
+    while pushing it downward costs real FIL that is burned and
+    lowers the manipulator's own credit. Blast radius: each print
+    prices only the period ending at it, so sustaining an
+    over-pricing means winning every print, quarter after quarter,
+    against open competition. Guards: MIN_LOT excludes dust lots,
+    where bidding competition is not economical and the Dutch decay
+    could otherwise be ridden to an off-market print; PRICE_BAND
+    rejects posted prints far off the last bound one; and prints bind
+    through the same verification window as volume, publicly
+    recomputable and correctable before binding (Section 2.1). In the
+    degenerate case where no qualifying prints clear, pending FIL
+    volume stays uncounted: the gate can only under-count, never
+    over-count.
 
   - **Consensus-path safety of the split.** The per-epoch split runs
     in f02 from cached state with no external call, so a contract that
