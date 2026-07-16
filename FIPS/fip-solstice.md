@@ -525,7 +525,10 @@ Once per quarter, off the per-epoch path:
     share in proportion to its USD-denominated FPV_i(Q), using the
     same converted values as the gate (one oracle reading serves both
     the gate comparison and the split), and the SRA writes the
-    wallet-to-share map into f02 via SetShares.
+    wallet-to-share map into f02 via SetShares. Orchestrators frozen at
+    the close of the posting period are excluded from both
+    computations: their share is zero and their FPV does not enter
+    AggregatedFPV(Q) (Section 3.2).
 
 #### 2.3 FPV definitions
 
@@ -925,15 +928,31 @@ divided among orchestrators. In particular,
     stablecoin volume at face value, plus the quarter’s FIL volume
     converted at the 30-day TWAP read from the FIL/USD oracle at
     conversion finalization, Section 2.1), which the SWA’s gate reads.
-    Its methods:
+
+  - **Frozen status.** Frozen means admitted but suspended, and it is
+    reversible. While frozen, an Orchestrator cannot call RegisterPairs
+    or PostVolume; it is excluded from SplitRule (share = 0) and its
+    FPV from AggregatedFPV(Q), for any quarter whose posting period
+    closes while it is frozen; and its (payer, operator) bindings stay
+    bound (no poaching during a dispute): a pair moves only via
+    explicit ReassignBinding. Freeze and Unfreeze are ordinary registry
+    changes: both Registry Safes, queued under SRA_CANCEL_HOLD, no FIP
+    required (Section 4.2). Remove is the permanent counterpart and
+    releases the Orchestrator’s bindings: its pairs return to unclaimed
+    and become claimable via RegisterPairs. The freeze criteria, the
+    evidence standard, and the escalation-to-Remove policy live in the
+    governance repository (Section 4.4).
+
+  - Its methods:
 
       - **RegisterPairs(pairs).** Callable by an admitted, non-frozen
         Orchestrator, for itself. Declarations are accepted by
         default; the call reverts if any pair is already bound to
         another Orchestrator (the uniqueness invariant, Section 2.1).
 
-      - **PostVolume(Q, fpv).** Callable by an admitted Orchestrator,
-        only during the posting period and at most once per quarter.
+      - **PostVolume(Q, fpv).** Callable by an admitted, non-frozen
+        Orchestrator, only during the posting period and at most once
+        per quarter.
         Posts its quarterly figure FPV_i(Q) as two components
         (admitted-stablecoin volume in USD at face value;
         FIL-denominated volume in attoFIL), deterministically
@@ -963,15 +982,23 @@ divided among orchestrators. In particular,
         the quarter is bound. Triggers FinalizeConversion(Q) if it has
         not yet run, then computes each Orchestrator’s share via
         SplitRule over the stored USD values (Section 2.1) and writes
-        the wallet-to-share map into f02 via SetShares. Like the SWA’s
-        crank, it can submit only the value it computes, and it is not
-        held (Section 4.3).
+        the wallet-to-share map into f02 via SetShares. Orchestrators
+        frozen at the close of the posting period are excluded: their
+        share is zero and their FPV does not enter AggregatedFPV(Q).
+        Like the SWA’s crank, it can submit only the value it computes,
+        and it is not held (Section 4.3).
 
-      - **Admit(orch), Remove(orch), Freeze(orch), Replace(old, new),
-        ReassignBinding(pair, orch), SetAdmittedLists(stablecoins,
-        filecoin_pay_contracts).** Requires the approval of both
-        Registry Safes; each queues under SRA_CANCEL_HOLD before it
-        binds, and none requires a FIP (Section 4.2).
+      - **Admit(orch), Remove(orch), Freeze(orch), Unfreeze(orch),
+        Replace(old, new), ReassignBinding(pair, orch),
+        SetAdmittedLists(stablecoins, filecoin_pay_contracts).**
+        Requires the approval of both Registry Safes; each queues under
+        SRA_CANCEL_HOLD before it binds, and none requires a FIP
+        (Section 4.2). Freeze suspends an Orchestrator with the frozen
+        semantics above; Unfreeze restores it exactly. Remove releases
+        the Orchestrator’s bindings: its pairs return to unclaimed and
+        become claimable via RegisterPairs. A reassigned pair’s volume
+        counts toward the new Orchestrator from the epoch the change
+        binds; already-posted quarters are untouched.
 
       - **CancelPending(id).** Callable by either Registry Safe alone
         during the hold; discards the queued governance change. A
@@ -1037,7 +1064,7 @@ accepted FIP:
 **SRA Governance** discretionary powers, none requiring a per-change FIP
 (except the last):
 
-  - admit, remove, freeze, or replace an Orchestrator;
+  - admit, remove, freeze, unfreeze, or replace an Orchestrator;
 
   - reassign contested (payer, operator) bindings;
 
@@ -1055,8 +1082,9 @@ accepted FIP:
   - upgrade the SRA's code, the one registry change that requires a
     FIP.
 
-Admission criteria, the dispute procedure, the audit playbook, and the
-quarterly verification duty live in the governance repository.
+Admission criteria, the freeze criteria and evidence standard, the
+escalation-to-Remove policy, the dispute procedure, the audit playbook,
+and the quarterly verification duty live in the governance repository.
 
 **Service Orchestrators** are not considered a governance tier. An
 Orchestrator's only protocol interaction is receiving rewards and
@@ -1416,7 +1444,7 @@ mechanism itself.
   - **Compromised orchestrator wallet.** An orchestrator address holds
     no authority over weights or other participants' shares; misreports and bogus registrations are windowed and dispute-correctable. A key compromise cannot redirect the split, but
     the compromised wallet keeps receiving its share of w2 until
-    removal by the SRA.
+    freeze or removal by the SRA.
 
 ## Incentive Considerations
 
