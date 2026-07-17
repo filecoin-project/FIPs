@@ -59,7 +59,7 @@ larger share.
 
 ![Block-reward split across streams: burn (w0), service (w2) with orchestrator shares, consensus (w1) paying PoRep miners, and registrable future streams](../resources/fip-solstice/block-reward-split.png)
 
-*Figure 1: the two-level split. At each epoch f02 divides the block reward among the streams by weight; each stream then pays its recipients by its own rule. Dashed elements (future streams, future orchestrators) can be added later (Sections 2.4 and 3.2). The ~20M FIL / year issuance figure is indicative.*
+*Figure 1: the two-level split. f02 divides each block reward among the streams by that epoch’s weights; each stream then pays its recipients by its own rule. Dashed elements (future streams, future orchestrators) can be added later (Sections 2.4 and 3.2). The ~20M FIL / year issuance figure is indicative.*
 
 ## Abstract
 
@@ -90,11 +90,7 @@ to a service-oriented economy. Two main changes:
 
       - and the residual w0 x BR, with w0 = 1 − w2 − w1, to the burn actor.
 
-The Reward Actor (f02) performs the per-epoch split using the weight
-values for that epoch, which it computes from a set of cached, in-state
-scheduler parameters. No action is required from storage providers or
-orchestrators: the split is unconditional and applies to all new block
-rewards.
+The weights are per-epoch values that f02 computes from a set of cached, in-state scheduler parameters and applies to each block reward at issuance; since the split is linear, this is equivalent to a per-epoch division. BR is the newly minted block reward only: gas rewards remain paid in full to the winning miner, and penalties are assessed as today (Section 2.4).The split is unconditional and applies to all new block rewards.
 
 The **Stream Weights Actor (SWA)** is the new governed contract that
 computes all of the weight-schedule parameters and can update them over
@@ -121,8 +117,7 @@ with turning the service stream into real, paying storage demand, for
 example by funding client acquisition, integrations, migrations, and
 service infrastructure; what it does with the funds is operational and
 lies outside the protocol. Once the SRA writes the wallet-to-share map
-into f02, f02 pays each registered Orchestrator wallet its share
-directly each epoch. In **Phase 1** (this FIP), the registry begins with
+into f02, f02 credits each registered Orchestrator wallet its share of every block reward. In **Phase 1** (this FIP), the registry begins with
 a single Orchestrator address and relies on the governance tier
 responsible for the SRA (ie **SRA Governance**) to add or remove
 Orchestrators (see Sections 3 and 4). Each Orchestrator is bound in the
@@ -401,12 +396,12 @@ orchestrators** (see Figure 1).
 1.  **Reward actor (f02): the thin splitter (L1, built-in).** It holds
     an ordered *list of streams* records, each holding a *Weight* (how
     much of the block reward the stream receives) and a *Distribution*
-    (to whom it is paid). The per-epoch split logic is fixed and
+    (to whom it is paid). The split logic is fixed and
     simply iterates over whatever the list currently contains, so a
     new stream needs no new code to be paid. Adding a future stream is
     an on-chain list write rather than a network upgrade. By
     governance convention it still requires an accepted FIP. We begin
-    with only 3 streams: Consensus, Service and Burn; at every epoch f02
+    with only 3 streams: Consensus, Service and Burn; at each block-reward issuance, f02
     reads its own state, splits BR across the streams by current
     weight: pays winning miner and each orchestrator wallet its share
     of the service stream directly, and burns the remainder.
@@ -829,6 +824,30 @@ pays that epoch from the stored vector instead: total payout never
 exceeds the block reward, nothing halts, and the weights hold at their
 last valid values until the SWA repairs the schedule through the normal
 timelocked write.
+
+#### 2.5 Supply accounting
+
+(TO BE REVIEWED) f02 state holds total_storage_power_reward, the
+cumulative minted FIL awarded to block miners; clients read it to
+compute FilMined, an input to circulating supply. The split does not change how much is minted, only who
+receives it, so total_storage_power_reward alone no longer measures
+total minting; the following changes fixe the accounting:
+
+  - **total_storage_power_reward keeps its current meaning**: from
+    activation onward it accumulates only the consensus stream.
+
+  - f02 adds **one cumulative counter per non-consensus stream**,
+    total_stream_reward[id], incremented at accrual in AwardBlockReward.
+
+  - **FilMined MUST equal total_storage_power_reward + Σ_id
+    total_stream_reward[id]**, exposed via GetState [TODO: or a
+    dedicated read method, so Lotus, Forest, Venus, and downstream
+    consumers migrate uniformly].
+
+  - The burn stream is minted and transferred to f099: counted in
+    FilMined, captured by FilBurnt, net zero on circulating supply.
+
+
 
 ### 3. Two new contracts
 
