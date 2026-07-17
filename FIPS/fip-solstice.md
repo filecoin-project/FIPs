@@ -1,7 +1,7 @@
 ---
 fip: "to be assigned"
 title: (Solstice) Deprecate FIL+ and Fund Services via Block-Reward Split
-author: "Irene Giacomelli (@irenegia), Axel  Cortes Cubero (@AxCortesCubero), Michael Madoff (@decentramike), Molly Mackinlay (@momack2)"
+author: "Irene Giacomelli (@irenegia), Axel  Cortes Cubero (@AxCortesCubero), Michael Madoff (@decentramike), Molly Mackinlay (@momack2), Rod Vagg (@rvagg), William Morriss (@wjmelements)"
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/1249
 status: Draft
 type: Technical
