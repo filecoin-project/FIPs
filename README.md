@@ -143,7 +143,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0104](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0104.md) | Common Node API | FRC | David Ansermino (@ansermino), Aatif Syed (@aatifsyed), Alexey Krasnoperov (@AlexeyKrasnoperov) | Draft |
 | [0105](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0105.md) | Add Support for EIP-2537 (BLS12-381 Precompiles) in the FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Final |
 | [0106](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0106.md) | Removal of the ProveReplicaUpdates method from the miner actor | FIP | Rod Vagg (@rvagg) | Final |
-| [0107](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0107.md) | Implicit Messages in Block Receipts | FIP | Rod Vagg (@rvagg) | Last Call |
+| [0107](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0107.md) | Implicit Messages in Block Receipts | FIP | Rod Vagg (@rvagg) | Accepted |
 | [0108](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0108.md) | Filecoin Snapshot Format | FRC | Hailong Mu (@hanabi1224) | Accepted |
 | [0109](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0109.md) | Enable smart contract notifications for Direct Data Onboarding (DDO) | FIP | Rod Vagg (@rvagg) | Final |
 | [0110](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0110.md) | Allow Shorter Deal Durations | FIP | Will Scott (@willscott) | Draft |
@@ -152,4 +152,5 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0113](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0113.md) | secp256r1 (P-256) P256VERIFY Precompile for FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Final |
 | [0114](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0114.md) | Add Support for EIP-7939 (CLZ Opcode) in the FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Final |
 | [0115](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0115.md) | Premium Percentile Base Fee Target | FIP | William Morriss (@wjmelements), Lin Zexiao (@LinZexiao) | Final |
+| [0118](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0118.md) | (Solstice) Deprecate FIL+ and Fund Services via Block-Reward Split | FIP | Irene Giacomelli (@irenegia), Axel Cortes Cubero (@AxCortesCubero), Michael Madoff (@decentramike), Molly Mackinlay (@momack2), Rod Vagg (@rvagg), William Morriss (@wjmelements) | Accepted |
 | [XXXX](FIPS/fip-resnap.md) | Repeated SnapDeals (Re-Snap) with Piece-Level Integrity | FIP | Luca Nizzardo (@lucaniz) | Draft |
