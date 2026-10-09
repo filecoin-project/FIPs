@@ -8,7 +8,7 @@ type: Technical (Core)
 category: Core
 created: 2026-10-09
 spec-sections:
-  - systems/filecoin_mining/sector/lifecycle
+  - section-systems.filecoin_mining.sector.lifecycle
 requires: FIP-0067
 ---
 
