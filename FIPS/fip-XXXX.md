@@ -32,7 +32,6 @@ The reason to want it is retention. A sector at the cap cannot be extended at al
 
 From per-sector on-chain records in September 2026, roughly 118 PiB sits at the cap across all future expiry dates, out of about 1,339 PiB of network raw byte power. For that capacity the maximum lifetime is the only lever, and it is the cheapest one, since extending is a single message where re-sealing is full capital expenditure for storage the network already holds.
 
-A PoRep flaw is a separate matter, and is handled by retiring the proof type rather than by the cap. When that happens, an upgrade that also forbids extending old-proof sectors removes them within `MAX_SECTOR_EXPIRATION_EXTENSION` (3.5 years) whatever the maximum lifetime is; [FIP-0067](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0067.md) describes this as the current implicit policy.
 
 ## Specification
 
