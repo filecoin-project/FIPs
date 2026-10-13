@@ -35,7 +35,7 @@ From per-sector on-chain records in September 2026, roughly 118 PiB sits at the 
 
 ## Specification
 
-In `builtin-actors`, `seal_proof_sector_maximum_lifetime` returns `EPOCHS_IN_YEAR * 5` for one group of registered seal proof types. For that group it shall return `EPOCHS_IN_YEAR * 10`, that is **10,512,000 epochs** instead of 5,256,000.
+In `builtin-actors`, `seal_proof_sector_maximum_lifetime` returns `EPOCHS_IN_YEAR * 5` for one group of registered seal proof types. For that group it shall return `EPOCHS_IN_YEAR * 10`. With the current `EPOCHS_IN_YEAR` of 1,051,897 epochs, derived from `SECONDS_IN_YEAR / EPOCH_DURATION_SECONDS`, that is **10,518,970 epochs** instead of 5,259,485.
 
 The affected proof types are the fifteen that return 5 years today:
 
@@ -77,7 +77,7 @@ Any tooling that hard-codes a 5 year ceiling when displaying or validating expir
 
 ## Test Cases
 
-1. A sector of an affected proof type can be extended to an expiration of `activation + 10,512,000` epochs; a request for `activation + 10,512,001` is rejected.
+1. A sector of an affected proof type can be extended to an expiration of `activation + 10 * EPOCHS_IN_YEAR` epochs, currently 10,518,970; a request for one epoch beyond that is rejected.
 2. A sector already active at the upgrade epoch, whose expiration sits at the old 5 year ceiling, can be extended under the new bound.
 3. Reaching the new ceiling requires at least two extensions, because each remains bounded by `MAX_SECTOR_EXPIRATION_EXTENSION` from the current epoch.
 4. A sector of a `StackedDRG*V1` proof type still cannot be extended beyond 540 days after activation.
