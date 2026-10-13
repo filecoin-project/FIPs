@@ -28,10 +28,11 @@ This proposal changes that constant to 10 years for the affected proof types. No
 
 The cap bounds how long a sector keeps proving under the cost and latency assumptions that held when it was sealed. Raising it is a request to extend that horizon, and [discussion #1291](https://github.com/filecoin-project/FIPs/discussions/1291) carries the analysis that supports doing so.
 
-The reason to want it is retention. A sector at the cap cannot be extended at all: keeping its data and storage commitment into Filecoin means doing a new seal.
+The reason to want it is retention. A sector at the cap cannot be extended at all: keeping its data and its committed power means sealing it again from scratch.
 
-From per-sector on-chain records in September 2026, roughly 118 PiB sits at the cap across all future expiry dates, out of about 1,339 PiB of network raw byte power. For that capacity the maximum lifetime is the only lever, and it is the cheapest one, since extending is a single message where re-sealing is full capital expenditure for storage the network already holds.
+This is a standing requirement rather than a one-off. Under a 5 year cap, every sector that keeps data must be re-sealed every five years, whatever the deal term, and every sector sealed after this upgrade reaches the cap eventually. At today's raw byte power, holding capacity flat on that cycle would amount to on the order of 270 PiB of sealing a year. That figure is an upper bound, since it assumes each sector lives its full term and is then re-sealed, but it is the right order of magnitude for what the cap costs the network in sealing capacity. Doubling the lifetime halves it, permanently and for every sector onboarded from here on.
 
+The effect is already visible. From per-sector on-chain records in September 2026, roughly 118 PiB sits at or within 90 days of the cap, out of about 1,339 PiB of network raw byte power. That cohort is evidence rather than the case for the change: much of it expires before any upgrade carrying this FIP could activate, and the proposal should be judged on the sectors sealed from now on rather than on the ones already at the limit.
 
 ## Specification
 
@@ -108,13 +109,13 @@ One further point, on PreCommit Deposit (PCD):
 
 Pledge, the PreCommit Deposit, termination fees and fault fees are unchanged, and none of them depends on committed duration. The Security Considerations section explains why the PreCommit Deposit remains sufficient under the longer cap.
 
-The change removes a recurring cost rather than adding a reward: a provider keeping the same data no longer pays for a second seal at the five year mark. At 2026 prices that is roughly \$0.11 per raw TiB per year, under 1% of block reward for a sector carrying verified data, so the effect on provider income is small and the case rests on capacity retention.
+For a provider the change is felt at the moment a sector reaches the cap. Today the choice there is binary: pay for a full new seal to keep the same bytes, or let the data and its committed power go. After this change the same outcome costs a single extension message. Averaged over a sector's life the saving is modest, roughly \$0.11 per raw TiB per year at 2026 prices and under 1% of block reward for a sector carrying verified data, but providers do not meet it as an average: they meet it as a capital decision every five years, on every sector they intend to keep.
 
 Providers committing for longer lock pledge for longer and take on the risk of having to perform replacement sealing, or terminate, if the FIP-0067 policy is invoked. Committing longer remains optional.
 
 ## Product Considerations
 
-SPs can commit storage to the network for up to 10 years through repeated sector extensions, and this can happen without re-sealing.
+SPs can commit storage to the network for up to 10 years through repeated sector extensions, and this can happen without re-sealing. Clients wanting archival terms can be offered them without the provider carrying a re-seal at the five year mark.
 
 ## Implementation
 
