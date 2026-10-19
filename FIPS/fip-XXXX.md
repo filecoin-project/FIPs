@@ -82,7 +82,6 @@ Any tooling that hard-codes a 5 year ceiling when displaying or validating expir
 3. Reaching the new ceiling requires at least two extensions, because each remains bounded by `MAX_SECTOR_EXPIRATION_EXTENSION` from the current epoch.
 4. A sector of a `StackedDRG*V1` proof type still cannot be extended beyond 540 days after activation.
 5. A sector whose expiration is set through `UpgradeSectorQuality` is bounded by the same new ceiling as one extended through `ExtendSectorExpiration2`.
-6. A sector carrying a legacy FIL+ claim can be extended to the new ceiling without the claim being consulted.
 
 ## Security Considerations
 
