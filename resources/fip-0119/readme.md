@@ -18,13 +18,13 @@ Discussion: [#1291](https://github.com/filecoin-project/FIPs/discussions/1291)
 
 ## Related FIPs
 
-- [FIP-0014](../../FIPS/fip-0014.md) — set the 540 day lifetime for the V1 proof types, the only previous change to a maximum sector lifetime
-- [FIP-0047](../../FIPS/fip-0047.md) — Proof Expiration & PoRep Security Policy, superseded
-- [FIP-0052](../../FIPS/fip-0052.md) — raised the maximum commitment per extension to 3.5 years
-- [FIP-0067](../../FIPS/fip-0067.md) — PoRep Security Policy & Replacement Sealing Enforcement, which this proposal extends
-- [FIP-0118](../../FIPS/fip-0118.md) — Solstice, which removed claim validation from the extension path
+- [FIP-0014](../../FIPS/fip-0014.md)
+- [FIP-0047](../../FIPS/fip-0047.md)
+- [FIP-0052](../../FIPS/fip-0052.md)
+- [FIP-0067](../../FIPS/fip-0067.md)
+- [FIP-0118](../../FIPS/fip-0118.md)
 
 ## Related discussions
 
-- [#313](https://github.com/filecoin-project/FIPs/discussions/313) — where the 5 year cap is described as "the maximum sector lifespan for which we believe SDR PoRep is secure"
-- [#475](https://github.com/filecoin-project/FIPs/discussions/475) — the proposal that became FIP-0052
+- [#313](https://github.com/filecoin-project/FIPs/discussions/313)
+- [#475](https://github.com/filecoin-project/FIPs/discussions/475)
