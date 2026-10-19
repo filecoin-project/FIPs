@@ -53,7 +53,7 @@ The following are **unchanged** by this proposal:
 - The built-in market's deal duration bounds, initial pledge, termination fees and fault fees.
 - The proofs, their parameters, and the sealing process.
 
-The constant is read in a single place, `validate_expiration` in the miner actor, which is reached from `ProveCommit`, from `ExtendSectorExpiration` and `ExtendSectorExpiration2`, and from `UpgradeSectorQuality`, the Solstice call that can also set a new expiration. The new value therefore applies to every sector of an affected proof type, including sectors already active at the upgrade epoch. No state migration is required.
+The constant is read in a single place, `validate_expiration` in the miner actor, which is reached from `PreCommitSectorBatch2`, `ProveCommitSectorsNI`, `ExtendSectorExpiration2` and from `UpgradeSectorQuality`, the Solstice call that can also set a new expiration. The new value therefore applies to every sector of an affected proof type, including sectors already active at the upgrade epoch. No state migration is required.
 
 Sectors carrying legacy FIL+ claims extend like any other. [FIP-0118](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0118.md) removed claim validation from the extension path, so `MAXIMUM_VERIFIED_ALLOCATION_TERM` is not a constraint on reaching the new ceiling.
 
