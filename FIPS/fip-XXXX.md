@@ -114,7 +114,7 @@ Providers committing for longer lock pledge for longer and take on the risk of h
 
 ## Product Considerations
 
-SPs can commit storage to the network for up to 10 years through repeated sector extensions, and this can happen without re-sealing. Clients wanting archival terms can be offered them without the provider carrying a re-seal at the five year mark.
+SPs can commit storage to the network for up to 10 years through repeated sector extensions, and this can happen without re-sealing.
 
 ## Implementation
 
