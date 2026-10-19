@@ -119,7 +119,14 @@ SPs can commit storage to the network for up to 10 years through repeated sector
 
 ## Implementation
 
-A one line change to [`seal_proof_sector_maximum_lifetime`](https://github.com/filecoin-project/builtin-actors/blob/master/actors/miner/src/policy.rs#L89-L108) in `builtin-actors`, plus tests. No migration.
+- **builtin-actors**: one-line change to [`seal_proof_sector_maximum_lifetime`](https://github.com/filecoin-project/builtin-actors/blob/master/actors/miner/src/policy.rs#L89-L108), plus tests.
+- **go-state-types**: move the seal proof policy into the versioned miner actor packages, alongside `MaxSectorExpirationExtension`, as a `SealProofPolicies` map in each `builtin/vN/miner/policy.go` from v8 onward. Existing versions use the current values, and the actor version activating this FIP uses the values in this FIP. The global `builtin.SealProofPoliciesV11` and `builtin.SealProofSectorMaximumLifetime` are removed, so consumers must select by version. No migration code necessary.
+- **Lotus**:
+  - `GetSectorMaxLifetime` in the actors policy template selects by version: the specs-actors V0 map up to nv10, the specs-actors `SealProofPoliciesV11` for actors v3 to v7 from nv11, and `minerN.SealProofPolicies` from v8 onward, as `GetMaxSectorExpirationExtension` does today.
+  - SP CLI `sectors` extension planning already reads `GetSectorMaxLifetime` per network version; tests should cover extension to the 10 year maximum.
+- **Curio**: inherits the change through Lotus's `GetSectorMaxLifetime`; its expiration manager and `sptool` extension paths should be tested against the new maximum.
+- **Venus**: the same `GetSectorMaxLifetime` change in `venus-shared/actors/policy`.
+- **Forest**: the new maximum in the fil-actor-states miner `policy.rs` for the actor version activating this FIP.
 
 ## Copyright
 
