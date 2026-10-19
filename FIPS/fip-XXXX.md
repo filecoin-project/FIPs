@@ -9,7 +9,9 @@ category: Core
 created: 2026-10-09
 spec-sections:
   - section-systems.filecoin_mining.sector.lifecycle
-requires: FIP-0067
+requires:
+  - FIP-0067
+  - FIP-0118
 ---
 
 # FIP-XXXX: Increase maximum sector lifetime to 10 years
