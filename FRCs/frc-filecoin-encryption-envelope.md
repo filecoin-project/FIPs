@@ -435,7 +435,7 @@ Recipients within a single envelope MAY use different key wrapping algorithms. F
 ### Content Encryption Key (CEK) Requirements
 
 - The CEK MUST be exactly 32 bytes (256 bits).
-- A CEK unique to each encrypted object is RECOMMENDED. CEK generation and derivation are left to the key-management system. A key-management profile that reuses a CEK across encryptions MUST define how many encryptions may use it (see [Nonce uniqueness and CEK lifecycle](#nonce-uniqueness-and-cek-lifecycle)).
+- A CEK MUST NOT be used for more than one encryption. Each encryption, including a retry of the same plaintext or an aborted attempt, needs a new CEK. Wrapping one CEK for several recipients of the same encryption is not reuse. CEK generation and derivation are left to the key-management system (see [Nonce uniqueness and CEK reuse](#nonce-uniqueness-and-cek-reuse)).
 - Implementations MUST reject an all-zero CEK, including one recovered by unwrapping.
 - Encoders MUST generate the IV or base nonce from a cryptographically secure random source and MUST NOT accept a caller-supplied one.
 - Implementations SHOULD zeroize key material from memory after use.
@@ -543,22 +543,15 @@ Content tags do not cover the recipient array, so reordering or removing recipie
 
 Authentication failures are indistinguishable: a wrong CEK and a modified header, ciphertext or tag produce the same error.
 
-### Nonce uniqueness and CEK lifecycle
+### Nonce uniqueness and CEK reuse
 
-AES-GCM requires a distinct key/nonce pair for each encryption operation. All chunks of one FEE encryption use the same CEK, with distinct per-chunk nonces; the counter MUST NOT wrap.
+AES-GCM requires a distinct key/nonce pair for each encryption operation. All chunks of one FEE encryption use the same CEK with distinct per-chunk nonces; the counter MUST NOT wrap.
 
-Scheme 1 uses a randomly generated 12-byte nonce. Scheme 2 uses a randomly generated 7-byte base nonce and derives a distinct 12-byte AES-GCM nonce for each chunk from the chunk index and final-chunk flag. Chunks within one scheme 2 encryption are not separate random nonce draws, so the per-object randomness of scheme 2 is the 56-bit base nonce.
+Scheme 1 uses a random 12-byte nonce. Scheme 2 uses a random 7-byte base nonce and derives each chunk's nonce from it, so the per-object randomness of scheme 2 is 56 bits. If one CEK were used for many scheme 2 objects, the chance of two objects sharing a base nonce would reach about 50% after about 2^28 encryptions. A shared nonce under the same key exposes the XOR of the two plaintexts and allows tag forgery. Scheme 1 has more margin but the same failure mode. This is why FEE forbids CEK reuse.
 
-Under a reused CEK, two scheme 2 objects reach roughly even odds of a base-nonce collision after about 2^28 encryptions. A collision exposes keystream and allows tag forgery. A CEK unique to each encryption removes this risk. A key-management profile that reuses a CEK MUST keep the number of encryptions under it far below that bound, counting every writer, retry and aborted attempt.
+A fresh CEK can be generated at random, or derived from a master key and a context that changes for every encryption, such as a random salt carried in `app_metadata`. A derived CEK is recoverable by anyone holding the master key and the context; a random one must be wrapped or stored. A CEK derived from an object identifier alone, such as `KDF(master_key, plaintext_CID)`, repeats when the same object is encrypted again, so it does not meet this requirement.
 
-How the CEK is made unique is left to the key-management system. Two common approaches:
-
-- **A fresh CEK for each encryption.** Generate a random CEK, or derive one from a master key and context that changes for every encryption, such as a random salt carried in `app_metadata`. Each encryption, including a retry of the same plaintext, gets its own CEK. A derived CEK is recoverable by anyone holding the master key and the context; a random one must be wrapped or stored.
-- **A reproducible, object-based CEK.** Derive the CEK from a master key and an object identifier alone, such as `CEK = KDF(master_key, plaintext_CID)`. Encrypting the same object again then reuses the CEK, so a profile choosing this option must define its KDF inputs, nonce-reuse policy and per-key usage budget across all writers, retries, aborted attempts, chunks and bytes.
-
-An identical plaintext CID alone does not guarantee an identical encryption operation: protected metadata, its encoding, the envelope type or chunking may differ. Repeating identical key, nonce, plaintext and AAD gives identical output; changing AAD can change the tag even when the encrypted payload stays the same.
-
-One CEK is used for all chunks of an encryption; a separate CEK per chunk is not required. Retransmitting stored ciphertext is not another encryption operation. A counter capable of addressing about 1 PiB does not establish that this is a safe per-key workload; see RFC 9053 §4.1.1 for AES-GCM usage limits.
+Retransmitting stored ciphertext is not another encryption. A counter that can address about 1 PiB does not make that a safe workload for one key; see RFC 9053 §4.1.1 for AES-GCM usage limits.
 
 ### Streaming decryption
 
