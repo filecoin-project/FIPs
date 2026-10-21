@@ -355,7 +355,9 @@ and reject the object if `expected_ciphertext_length` differs from the actual ci
 
 #### Range Decryption
 
-Range decryption needs the envelope length and the exact blob length of the same object version. The blob length often comes from an untrusted source, such as a storage provider. Decoders MUST NOT release a chunk's plaintext before its tag verifies.
+Range decryption needs the envelope length and the exact blob length of the same object version. For data stored with PDP, the blob length comes from the piece's PieceCIDv2, which encodes the exact size of the stored bytes ([FRC-0069](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0069.md)); this is trustworthy when the PieceCID itself comes from a trusted source, such as the on-chain data set. A length from elsewhere, such as an HTTP response, is unverified. Decoders MUST NOT release a chunk's plaintext before its tag verifies.
+
+To find the envelope length, a reader can fetch a prefix of the blob and parse it. A 4 KiB first read covers typical envelopes, which are a few hundred bytes. Only a prefix that ends before the envelope does is worth extending: the reader fetches more, for example doubling the read each time, up to a fixed limit such as 1 MiB, and rejects the object beyond it. Any other decode error fails at once, since more bytes cannot change it.
 
 To decrypt a plaintext byte range `[offset, offset + length)`:
 
