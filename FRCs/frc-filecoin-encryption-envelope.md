@@ -50,7 +50,7 @@ This proposal addresses the encryption envelope, one component of a broader acce
 
 ## Specification
 
-The key words MUST, MUST NOT, REQUIRED, SHOULD, RECOMMENDED, MAY and OPTIONAL are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in all capitals.
+The key words MUST, MUST NOT, REQUIRED, SHOULD, SHOULD NOT, RECOMMENDED, MAY and OPTIONAL are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in all capitals.
 
 ### Terms
 
@@ -437,7 +437,7 @@ Recipients within a single envelope MAY use different key wrapping algorithms. F
 - The CEK MUST be exactly 32 bytes (256 bits).
 - A CEK MUST NOT be used for more than one encryption. Each encryption, including a retry of the same plaintext or an aborted attempt, needs a new CEK. Wrapping one CEK for several recipients of the same encryption is not reuse. CEK generation and derivation are left to the key-management system (see [Nonce uniqueness and CEK reuse](#nonce-uniqueness-and-cek-reuse)).
 - Implementations MUST reject an all-zero CEK, including one recovered by unwrapping.
-- Encoders MUST generate the IV or base nonce from a cryptographically secure random source and MUST NOT accept a caller-supplied one.
+- Encoders MUST generate a fresh IV or base nonce from a cryptographically secure random source for every encryption. Libraries SHOULD NOT let applications supply one; test tooling that needs reproducible output can fix it through an interface that is not exposed to applications.
 - Implementations SHOULD zeroize key material from memory after use.
 
 ## Design Rationale
