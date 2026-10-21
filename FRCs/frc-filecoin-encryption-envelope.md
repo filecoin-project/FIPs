@@ -138,9 +138,7 @@ algorithm_id = 3 / -65793
 
 app_metadata = { * tstr => any }
 ; String-keyed map for application-level metadata.
-; Defined keys:
-;   "cid" : bstr   ; CID of the original plaintext (OPTIONAL)
-; Applications MAY define additional keys.
+; Applications define their own keys.
 ```
 
 The content header maps list the FEE fields explicitly. They MUST NOT be replaced by an unrestricted `header_map`, because the content fields have stricter type and placement rules than COSE in general.
@@ -173,15 +171,9 @@ All protected values are unverified until an AEAD tag succeeds. See [What authen
 
 #### Application Metadata
 
-The `app_metadata` field is a CBOR map with string keys, carried in the protected headers so that its integrity is guaranteed by the AEAD authentication. Applications MAY use this field to store metadata about the plaintext, such as the original CID.
+The `app_metadata` field is a CBOR map with string keys, carried in the protected headers so that its integrity is guaranteed by the AEAD authentication. Applications MAY use this field to store metadata about the plaintext, such as how the CEK was derived.
 
-Defined keys:
-
-| Key     | Type | Description                                                                                                                |
-| ------- | ---- | -------------------------------------------------------------------------------------------------------------------------- |
-| `"cid"` | bstr | CID of the original plaintext. Enables inspection or filtering before decryption; content verification is a separate step. |
-
-Applications MAY define additional string keys. Implementations MUST ignore unknown keys. A decoder MUST reject an `app_metadata` value that is not a map, or a map with a key that is not a text string.
+Applications define their own string keys. Implementations MUST ignore keys they do not understand. A decoder MUST reject an `app_metadata` value that is not a map, or a map with a key that is not a text string.
 
 ### Unprotected Headers
 
@@ -499,7 +491,7 @@ If a plaintext that is an exact multiple of `chunk_size` could end either in a f
 
 ### Why app_metadata in protected headers?
 
-Application metadata such as the plaintext CID is integrity-sensitive: if an attacker could swap the CID without detection, a consumer might associate the encrypted blob with the wrong content. Placing `app_metadata` in the protected headers covers it with the AEAD authentication.
+Application metadata, such as an application-defined identifier, is integrity-sensitive: if an attacker could swap it without detection, a consumer might associate the encrypted blob with the wrong content. Placing `app_metadata` in the protected headers covers it with the AEAD authentication.
 
 The trade-off is that all metadata values must be known at encryption time and are immutable. For content-addressed storage, where the data itself is immutable, this is the appropriate default.
 
@@ -539,7 +531,7 @@ Scheme 1 is implemented only in the TypeScript library, so no cross-implementati
 
 ### What authentication proves
 
-Envelope metadata is unverified until a relevant AEAD tag succeeds. Before then, fields such as `chunk_size`, `plaintext_length`, content type and plaintext CID MAY guide bounded parsing and retrieval but MUST NOT be trusted. After authentication, a plaintext CID is still a claim by a CEK holder and MUST be checked against the decrypted plaintext.
+Envelope metadata is unverified until a relevant AEAD tag succeeds. Before then, fields such as `chunk_size`, `plaintext_length`, content type and application metadata MAY guide bounded parsing and retrieval but MUST NOT be trusted. After authentication, application metadata is still only a claim by a CEK holder; an application that relies on a content identifier in it needs to check it against the decrypted plaintext.
 
 Content tags do not cover the recipient array, so reordering or removing recipients does not invalidate them. Successful decryption proves knowledge of the CEK, not sender identity or an authenticated access-control policy; those properties require a separate mechanism.
 
@@ -578,7 +570,7 @@ Protected and unprotected headers are visible without the decryption key. This i
 - The encryption algorithm and parameters are disclosed.
 - The plaintext length is disclosed when `plaintext_length` is present; it is also approximately derivable from the ciphertext length.
 - The plaintext content type, if present, is disclosed.
-- Application metadata (including the plaintext CID, if present) is disclosed.
+- Application metadata is disclosed. A content hash such as the plaintext CID links the encrypted object to any public copy of the same bytes and shows when two uploaders stored the same file, so applications SHOULD NOT put one in `app_metadata`. A hash of the CID prevents browsing but still lets anyone holding a candidate CID confirm a match.
 - The number and type of recipients are disclosed.
 
 Applications that require metadata confidentiality should either omit sensitive fields from `app_metadata` or apply an outer encryption layer.
