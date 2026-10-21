@@ -252,7 +252,7 @@ The ciphertext following the envelope is:
 [encrypted_data || authentication_tag]
 ```
 
-where `authentication_tag` is 16 bytes. This scheme is not seekable. `chunk_size` and `plaintext_length` MUST NOT appear in a scheme 1 envelope.
+where `authentication_tag` is 16 bytes. This scheme is not seekable and is limited to 2^32 - 2 blocks (about 64 GiB) of plaintext by AES-GCM. A decoder cannot release any plaintext before verifying the single tag, so implementations typically apply a much lower limit; scheme 2 is intended for large objects. `chunk_size` and `plaintext_length` MUST NOT appear in a scheme 1 envelope.
 
 ### Scheme 2: Chunked AES-256-GCM with STREAM (Algorithm -65793)
 
@@ -532,6 +532,8 @@ Cross-implementation test vectors are maintained alongside the implementations l
 - a plaintext that is an exact multiple of `chunk_size`
 - A256KW and ECDH-ES+A256KW recipients in one envelope
 - whole-object decryption, range decryption and recipient unwrapping in both implementations
+
+Scheme 1 is implemented only in the TypeScript library, so no cross-implementation vectors cover it yet.
 
 ## Security Considerations
 
