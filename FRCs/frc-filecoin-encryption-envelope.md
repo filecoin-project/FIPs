@@ -50,7 +50,7 @@ This proposal addresses the encryption envelope, one component of a broader acce
 
 ## Specification
 
-The key words MUST, MUST NOT, SHOULD, RECOMMENDED and MAY are to be interpreted as described in RFC 2119 and RFC 8174.
+The key words MUST, MUST NOT, REQUIRED, SHOULD, RECOMMENDED, MAY and OPTIONAL are to be interpreted as described in RFC 2119 and RFC 8174 when, and only when, they appear in all capitals.
 
 ### Terms
 
@@ -262,7 +262,7 @@ A seekable encryption scheme that splits plaintext into fixed-size chunks, each 
 - **Key size**: 256 bits (32 bytes)
 - **Base nonce**: 7 bytes, randomly generated, stored in the protected header `iv` (label 5)
 - **Chunk size**: stored in the protected header `chunk_size` (label -1). Default: 262,144 bytes (256 KiB).
-- **Plaintext length**: OPTIONALLY committed in the protected header `plaintext_length` (label -65789) when the length is known before encryption.
+- **Plaintext length**: optionally committed in the protected header `plaintext_length` (label -65789) when the length is known before encryption.
 
 #### Chunk Size Constraints
 
@@ -478,7 +478,7 @@ COSE defines no seekable or chunked encryption format. All IANA-registered COSE 
 - **age (C2SP)**: ChaCha20-Poly1305 with 64 KiB chunks
 - **STREAM (Hoang et al., 2015)**: the theoretical foundation
 
-The STREAM nonce construction (base_nonce || counter || last_flag) provides:
+The STREAM nonce construction (base_nonce || chunk_index || last_flag) provides:
 
 - **Chunk independence**: any chunk can be decrypted without processing preceding chunks
 - **Order enforcement**: reordering chunks produces wrong nonces, so authentication fails
