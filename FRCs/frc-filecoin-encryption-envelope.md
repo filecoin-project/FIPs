@@ -30,7 +30,7 @@ FEE is a profile of COSE: the subset of COSE structures, header rules and option
 
 ### Private data on Filecoin needs encryption
 
-Filecoin's Proof of Data Possession (PDP) requires storage providers to access the raw data, which means unencrypted data is inherently exposed. Client-side encryption is the only way to achieve confidentiality guarantees that do not depend on provider trust.
+Filecoin's Proof of Data Possession (PDP) requires that storage providers have access to the raw data to generate Merkle proofs, and further exposes random 32-byte segments of raw data in public via on-chain proof submission. Client-side encryption is the only way to achieve confidentiality guarantees from both storage providers and the public at large.
 
 ### No standard exists
 
@@ -611,7 +611,7 @@ For a 1 GiB plaintext with 256 KiB chunks, authentication tags add approximately
 
 ## Implementation
 
-- [`@filoz/filecoin-encryption-envelope`](https://github.com/FilOzone/synapse-sdk/tree/master/packages/filecoin-encryption-envelope) (TypeScript, Node.js and browsers): schemes 1 and 2, A256KW recipients, range decryption. It does not implement ECDH-ES key recovery yet.
+- [`filecoin-encryption-envelope`](https://github.com/FilOzone/synapse-sdk/tree/master/packages/filecoin-encryption-envelope) (TypeScript, Node.js and browsers): schemes 1 and 2, A256KW recipients, range decryption. It does not implement ECDH-ES key recovery yet.
 - [`go-fee`](https://github.com/filecoin-project/go-fee) (Go): scheme 2, A256KW and ECDH-ES+A256KW (X25519) recipients, range decryption. It does not implement scheme 1.
 
 The two are pinned against each other by cross-implementation test vectors in [`go-fee/vectors`](https://github.com/filecoin-project/go-fee/tree/main/vectors).
