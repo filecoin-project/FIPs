@@ -1,7 +1,7 @@
 ---
 fip: "XXXX"
 title: Size the miner actor's reward-derived charges (faults) by the consensus weight
-author: "Luca Nizzardo (@lucaniz)"
+author: "Luca Nizzardo (@lucaniz), Irene Giacomelli (@irenegia)"
 discussions-to: https://github.com/filecoin-project/FIPs/discussions/1302
 status: Draft
 type: Technical (Core)
