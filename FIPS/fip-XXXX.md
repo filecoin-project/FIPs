@@ -37,7 +37,7 @@ Two charges are affected materially.
 
 **Fault penalties.** The continued-fault fee and the invalid-WindowPoSt penalty are both projections of a faulty sector's earnings. This is the largest continuous exposure, charged per sector per day at the weight in force that day.
 
-It is worth being clear about the size. Over the last 365 days the fault fee came to about 214,000 FIL, 0.93% of minted rewards, from the Filecoin Data Portal's `storage_provider_cron_penalty_assessed_fil`, which Lily computes from the fault fee function rather than from traced burns. Scaling it at $`w_1 = 0.5`$ would return at most about 107,000 FIL a year to providers, against roughly 11.5M FIL of reduced receipts over the same period. The correction is small beside the reduction that prompts it, and the case for making it is that the charge should mean what it says.
+Over the last 365 days the fault fee came to about 214,000 FIL, 0.93% of minted rewards, from the Filecoin Data Portal's `storage_provider_cron_penalty_assessed_fil`, which Lily computes from the fault fee function rather than from traced burns. Scaling it at $`w_1 = 0.5`$ would return at most about 107,000 FIL a year to providers, against roughly 11.5M FIL of reduced receipts over the same period.
 
 **The consensus-fault penalty and its reporter reward.** The penalty is five per-winner rewards, one whole epoch of issuance, and the reporter is paid a twentieth of the epoch reward, from the `BlockReward / 4` that FIP-0011 set. Both are taken from the unsplit estimate, while the revenue an equivocating SP collects is $`w_1`$ of it.
 
