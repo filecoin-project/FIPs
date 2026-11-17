@@ -156,3 +156,4 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0119](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0119.md) | Increase maximum sector lifetime to 10 years | FIP | Luca Nizzardo (@lucaniz) | Last Call |
 | [0120](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0120.md) | Filecoin Encryption Envelope | FRC | Jakub Sztandera (@Kubuxu), Natalie Bravo (@bravonatalie) | Draft |
 | [0121](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0121.md) | Remove the Fil+ Actors (f06, f07, f080) | FIP | Rod Vagg (@rvagg) | Draft |
+| [0122](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0122.md) | Size the miner actor's reward-derived charges (faults) by the consensus weight | FIP | Luca Nizzardo (@lucaniz), Irene Giacomelli (@irenegia) | Draft |
