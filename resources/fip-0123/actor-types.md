@@ -1,6 +1,6 @@
 # Builtin actor type names
 
-Actor type names defined by [FIP-XXXX](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-draft_actor-type-indirection.md), used in the `Type` field of actors from state tree version 6 and as keys in the builtin actors manifest. A FIP that adds or retires a type updates this table in the same pull request.
+Actor type names defined by [FIP-0123](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0123.md), used in the `Type` field of actors from state tree version 6 and as keys in the builtin actors manifest. A FIP that adds or retires a type updates this table in the same pull request.
 
 ## Rules
 
