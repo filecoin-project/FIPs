@@ -155,5 +155,5 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0118](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0118.md) | (Solstice) Deprecate FIL+ and Fund Services via Block-Reward Split | FIP | Irene Giacomelli (@irenegia), Axel Cortes Cubero (@AxCortesCubero), Michael Madoff (@decentramike), Molly Mackinlay (@momack2), Rod Vagg (@rvagg), William Morriss (@wjmelements) | Final |
 | [0119](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0119.md) | Increase maximum sector lifetime to 10 years | FIP | Luca Nizzardo (@lucaniz) | Last Call |
 | [0120](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0120.md) | Filecoin Encryption Envelope | FRC | Jakub Sztandera (@Kubuxu), Natalie Bravo (@bravonatalie) | Draft |
-| [0121](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0121.md) | Remove the Fil+ Actors (f06, f07, f080) | FIP | Rod Vagg (@rvagg) | Draft |
+| [0121](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0121.md) | Remove the Fil+ Actors (f06, f07, f080) | FIP | Rod Vagg (@rvagg) | Last Call |
 | [0122](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0122.md) | Size the miner actor's reward-derived charges (faults) by the consensus weight | FIP | Luca Nizzardo (@lucaniz), Irene Giacomelli (@irenegia) | Draft |
