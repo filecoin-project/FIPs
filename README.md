@@ -152,6 +152,7 @@ This improvement protocol helps achieve that objective for all members of the Fi
 | [0113](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0113.md) | secp256r1 (P-256) P256VERIFY Precompile for FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Final |
 | [0114](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0114.md) | Add Support for EIP-7939 (CLZ Opcode) in the FEVM | FIP | Aarav Mehta (@aaravm), Michael Seiler (@snissn) | Final |
 | [0115](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0115.md) | Premium Percentile Base Fee Target | FIP | William Morriss (@wjmelements), Lin Zexiao (@LinZexiao) | Final |
+| [0117](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0117.md) | Repeated SnapDeals (Re-Snap) with Piece-Level Integrity | FIP | Luca Nizzardo (@lucaniz) | Draft |
 | [0118](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0118.md) | (Solstice) Deprecate FIL+ and Fund Services via Block-Reward Split | FIP | Irene Giacomelli (@irenegia), Axel Cortes Cubero (@AxCortesCubero), Michael Madoff (@decentramike), Molly Mackinlay (@momack2), Rod Vagg (@rvagg), William Morriss (@wjmelements) | Final |
 | [0119](https://github.com/filecoin-project/FIPs/blob/master/FIPS/fip-0119.md) | Increase maximum sector lifetime to 10 years | FIP | Luca Nizzardo (@lucaniz) | Accepted |
 | [0120](https://github.com/filecoin-project/FIPs/blob/master/FRCs/frc-0120.md) | Filecoin Encryption Envelope | FRC | Jakub Sztandera (@Kubuxu), Natalie Bravo (@bravonatalie) | Draft |
